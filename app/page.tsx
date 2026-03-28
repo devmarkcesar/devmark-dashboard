@@ -492,7 +492,7 @@ export default function Dashboard() {
         )}
 
         {/* Footer */}
-        <p style={{ textAlign: 'center', fontSize: 10, color: T.textMuted, paddingTop: 8 }}>
+        <p style={{ textAlign: 'center', fontSize: 15, color: T.textMuted, paddingTop: 8 }}>
           ® devmarkcesaranaya
         </p>
       </div>
