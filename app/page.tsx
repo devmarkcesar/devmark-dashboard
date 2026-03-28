@@ -271,7 +271,7 @@ export default function Dashboard() {
         </div>
 
         {/* Section: Sistema */}
-        <p style={{ fontSize: 9, fontWeight: 700, letterSpacing: '0.1em', color: T.sideText, opacity: 0.3, textTransform: 'uppercase', padding: '0 16px 6px' }}>Sistema</p>
+        <p style={{ fontSize: 12, fontWeight: 700, letterSpacing: '0.1em', color: T.sideText, opacity: 0.3, textTransform: 'uppercase', padding: '0 16px 6px' }}>Sistema</p>
         {([
           ['agents',   '⊞', 'Todos los agentes'],
           ['projects', '▤', 'Proyectos Jira'],
@@ -282,15 +282,15 @@ export default function Dashboard() {
             color: tab === id ? '#fff' : 'rgba(241,239,232,0.4)',
             background: tab === id ? 'rgba(24,95,165,0.22)' : 'transparent',
             borderLeft: tab === id ? `2px solid ${T.teal}` : '2px solid transparent',
-            fontSize: 12, fontWeight: tab === id ? 600 : 400, transition: 'all 0.15s',
+            fontSize: 15, fontWeight: tab === id ? 600 : 400, transition: 'all 0.15s',
           }}>
-            <span style={{ fontSize: 14, opacity: 0.8 }}>{icon}</span>
+            <span style={{ fontSize: 17, opacity: 0.8 }}>{icon}</span>
             {label}
           </div>
         ))}
 
         {/* Section: Categorías */}
-        <p style={{ fontSize: 9, fontWeight: 700, letterSpacing: '0.1em', color: T.sideText, opacity: 0.3, textTransform: 'uppercase', padding: '14px 16px 6px' }}>Categorías</p>
+        <p style={{ fontSize: 12, fontWeight: 700, letterSpacing: '0.1em', color: T.sideText, opacity: 0.3, textTransform: 'uppercase', padding: '14px 16px 6px' }}>Categorías</p>
         {([
           ['Gestión',    T.blue],
           ['Desarrollo', T.teal],
@@ -299,18 +299,18 @@ export default function Dashboard() {
         ] as [string, string][]).map(([cat, color]) => (
           <div key={cat} onClick={() => { setCatFilter(f => f === cat ? null : cat); setTab('agents'); setSidebarOpen(false) }} style={{
             display: 'flex', alignItems: 'center', gap: 7, padding: '5px 16px', cursor: 'pointer',
-            color: catFilter === cat ? '#fff' : 'rgba(241,239,232,0.38)', fontSize: 11, transition: 'all 0.12s',
+            color: catFilter === cat ? '#fff' : 'rgba(241,239,232,0.38)', fontSize: 14, transition: 'all 0.12s',
           }}>
-            <div style={{ width: 7, height: 7, borderRadius: '50%', background: color, flexShrink: 0,
+            <div style={{ width: 9, height: 9, borderRadius: '50%', background: color, flexShrink: 0,
               opacity: catFilter && catFilter !== cat ? 0.4 : 1 }} />
             {cat}
           </div>
         ))}
         <div onClick={() => { setCatFilter(null); setSidebarOpen(false) }} style={{
           display: 'flex', alignItems: 'center', gap: 7, padding: '5px 16px', cursor: 'pointer',
-          color: 'rgba(241,239,232,0.28)', fontSize: 11,
+          color: 'rgba(241,239,232,0.28)', fontSize: 14,
         }}>
-          <div style={{ width: 7, height: 7, borderRadius: '50%', background: 'rgba(255,255,255,0.2)', flexShrink: 0 }} />
+          <div style={{ width: 9, height: 9, borderRadius: '50%', background: 'rgba(255,255,255,0.2)', flexShrink: 0 }} />
           Todos
         </div>
 
@@ -493,7 +493,7 @@ export default function Dashboard() {
 
         {/* Footer */}
         <p style={{ textAlign: 'center', fontSize: 10, color: T.textMuted, paddingTop: 8 }}>
-          devmark · {agents.length} agentes · Actualización cada 30s · Supabase + Vercel
+          ® devmarkcesaranaya
         </p>
       </div>
     </div>
