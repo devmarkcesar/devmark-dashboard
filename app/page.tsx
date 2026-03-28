@@ -45,11 +45,12 @@ const T = {
   teal:       '#1D9E75',
   carbon:     '#444441',
   bone:       '#F1EFE8',
-  navyDark:   '#0a2540',
-  card:       'rgba(255,255,255,0.05)',
-  cardHover:  'rgba(255,255,255,0.08)',
-  border:     'rgba(241,239,232,0.1)',
-  borderHover:'rgba(241,239,232,0.2)',
+  white:      '#FFFFFF',
+  navyDark:   '#091E33',
+  card:       '#0E3557',
+  cardHover:  '#123D63',
+  border:     'rgba(241,239,232,0.12)',
+  borderHover:'rgba(241,239,232,0.22)',
 }
 
 const CAT_COLOR: Record<string, string> = {
@@ -96,8 +97,8 @@ function StatCard({ label, value, sub, accent }: { label: string; value: string 
       background: T.card, border: `1px solid ${T.border}`,
       borderTop: `3px solid ${accent}`, borderRadius: 12, padding: '14px 16px',
     }}>
-      <p style={{ fontSize: 10, fontWeight: 700, color: T.bone, opacity: 0.5, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 6 }}>{label}</p>
-      <p style={{ fontSize: 26, fontWeight: 700, color: accent === T.teal ? T.teal : T.bone, lineHeight: 1 }}>{value}</p>
+      <p style={{ fontSize: 10, fontWeight: 700, color: T.white, opacity: 0.5, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 6 }}>{label}</p>
+      <p style={{ fontSize: 26, fontWeight: 700, color: '#FFFFFF', lineHeight: 1 }}>{value}</p>
       <p style={{ fontSize: 10, color: T.bone, opacity: 0.38, marginTop: 4 }}>{sub}</p>
     </div>
   )
@@ -125,7 +126,7 @@ function AgentCard({ agent, selected, onClick }: { agent: Agent; selected: boole
           background: `${CAT_COLOR[agent.category] || T.blue}20`,
         }}>{agent.icon}</div>
         <div style={{ minWidth: 0 }}>
-          <p style={{ fontSize: 12, fontWeight: 700, color: T.bone, lineHeight: 1.25, marginBottom: 2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{agent.name}</p>
+          <p style={{ fontSize: 12, fontWeight: 700, color: '#FFFFFF', lineHeight: 1.25, marginBottom: 2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{agent.name}</p>
           <p style={{ fontSize: 9, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: CAT_COLOR[agent.category] || T.blue }}>{agent.category}</p>
         </div>
       </div>

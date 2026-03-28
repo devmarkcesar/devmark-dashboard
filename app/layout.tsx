@@ -20,9 +20,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           zIndex: 55,
         }}>
           <div style={{
-            maxWidth: 1600,
-            margin: '0 auto',
-            padding: '0 24px',
+            width: '100%',
+            padding: '0 32px',
             display: 'flex',
             alignItems: 'center',
             height: 56,
@@ -69,7 +68,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           </div>
         </nav>
 
-        <main style={{ maxWidth: 1600, margin: '0 auto', padding: '20px 24px' }}>
+        <main style={{ width: '100%', padding: '20px 32px' }}>
           {children}
         </main>
       </body>
