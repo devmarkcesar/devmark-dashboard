@@ -310,12 +310,7 @@ export default function Dashboard() {
           Todos
         </div>
 
-        {/* Cost badge */}
-        <div style={{ padding: '14px 16px', borderTop: `1px solid ${T.border}`, marginTop: 12 }}>
-          <p style={{ fontSize: 9, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: T.bone, opacity: 0.25, marginBottom: 4 }}>Costo mensual</p>
-          <p style={{ fontSize: 22, fontWeight: 700, color: T.teal }}>$0.00</p>
-          <p style={{ fontSize: 9, color: T.bone, opacity: 0.22 }}>100% capas gratuitas</p>
-        </div>
+
       </aside>
 
       {/* ── MAIN CONTENT ── */}
