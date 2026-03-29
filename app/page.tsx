@@ -111,7 +111,7 @@ export default function Dashboard() {
         {tab === 'telegram' && <LogsTab logs={logs} />}
 
         <p style={{ textAlign: 'center', fontSize: 15, color: T.textMuted, paddingTop: 8 }}>
-          devmarkcesaranaya
+          ©devmarkcesaranaya - 2026
         </p>
       </div>
     </div>

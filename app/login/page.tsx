@@ -161,7 +161,7 @@ export default function LoginPage() {
       </div>
 
       <p style={{ textAlign: 'center', fontSize: 13, color: 'rgba(241,239,232,0.22)', marginTop: 24 }}>
-        devmarkcesaranaya
+        ©devmarkcesaranaya - 2026
       </p>
     </div>
   )
