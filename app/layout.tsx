@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import './globals.css'
+import { LogoutButton } from './components/LogoutButton'
 
 export const metadata: Metadata = {
   title: 'devmark — Dashboard',
@@ -65,7 +66,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 }}>LIVE 24/7</span>
               </div>
             </div>
-          </div>
+            <LogoutButton />          </div>
         </nav>
 
         <main style={{ width: '100%' }}>
