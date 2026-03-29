@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { T, CAT_COLOR } from './tokens'
 import { AgentCard, Panel, PanelTitle, CatTab } from './ui'
 import { jiraBadge } from './tokens'
+import { ActivityChart } from './ActivityChart'
 import type { Agent, Task } from './types'
 
 interface AgentsTabProps {
@@ -123,6 +124,12 @@ export function AgentsTab({ agents, tasks, onShowProjects }: AgentsTabProps) {
           )}
         </Panel>
       </div>
+
+      {/* Gráfica de actividad */}
+      <Panel>
+        <PanelTitle>📊 Actividad de agentes (tareas completadas)</PanelTitle>
+        <ActivityChart agents={agents} />
+      </Panel>
     </>
   )
 }
