@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
-import { T } from '../../components/tokens'
+import { T, statusLabel } from '../../components/tokens'
 import type { Agent } from '../../components/types'
 
 interface ChatMessage {
@@ -25,15 +25,35 @@ export default function AgentDetailPage() {
 
   useEffect(() => {
     async function load() {
-      const [{ data: agentData }, { data: chatData }] = await Promise.all([
-        supabase.from('agents').select('*').eq('id', agentId).single(),
-        supabase.from('chat_history').select('*').eq('agent_id', agentId).order('created_at', { ascending: true }),
-      ])
+      // Cargar agente por su ID de Supabase
+      const { data: agentData } = await supabase
+        .from('agents').select('*').eq('id', agentId).single()
       if (agentData) setAgent(agentData)
-      if (chatData)  setHistory(chatData)
+
+      // El bot guarda chat_history con agent_id = posición secuencial (1-22).
+      // Los IDs de Supabase empiezan en el menor id disponible, así que
+      // calculamos el id secuencial ordenando todos los agentes por id.
+      const { data: allAgents } = await supabase
+        .from('agents').select('id').order('id', { ascending: true })
+      const seqId = allAgents ? allAgents.findIndex((a: { id: number }) => a.id === agentId) + 1 : null
+
+      if (seqId) {
+        const { data: chatData } = await supabase
+          .from('chat_history').select('*')
+          .eq('agent_id', seqId)
+          .order('created_at', { ascending: true })
+        if (chatData) setHistory(chatData)
+      }
       setLoading(false)
     }
     load()
+
+    // Actualizar estado del agente en tiempo real
+    const ch = supabase.channel(`agent-detail-${agentId}`)
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'agents', filter: `id=eq.${agentId}` },
+        (p) => { if (p.new) setAgent(prev => prev ? { ...prev, ...p.new as Agent } : prev) })
+      .subscribe()
+    return () => { supabase.removeChannel(ch) }
   }, [agentId])
 
   if (loading) {
@@ -81,7 +101,7 @@ export default function AgentDetailPage() {
           <h1 style={{ fontSize: 20, fontWeight: 700, color: T.bone, margin: 0 }}>{agent.name}</h1>
           <div style={{ display: 'flex', gap: 8, marginTop: 4, alignItems: 'center' }}>
             <span style={{ fontSize: 10, padding: '2px 9px', borderRadius: 99, background: `${statusColor}22`, color: statusColor, fontWeight: 700 }}>
-              {agent.status}
+              {statusLabel(agent.status)}
             </span>
             <span style={{ fontSize: 11, color: 'rgba(241,239,232,0.45)' }}>{agent.category}</span>
             <span style={{ fontSize: 11, color: 'rgba(241,239,232,0.45)' }}>· {agent.tasks_done} tareas</span>
