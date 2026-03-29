@@ -1,11 +1,9 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 
 export default function LoginPage() {
-  const router = useRouter()
   const [email,    setEmail]    = useState('')
   const [password, setPassword] = useState('')
   const [error,    setError]    = useState('')
@@ -24,8 +22,7 @@ export default function LoginPage() {
       return
     }
 
-    router.push('/')
-    router.refresh()
+    window.location.href = '/'
   }
 
   return (
@@ -163,8 +160,8 @@ export default function LoginPage() {
         </form>
       </div>
 
-      <p style={{ marginTop: 24, fontSize: 11, color: 'rgba(241,239,232,0.3)' }}>
-        devmark OS · Acceso autorizado únicamente
+      <p style={{ textAlign: 'center', fontSize: 13, color: 'rgba(241,239,232,0.22)', marginTop: 24 }}>
+        devmarkcesaranaya
       </p>
     </div>
   )
