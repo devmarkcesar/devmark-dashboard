@@ -1,5 +1,6 @@
 'use client'
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { T, CAT_COLOR, statusDotColor, statusLabel } from './tokens'
 import type { Agent } from './types'
 
@@ -24,6 +25,7 @@ export function AgentCard({ agent, selected, onClick }: {
   agent: Agent; selected: boolean; onClick: () => void
 }) {
   const [hov, setHov] = useState(false)
+  const router = useRouter()
   return (
     <div
       onClick={onClick}
@@ -57,6 +59,17 @@ export function AgentCard({ agent, selected, onClick }: {
         {agent.tasks_done > 0 && (
           <span style={{ marginLeft: 'auto', fontSize: 9, color: T.textMuted }}>{agent.tasks_done} tareas</span>
         )}
+        <button
+          onClick={(e) => { e.stopPropagation(); router.push(`/agente/${agent.id}`) }}
+          style={{
+            marginLeft: agent.tasks_done > 0 ? 6 : 'auto',
+            fontSize: 9, fontWeight: 700, color: T.teal,
+            background: 'none', border: 'none', cursor: 'pointer', padding: 0,
+            letterSpacing: '0.03em', textDecoration: 'underline', opacity: 0.75,
+          }}
+        >
+          historial →
+        </button>
       </div>
     </div>
   )
