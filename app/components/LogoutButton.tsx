@@ -7,6 +7,8 @@ export function LogoutButton() {
   const router = useRouter()
 
   async function handleLogout() {
+    // Marcar que este logout es intencional (no por sesion expirada)
+    sessionStorage.setItem('logout_intentional', '1')
     await supabase.auth.signOut()
     router.push('/login')
     router.refresh()

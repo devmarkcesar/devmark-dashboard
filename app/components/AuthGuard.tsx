@@ -1,28 +1,35 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, usePathname } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 
 /**
- * Componente que envuelve páginas protegidas.
- * Muestra un banner si la sesión expiró y redirige a /login.
+ * Muestra un banner solo cuando la sesión expira por inactividad (no por logout manual).
  */
 export function AuthGuard({ children }: { children: React.ReactNode }) {
-  const router = useRouter()
+  const router   = useRouter()
+  const pathname = usePathname()
   const [expired, setExpired] = useState(false)
 
+  // Ocultar banner si ya navegamos a /login
   useEffect(() => {
-    // Escuchar cambios de sesión en tiempo real
+    if (pathname === '/login') setExpired(false)
+  }, [pathname])
+
+  useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
-      if (event === 'SIGNED_OUT' || event === 'TOKEN_REFRESHED') {
-        // TOKEN_REFRESHED es normal; solo actuar en SIGNED_OUT
-        if (event === 'SIGNED_OUT') {
-          setExpired(true)
-          setTimeout(() => {
-            router.push('/login')
-          }, 2500)
+      if (event === 'SIGNED_OUT') {
+        // Si fue un logout manual, no mostrar banner
+        if (sessionStorage.getItem('logout_intentional') === '1') {
+          sessionStorage.removeItem('logout_intentional')
+          return
         }
+        // Sesión expirada por inactividad
+        setExpired(true)
+        setTimeout(() => {
+          router.push('/login')
+        }, 2500)
       }
     })
     return () => subscription.unsubscribe()
