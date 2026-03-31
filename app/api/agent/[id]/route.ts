@@ -5,12 +5,13 @@ import { NextRequest, NextResponse } from 'next/server'
 
 export async function GET(
   _req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const session = await getServerSession(authOptions)
   if (!session) return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
 
-  const agentId = Number(params.id)
+  const { id } = await params
+  const agentId = Number(id)
   if (isNaN(agentId)) return NextResponse.json({ error: 'ID inválido' }, { status: 400 })
 
   const [agentRes, historyRes] = await Promise.all([
