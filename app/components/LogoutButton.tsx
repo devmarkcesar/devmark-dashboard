@@ -1,22 +1,11 @@
 'use client'
 
-import { useRouter } from 'next/navigation'
-import { supabase } from '@/lib/supabase'
+import { signOut } from 'next-auth/react'
 
 export function LogoutButton() {
-  const router = useRouter()
-
-  async function handleLogout() {
-    // Marcar que este logout es intencional (no por sesion expirada)
-    sessionStorage.setItem('logout_intentional', '1')
-    await supabase.auth.signOut()
-    router.push('/login')
-    router.refresh()
-  }
-
   return (
     <button
-      onClick={handleLogout}
+      onClick={() => signOut({ callbackUrl: '/login' })}
       style={{
         marginLeft: 'auto',
         padding: '6px 14px',

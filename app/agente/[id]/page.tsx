@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter, useParams } from 'next/navigation'
-import { supabase } from '@/lib/supabase'
 import { T, statusLabel } from '../../components/tokens'
 import type { Agent } from '../../components/types'
 
@@ -24,46 +23,30 @@ export default function AgentDetailPage() {
   const [loading,  setLoading]  = useState(true)
   const [search,   setSearch]   = useState('')
   const [clearing, setClearing] = useState(false)
-  const [seqId,    setSeqId]    = useState<number | null>(null)
 
   async function load() {
-    const { data: agentData } = await supabase
-      .from('agents').select('*').eq('id', agentId).single()
-    if (agentData) setAgent(agentData)
-
-    const { data: allAgents } = await supabase
-      .from('agents').select('id').order('id', { ascending: true })
-    const sid = allAgents ? allAgents.findIndex((a: { id: number }) => a.id === agentId) + 1 : null
-    setSeqId(sid)
-
-    if (sid) {
-      const { data: chatData } = await supabase
-        .from('chat_history').select('*')
-        .eq('agent_id', sid)
-        .order('created_at', { ascending: true })
-      if (chatData) setHistory(chatData)
-    }
+    const res = await fetch(`/api/agent/${agentId}`)
+    if (!res.ok) return
+    const data = await res.json()
+    if (data.agent)   setAgent(data.agent)
+    if (data.history) setHistory(data.history)
     setLoading(false)
   }
 
   useEffect(() => {
     load()
-    const ch = supabase.channel(`agent-detail-${agentId}`)
-      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'agents', filter: `id=eq.${agentId}` },
-        (p) => { if (p.new) setAgent(prev => prev ? { ...prev, ...p.new as Agent } : prev) })
-      .subscribe()
-    return () => { supabase.removeChannel(ch) }
+    const iv = setInterval(load, 30000)
+    return () => clearInterval(iv)
   }, [agentId])
 
   async function handleClearHistory() {
-    if (!seqId) return
     if (!window.confirm(`¿Borrar toda la memoria de ${agent?.name}? Esta acción no se puede deshacer.`)) return
     setClearing(true)
     try {
       await fetch('/api/clear-history', {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ seqAgentId: seqId }),
+        body: JSON.stringify({ seqAgentId: agentId }),
       })
       setHistory([])
     } finally {

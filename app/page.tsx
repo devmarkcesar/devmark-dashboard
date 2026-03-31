@@ -1,7 +1,6 @@
 ﻿'use client'
 
 import { useEffect, useState } from 'react'
-import { supabase } from '@/lib/supabase'
 import { T } from './components/tokens'
 import { StatCard } from './components/ui'
 import { Sidebar } from './components/Sidebar'
@@ -25,30 +24,17 @@ export default function Dashboard() {
   useEffect(() => {
     fetchAll()
     const iv = setInterval(fetchAll, 30000)
-
-    const ch = supabase.channel('agents-rt')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'agents' }, (p) => {
-        const updated = p.new as unknown as Agent | undefined
-        if (updated?.name) {
-          setAgents(prev => prev.map(a => a.name === updated.name ? { ...a, ...updated } : a))
-        }
-      })
-      .subscribe()
-
-    return () => { clearInterval(iv); supabase.removeChannel(ch) }
+    return () => { clearInterval(iv) }
   }, [])
 
   async function fetchAll() {
-    const [ar, pr, tr, lr] = await Promise.all([
-      supabase.from('agents').select('*').order('id'),
-      supabase.from('projects').select('*').order('created_at', { ascending: false }),
-      supabase.from('tasks').select('*').order('created_at', { ascending: false }),
-      supabase.from('logs').select('*').order('timestamp', { ascending: false }).limit(50),
-    ])
-    if (ar.data) setAgents(ar.data)
-    if (pr.data) setProjects(pr.data)
-    if (tr.data) setTasks(tr.data)
-    if (lr.data) setLogs(lr.data)
+    const res = await fetch('/api/data')
+    if (!res.ok) return
+    const data = await res.json()
+    if (data.agents)   setAgents(data.agents)
+    if (data.projects) setProjects(data.projects)
+    if (data.tasks)    setTasks(data.tasks)
+    if (data.logs)     setLogs(data.logs)
     setLoading(false)
   }
 

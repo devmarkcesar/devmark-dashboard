@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { supabase } from '@/lib/supabase'
+import { signIn } from 'next-auth/react'
 
 export default function LoginPage() {
   const [email,    setEmail]    = useState('')
@@ -14,9 +14,9 @@ export default function LoginPage() {
     setError('')
     setLoading(true)
 
-    const { error } = await supabase.auth.signInWithPassword({ email, password })
+    const result = await signIn('credentials', { email, password, redirect: false })
 
-    if (error) {
+    if (result?.error) {
       setError('Credenciales incorrectas. Verifica tu correo y contraseña.')
       setLoading(false)
       return
