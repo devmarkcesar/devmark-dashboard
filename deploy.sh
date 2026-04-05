@@ -21,6 +21,8 @@ cp -r "$APP_DIR/.next/static" "$APP_DIR/.next/standalone/.next/static"
 cp "$APP_DIR/.env.production" "$APP_DIR/.next/standalone/.env.production"
 
 echo "→ Reiniciando PM2..."
-pm2 restart devmark-dashboard
+pm2 delete devmark-dashboard 2>/dev/null || true
+pm2 start "$APP_DIR/ecosystem.config.js"
+pm2 save
 
 echo "✓ Deploy completado"
