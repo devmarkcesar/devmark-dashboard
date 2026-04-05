@@ -8,13 +8,24 @@ if (fs.existsSync(envPath)) {
     if (idx > 0 && !line.startsWith('#')) {
       const key = line.substring(0, idx).trim();
       let val = line.substring(idx + 1).replace(/\r$/, '');
-      // Strip surrounding single/double quotes (prevents dotenv-expand from mangling $2b$10$... hashes)
+      // Strip surrounding single/double quotes
       if (val.length >= 2 &&
           ((val[0] === "'" && val[val.length - 1] === "'") ||
            (val[0] === '"' && val[val.length - 1] === '"'))) {
         val = val.slice(1, -1);
       }
-      if (key) process.env[key] = val;
+      if (!key) return;
+      // Use defineProperty so Next.js loadEnvConfig() cannot overwrite via dotenv-expand
+      try {
+        Object.defineProperty(process.env, key, {
+          get: () => val,
+          set: () => {}, // silently discard overwrites from dotenv-expand
+          configurable: true,
+          enumerable: true,
+        });
+      } catch {
+        process.env[key] = val;
+      }
     }
   });
 }
