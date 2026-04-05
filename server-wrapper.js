@@ -14,18 +14,9 @@ if (fs.existsSync(envPath)) {
            (val[0] === '"' && val[val.length - 1] === '"'))) {
         val = val.slice(1, -1);
       }
-      if (!key) return;
-      // Use defineProperty so Next.js loadEnvConfig() cannot overwrite via dotenv-expand
-      try {
-        Object.defineProperty(process.env, key, {
-          get: () => val,
-          set: () => {}, // silently discard overwrites from dotenv-expand
-          configurable: true,
-          enumerable: true,
-        });
-      } catch {
-        process.env[key] = val;
-      }
+      // Unescape \$ → $ (dotenv-expand escape convention)
+      val = val.replace(/\\\$/g, '$');
+      if (key) process.env[key] = val;
     }
   });
 }
