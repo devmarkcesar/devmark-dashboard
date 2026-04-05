@@ -17,6 +17,7 @@ npm run build
 echo "→ Copiando archivos estáticos al standalone..."
 cp -r "$APP_DIR/public" "$APP_DIR/.next/standalone/public"
 cp -r "$APP_DIR/.next/static" "$APP_DIR/.next/standalone/.next/static"
+cp "$APP_DIR/.env.production" "$APP_DIR/.next/standalone/.env.production"
 
 echo "→ Reiniciando PM2..."
 pm2 restart devmark-dashboard
