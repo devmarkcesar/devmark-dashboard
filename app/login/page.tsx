@@ -139,9 +139,9 @@ export default function LoginPage() {
 
       <footer style={{ borderTop: '1px solid rgba(255,255,255,0.06)', marginTop: 32, paddingTop: 20, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10 }}>
         <img
-          src="/logos/horizontal/dev-hori-v7-1.png"
+          src="/logos/horizontal/dev-hori-v7-1.png?v=2"
           alt="devmark"
-          style={{ height: 54, width: 'auto', objectFit: 'contain' }}
+          style={{ height: 62, width: 'auto', objectFit: 'contain' }}
         />
         <p style={{ fontSize: 15, color: 'rgba(255,255,255,0.5)', margin: 0, fontWeight: 500 }}>© 2026 devmark</p>
       </footer>

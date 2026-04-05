@@ -22,7 +22,7 @@ export function NavbarWrapper() {
           <img
             src="/logos/horizontal/dev-hori-v7-1.png"
             alt="devmark"
-            style={{ height: 38, width: 'auto', objectFit: 'contain' }}
+            style={{ height: 44, width: 'auto', objectFit: 'contain' }}
           />
           <div style={{
             background: 'rgba(29,158,117,0.18)',
