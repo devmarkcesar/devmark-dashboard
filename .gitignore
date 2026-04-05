@@ -7,4 +7,5 @@ node_modules/
 .env*.local
 
 # Archivos de infraestructura local
-public/
+public/*.html
+public/*.conf
