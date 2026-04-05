@@ -49,7 +49,7 @@ export default function LoginPage() {
           Iniciar sesión
         </h1>
         <p style={{ fontSize: 13, color: '#8A8A87', marginBottom: 28 }}>
-          Acceso restringido — devmark OS
+          Acceso restringido — devmark
         </p>
 
         <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
