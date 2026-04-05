@@ -8,7 +8,7 @@ cd "$APP_DIR"
 git pull
 
 echo "→ Instalando dependencias..."
-npm install
+npm install --include=dev
 
 echo "→ Compilando..."
 rm -rf .next
