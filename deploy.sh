@@ -21,7 +21,6 @@ cp -r "$APP_DIR/.next/static" "$APP_DIR/.next/standalone/.next/static"
 cp "$APP_DIR/.env.production" "$APP_DIR/.next/standalone/.env.production"
 
 echo "→ Reiniciando PM2..."
-set -a; source "$APP_DIR/.env.production"; set +a
-pm2 restart devmark-dashboard --update-env
+pm2 restart devmark-dashboard
 
 echo "✓ Deploy completado"
