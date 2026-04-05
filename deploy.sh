@@ -8,7 +8,7 @@ cd "$APP_DIR"
 git pull
 
 echo "→ Instalando dependencias..."
-npm install --omit=dev
+npm install
 
 echo "→ Compilando..."
 npm run build
