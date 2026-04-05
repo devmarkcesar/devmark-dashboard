@@ -16,19 +16,13 @@ export function NavbarWrapper() {
       top: 0,
       zIndex: 55,
     }}>
-      <div style={{
-        width: '100%',
-        padding: '0 32px',
-        display: 'flex',
-        alignItems: 'center',
-        height: 56,
-      }}>
+      <div className="navbar-inner">
         {/* Brand */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
           <img
             src="/logos/horizontal/dev-hori-v7-1.png"
             alt="devmark"
-            style={{ height: 36, width: 'auto', objectFit: 'contain' }}
+            style={{ height: 38, width: 'auto', objectFit: 'contain' }}
           />
           <div style={{
             background: 'rgba(29,158,117,0.18)',

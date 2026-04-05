@@ -160,6 +160,20 @@ body {
   }
 }
 
+/* ─── Navbar ────────────────────────────────────────────────────────────── */
+.navbar-inner {
+  width: 100%;
+  padding: 0 32px;
+  display: flex;
+  align-items: center;
+  height: 56px;
+}
+@media (max-width: 639px) {
+  .navbar-inner {
+    padding: 0 16px;
+  }
+}
+
 /* ─── Agent detail page ──────────────────────────────────────────────────── */
 .agent-detail-content {
   max-width: 800px;

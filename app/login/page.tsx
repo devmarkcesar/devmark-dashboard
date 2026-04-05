@@ -141,7 +141,7 @@ export default function LoginPage() {
         <img
           src="/logos/horizontal/dev-hori-v7-1.png"
           alt="devmark"
-          style={{ height: 52, width: 'auto', objectFit: 'contain' }}
+          style={{ height: 54, width: 'auto', objectFit: 'contain' }}
         />
         <p style={{ fontSize: 15, color: 'rgba(255,255,255,0.5)', margin: 0, fontWeight: 500 }}>© 2026 devmark</p>
       </footer>
