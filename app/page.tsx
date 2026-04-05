@@ -58,9 +58,9 @@ export default function Dashboard() {
     <div className="dashboard-layout">
       <button
         className="sidebar-toggle"
-        onClick={() => setSidebarOpen(true)}
+        onClick={() => setSidebarOpen(prev => !prev)}
         style={{
-          position: 'fixed', bottom: 20, left: 20, zIndex: 40,
+          position: 'fixed', bottom: 20, left: 20, zIndex: 60,
           width: 48, height: 48, borderRadius: 12,
           background: T.teal, border: 'none', cursor: 'pointer',
           color: '#fff', fontSize: 22, boxShadow: '0 4px 16px rgba(0,0,0,0.3)',
