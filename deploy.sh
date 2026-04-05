@@ -11,6 +11,7 @@ echo "→ Instalando dependencias..."
 npm install
 
 echo "→ Compilando..."
+rm -rf .next
 npm run build
 
 echo "→ Copiando archivos estáticos al standalone..."
