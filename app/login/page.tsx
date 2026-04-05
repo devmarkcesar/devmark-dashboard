@@ -36,7 +36,7 @@ export default function LoginPage() {
       padding: '0 16px',
     }}>
 
-      {/* Card */
+      {/* Card */}
       <div style={{
         background: '#F1EFE8',
         borderRadius: 14,
