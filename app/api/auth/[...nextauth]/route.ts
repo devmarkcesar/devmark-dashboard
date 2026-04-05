@@ -11,6 +11,17 @@ export const authOptions: NextAuthOptions = {
         password: { label: 'Password', type: 'password' },
       },
       async authorize(credentials: Record<string, string> | undefined) {
+        console.log('AUTH_DEBUG:', {
+          hasCredentials: !!credentials,
+          hasEmail: !!credentials?.email,
+          hasPassword: !!credentials?.password,
+          adminEmailSet: !!process.env.ADMIN_EMAIL,
+          adminHashSet: !!process.env.ADMIN_PASSWORD_HASH,
+          adminHashLen: process.env.ADMIN_PASSWORD_HASH?.length,
+          emailMatch: credentials?.email === process.env.ADMIN_EMAIL,
+          secretSet: !!process.env.NEXTAUTH_SECRET,
+        })
+
         if (!credentials?.email || !credentials?.password) return null
 
         const adminEmail = process.env.ADMIN_EMAIL
@@ -20,6 +31,7 @@ export const authOptions: NextAuthOptions = {
         if (credentials.email !== adminEmail) return null
 
         const valid = await bcrypt.compare(credentials.password, adminHash)
+        console.log('AUTH_DEBUG bcrypt result:', valid)
         if (!valid) return null
 
         return { id: '1', email: adminEmail, name: 'César Anaya' }
