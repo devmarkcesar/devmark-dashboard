@@ -36,16 +36,7 @@ export default function LoginPage() {
       padding: '0 16px',
     }}>
 
-      {/* Logo */}
-      <div style={{ marginBottom: 40 }}>
-        <img
-          src="/logos/horizontal/dev-hori-v7-1.png"
-          alt="devmark"
-          style={{ height: 52, width: 'auto', objectFit: 'contain' }}
-        />
-      </div>
-
-      {/* Card */}
+      {/* Card */
       <div style={{
         background: '#F1EFE8',
         borderRadius: 14,

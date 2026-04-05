@@ -6,6 +6,9 @@ import { AuthGuard } from './components/AuthGuard'
 export const metadata: Metadata = {
   title: 'devmark — Dashboard',
   description: 'Panel de control devmark con 22 agentes de IA',
+  icons: {
+    icon: '/logos/favicon/favicon-verde-v3-1.png',
+  },
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
