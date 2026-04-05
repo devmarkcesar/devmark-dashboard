@@ -37,26 +37,12 @@ export default function LoginPage() {
     }}>
 
       {/* Logo */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 40 }}>
-        <div style={{
-          background: '#1D9E75',
-          borderRadius: 10,
-          width: 44,
-          height: 44,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}>
-          <svg width="24" height="24" viewBox="0 0 16 16" fill="none">
-            <rect x="1" y="1" width="6" height="6" rx="1.5" fill="white"/>
-            <rect x="9" y="1" width="6" height="6" rx="1.5" fill="rgba(255,255,255,0.4)"/>
-            <rect x="1" y="9" width="6" height="6" rx="1.5" fill="rgba(255,255,255,0.4)"/>
-            <rect x="9" y="9" width="6" height="6" rx="1.5" fill="white"/>
-          </svg>
-        </div>
-        <span style={{ fontSize: 28, fontWeight: 700, letterSpacing: '-0.02em', color: '#fff' }}>
-          dev<span style={{ color: '#1D9E75' }}>mark</span>
-        </span>
+      <div style={{ marginBottom: 40 }}>
+        <img
+          src="/logos/horizontal/dev-hori-v7-1.png"
+          alt="devmark"
+          style={{ height: 52, width: 'auto', objectFit: 'contain' }}
+        />
       </div>
 
       {/* Card */}
@@ -160,9 +146,14 @@ export default function LoginPage() {
         </form>
       </div>
 
-      <p style={{ textAlign: 'center', fontSize: 13, color: 'rgba(241,239,232,0.22)', marginTop: 24 }}>
-        ©devmarkcesaranaya - 2026
-      </p>
+      <footer style={{ borderTop: '1px solid rgba(255,255,255,0.06)', marginTop: 32, paddingTop: 20, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10 }}>
+        <img
+          src="/logos/horizontal/dev-hori-v7-1.png"
+          alt="devmark"
+          style={{ height: 52, width: 'auto', objectFit: 'contain' }}
+        />
+        <p style={{ fontSize: 15, color: 'rgba(255,255,255,0.5)', margin: 0, fontWeight: 500 }}>© 2026 devmark</p>
+      </footer>
     </div>
   )
 }

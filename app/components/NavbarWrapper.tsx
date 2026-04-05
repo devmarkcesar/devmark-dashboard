@@ -25,26 +25,11 @@ export function NavbarWrapper() {
       }}>
         {/* Brand */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <div style={{
-            background: '#1D9E75',
-            borderRadius: 8,
-            width: 32,
-            height: 32,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            flexShrink: 0,
-          }}>
-            <svg width="18" height="18" viewBox="0 0 16 16" fill="none">
-              <rect x="1" y="1" width="6" height="6" rx="1.5" fill="white"/>
-              <rect x="9" y="1" width="6" height="6" rx="1.5" fill="rgba(255,255,255,0.4)"/>
-              <rect x="1" y="9" width="6" height="6" rx="1.5" fill="rgba(255,255,255,0.4)"/>
-              <rect x="9" y="9" width="6" height="6" rx="1.5" fill="white"/>
-            </svg>
-          </div>
-          <span style={{ fontSize: 20, fontWeight: 700, letterSpacing: '-0.02em', color: '#fff' }}>
-            dev<span style={{ color: '#1D9E75' }}>mark</span>
-          </span>
+          <img
+            src="/logos/horizontal/dev-hori-v7-1.png"
+            alt="devmark"
+            style={{ height: 36, width: 'auto', objectFit: 'contain' }}
+          />
           <div style={{
             background: 'rgba(29,158,117,0.18)',
             border: '1px solid rgba(29,158,117,0.35)',

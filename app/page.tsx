@@ -96,9 +96,14 @@ export default function Dashboard() {
         {tab === 'projects' && <ProjectsTab projects={projects} tasks={tasks} />}
         {tab === 'telegram' && <LogsTab logs={logs} />}
 
-        <p style={{ textAlign: 'center', fontSize: 15, color: T.textMuted, paddingTop: 8 }}>
-          ©devmarkcesaranaya - 2026
-        </p>
+        <footer style={{ borderTop: '1px solid rgba(255,255,255,0.06)', marginTop: 16, padding: '28px 24px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10 }}>
+          <img
+            src="/logos/horizontal/dev-hori-v7-1.png"
+            alt="devmark"
+            style={{ height: 52, width: 'auto', objectFit: 'contain' }}
+          />
+          <p style={{ fontSize: 15, color: T.textMuted, margin: 0, fontWeight: 500 }}>© 2026 devmark</p>
+        </footer>
       </div>
     </div>
   )
