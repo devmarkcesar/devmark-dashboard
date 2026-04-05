@@ -98,7 +98,7 @@ export default function Dashboard() {
 
         <footer style={{ borderTop: '1px solid rgba(255,255,255,0.06)', marginTop: 16, padding: '28px 24px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10 }}>
           <img
-            src="/logos/horizontal/dev-hori-v7-1.png"
+            src="/logos/horizontal/dev-hori-1.png"
             alt="devmark"
             style={{ height: 52, width: 'auto', objectFit: 'contain' }}
           />
