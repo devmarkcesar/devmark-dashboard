@@ -14,9 +14,10 @@ export const authOptions: NextAuthOptions = {
         if (!credentials?.email || !credentials?.password) return null
 
         const adminEmail = process.env.ADMIN_EMAIL
-        const adminHash  = process.env.ADMIN_PASSWORD_HASH
-
-        console.log('AUTH:', { hashLen: adminHash?.length, emailMatch: credentials.email === adminEmail })
+        const adminHashB64 = process.env.ADMIN_PASSWORD_HASH_B64
+        const adminHash = adminHashB64
+          ? Buffer.from(adminHashB64, 'base64').toString('utf8')
+          : process.env.ADMIN_PASSWORD_HASH
 
         if (!adminEmail || !adminHash) return null
         if (credentials.email !== adminEmail) return null
