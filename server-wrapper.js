@@ -7,7 +7,13 @@ if (fs.existsSync(envPath)) {
     const idx = line.indexOf('=');
     if (idx > 0 && !line.startsWith('#')) {
       const key = line.substring(0, idx).trim();
-      const val = line.substring(idx + 1).replace(/\r$/, '');
+      let val = line.substring(idx + 1).replace(/\r$/, '');
+      // Strip surrounding single/double quotes (prevents dotenv-expand from mangling $2b$10$... hashes)
+      if (val.length >= 2 &&
+          ((val[0] === "'" && val[val.length - 1] === "'") ||
+           (val[0] === '"' && val[val.length - 1] === '"'))) {
+        val = val.slice(1, -1);
+      }
       if (key) process.env[key] = val;
     }
   });
