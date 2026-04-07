@@ -230,7 +230,7 @@ export function AgentsTab({ agents, tasks, onShowProjects, externalCatFilter }: 
     }
   }
 
-  const filtered = catFilter ? agents.filter(a => a.category === catFilter) : agents
+  const filtered = catFilter ? agents.filter(a => a.category?.toLowerCase() === catFilter.toLowerCase()) : agents
 
   return (
     <>
@@ -241,7 +241,7 @@ export function AgentsTab({ agents, tasks, onShowProjects, externalCatFilter }: 
         </p>
         <div className="cat-tabs">
           <CatTab active={!catFilter} onClick={() => setCatFilter(null)}>Todos</CatTab>
-          {['Gestion', 'Desarrollo', 'Calidad', 'Negocio'].map(cat => (
+          {['Gestión', 'Desarrollo', 'Calidad', 'Negocio'].map(cat => (
             <CatTab key={cat} active={catFilter === cat} onClick={() => setCatFilter(catFilter === cat ? null : cat)}>
               {cat}
             </CatTab>

@@ -89,8 +89,10 @@ export default function Dashboard() {
     }
   }
 
+  const activeAgents   = agents.filter(a => a.status === 'active' || a.status === 'busy')
   const activeCount    = agents.filter(a => a.status === 'active').length
   const busyCount      = agents.filter(a => a.status === 'busy').length
+  const activeAgentSub = activeAgents.length > 0 ? activeAgents.map(a => a.name.replace('Agente ', '')).join(', ') : `De ${agents.length} totales`
   const openTasks      = tasks.filter(t => t.status === 'To Do').length
   const inProgTasks    = tasks.filter(t => t.status === 'In Progress').length
   const doneTasks      = tasks.filter(t => t.status === 'Done').length
@@ -138,7 +140,7 @@ export default function Dashboard() {
             {refreshing && !loading && (
               <span style={{ position: 'absolute', top: -18, right: 0, fontSize: 10, color: T.textMuted, opacity: 0.6 }}>actualizando...</span>
             )}
-            <StatCard label="Agentes activos"    value={activeCount + busyCount} sub={"De " + agents.length + " totales"}                  accent={T.blue} />
+            <StatCard label="Agentes activos"    value={activeCount + busyCount} sub={activeAgentSub}                                   accent={T.blue} />
             {tab !== 'telegram' && (
               <>
                 <StatCard label="Proyectos Jira"     value={projects.length}         sub={inProgTasks + " en progreso"}                        accent={T.teal} />
