@@ -524,7 +524,7 @@ export function AgentsTab({ agents, tasks, onShowProjects, externalCatFilter }: 
                   <span style={{ fontSize: 10, color: T.textMuted }}>{bcExpanded === item.agent_id ? '▲' : '▼'}</span>
                 </button>
                 {bcExpanded === item.agent_id && (
-                  <div style={{ padding: '0 12px 10px', maxHeight: 300, overflowY: 'auto' }}>
+                  <div style={{ padding: '0 12px 10px', maxHeight: 300, overflowY: 'auto', color: T.carbon }}>
                     <MdContent content={item.response} />
                   </div>
                 )}
