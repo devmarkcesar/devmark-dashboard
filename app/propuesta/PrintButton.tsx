@@ -1,9 +1,16 @@
 'use client'
 
-export function PrintButton() {
+export function PrintButton({ businessName }: { businessName: string }) {
+  const handlePrint = () => {
+    const prevTitle = document.title
+    document.title = `Propuesta devmark - ${businessName}`
+    window.print()
+    document.title = prevTitle
+  }
+
   return (
     <button
-      onClick={() => window.print()}
+      onClick={handlePrint}
       style={{
         display: 'flex',
         alignItems: 'center',
