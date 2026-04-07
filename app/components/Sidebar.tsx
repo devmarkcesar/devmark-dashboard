@@ -27,7 +27,7 @@ export function Sidebar({ tab, catFilter, sidebarOpen, onTabChange, onCatFilter,
         ['agents',   '⊞', 'Todos los agentes'],
         ['projects', '▤', 'Proyectos Jira'],
         ['telegram', '▷', 'Telegram control'],
-        ['crm',      '◈', 'CRM Prospectos'],
+        ['crm',      '◈', 'CRM'],
       ] as const).map(([id, icon, label]) => (
         <div key={id} onClick={() => { onTabChange(id); onClose() }} style={{
           display: 'flex', alignItems: 'center', gap: 9, padding: '7px 16px', cursor: 'pointer',

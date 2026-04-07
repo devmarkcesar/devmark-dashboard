@@ -442,15 +442,89 @@ export function CRMTab({ prospects, onProspectsChange }: CRMTabProps) {
     loss_reason:   editTarget.loss_reason,
   } : EMPTY_FORM
 
+  const today      = new Date(); today.setHours(0,0,0,0)
+  const tomorrow   = new Date(today); tomorrow.setDate(today.getDate() + 1)
+  const followups  = prospects.filter(p => {
+    if (!p.followup_date) return false
+    const d = new Date(p.followup_date); d.setHours(0,0,0,0)
+    return d <= today
+  })
+  const noContact  = prospects.filter(p => p.pipeline === 'Visitado')
+  const recentNotes = prospects
+    .flatMap(p => p.notes.map(n => ({ ...n, business_name: p.business_name })))
+    .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+    .slice(0, 4)
+
   return (
     <>
       {/* Métricas */}
       <div className="stats-grid-4" style={{ marginBottom: 16 }}>
-        <StatCard label="Prospectos esta semana" value={thisWeek}       sub={`${prospects.length} totales`}               accent={T.blue} />
-        <StatCard label="Tasa de cierre"         value={`${closeRate}%`} sub={`${closed} cerrados / ${lost} perdidos`} accent={T.teal} />
-        <StatCard label="Valor en pipeline"      value={fmt$(pipelineValue)} sub="prospectos activos"                    accent={T.blue} />
-        <StatCard label="En desarrollo"          value={active}          sub="proyectos activos"                        accent={T.teal} />
+        <StatCard label="Prospectos esta semana" value={thisWeek}          sub={`${prospects.length} totales`}             accent={T.blue} />
+        <StatCard label="Tasa de cierre"         value={`${closeRate}%`}   sub={`${closed} cerrados / ${lost} perdidos`}   accent={T.teal} />
+        <StatCard label="Valor en pipeline"      value={fmt$(pipelineValue)} sub="prospectos activos"                      accent={T.blue} />
+        <StatCard label="En desarrollo"          value={active}            sub="proyectos activos"                        accent={T.teal} />
       </div>
+
+      {/* Panel de previsualización */}
+      {prospects.length > 0 && (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 14, marginBottom: 16 }}>
+
+          {/* Seguimientos vencidos */}
+          <div style={{ background: '#fff', border: `1px solid ${T.cardBorder}`, borderRadius: 10, padding: '16px 18px', borderTop: `3px solid #BA7517` }}>
+            <p style={{ fontSize: 10, fontWeight: 700, color: '#BA7517', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 10 }}>
+              ↻ Seguimientos pendientes
+            </p>
+            {followups.length === 0 ? (
+              <p style={{ fontSize: 12, color: T.textMuted, fontStyle: 'italic' }}>Sin seguimientos vencidos ✓</p>
+            ) : followups.slice(0, 4).map(p => (
+              <div key={p.id} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '5px 0', borderBottom: `1px solid ${T.cardBorder}` }}>
+                <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#BA7517', flexShrink: 0 }} />
+                <span style={{ fontSize: 12, fontWeight: 600, color: T.navy, flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.business_name}</span>
+                <span style={{ fontSize: 10, color: T.textMuted, whiteSpace: 'nowrap' }}>{fmtDate(p.followup_date)}</span>
+              </div>
+            ))}
+            {followups.length > 4 && (
+              <p style={{ fontSize: 10, color: '#BA7517', marginTop: 6, fontWeight: 700 }}>+{followups.length - 4} más</p>
+            )}
+          </div>
+
+          {/* Sin contactar (Visitado) */}
+          <div style={{ background: '#fff', border: `1px solid ${T.cardBorder}`, borderRadius: 10, padding: '16px 18px', borderTop: `3px solid ${T.blue}` }}>
+            <p style={{ fontSize: 10, fontWeight: 700, color: T.blue, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 10 }}>
+              📍 Visitados sin avanzar
+            </p>
+            {noContact.length === 0 ? (
+              <p style={{ fontSize: 12, color: T.textMuted, fontStyle: 'italic' }}>Todos los prospectos tienen seguimiento ✓</p>
+            ) : noContact.slice(0, 4).map(p => (
+              <div key={p.id} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '5px 0', borderBottom: `1px solid ${T.cardBorder}` }}>
+                <div style={{ width: 6, height: 6, borderRadius: '50%', background: T.blue, flexShrink: 0 }} />
+                <span style={{ fontSize: 12, fontWeight: 600, color: T.navy, flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.business_name}</span>
+                <span style={{ fontSize: 10, color: T.textMuted }}>{p.city || '—'}</span>
+              </div>
+            ))}
+            {noContact.length > 4 && (
+              <p style={{ fontSize: 10, color: T.blue, marginTop: 6, fontWeight: 700 }}>+{noContact.length - 4} más</p>
+            )}
+          </div>
+
+          {/* Actividad reciente */}
+          <div style={{ background: '#fff', border: `1px solid ${T.cardBorder}`, borderRadius: 10, padding: '16px 18px', borderTop: `3px solid ${T.teal}` }}>
+            <p style={{ fontSize: 10, fontWeight: 700, color: T.teal, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 10 }}>
+              📋 Actividad reciente
+            </p>
+            {recentNotes.length === 0 ? (
+              <p style={{ fontSize: 12, color: T.textMuted, fontStyle: 'italic' }}>Sin notas de actividad aún</p>
+            ) : recentNotes.map(n => (
+              <div key={n.id} style={{ padding: '5px 0', borderBottom: `1px solid ${T.cardBorder}` }}>
+                <p style={{ fontSize: 11, fontWeight: 700, color: T.navy, margin: 0 }}>{n.business_name}</p>
+                <p style={{ fontSize: 11, color: T.carbon, margin: '2px 0 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{n.content}</p>
+                <p style={{ fontSize: 9, color: T.textMuted, margin: '2px 0 0' }}>{fmtDate(n.created_at)}</p>
+              </div>
+            ))}
+          </div>
+
+        </div>
+      )}
 
       {/* Modal formulario */}
       {(showForm || editTarget) && (
