@@ -206,9 +206,9 @@ export function DiagnosticoTab() {
     contact_email:     '',
     num_employees:     '',
     main_problem:      '',
-    current_situation: '',
+    current_situation: [] as string[],
     current_tools:     [] as string[],
-    desired_solution:  '',
+    desired_solution:  [] as string[],
     main_objective:    '',
     budget_range:      'no_definido',
     urgency:           'sin_prisa',
@@ -220,13 +220,11 @@ export function DiagnosticoTab() {
     setForm(f => ({ ...f, [field]: value }))
   }
 
-  function toggleTool(value: string) {
-    setForm(f => ({
-      ...f,
-      current_tools: f.current_tools.includes(value)
-        ? f.current_tools.filter(t => t !== value)
-        : [...f.current_tools, value],
-    }))
+  function toggleMulti(field: 'current_situation' | 'current_tools' | 'desired_solution', value: string) {
+    setForm(f => {
+      const arr = f[field] as string[]
+      return { ...f, [field]: arr.includes(value) ? arr.filter(x => x !== value) : [...arr, value] }
+    })
   }
 
   async function handleSubmit() {
@@ -243,7 +241,9 @@ export function DiagnosticoTab() {
         headers: { 'Content-Type': 'application/json' },
         body:    JSON.stringify({
           ...form,
-          current_tools: form.current_tools.join(', '),
+          current_situation: form.current_situation.join(', '),
+          current_tools:     form.current_tools.join(', '),
+          desired_solution:  form.desired_solution.join(', '),
         }),
       })
       const data = await res.json()
@@ -271,11 +271,177 @@ export function DiagnosticoTab() {
     setForm({
       business_name: '', business_type: '', contact_name: '',
       contact_phone: '', contact_email: '', num_employees: '',
-      main_problem: '', current_situation: '', current_tools: [],
-      desired_solution: '', main_objective: '',
+      main_problem: '', current_situation: [], current_tools: [],
+      desired_solution: [], main_objective: '',
       budget_range: 'no_definido', urgency: 'sin_prisa',
       decision_maker: true, extra_notes: '',
     })
+  }
+
+  function downloadQuestionnaire() {
+    const today = new Date().toLocaleDateString('es-MX', { year: 'numeric', month: 'long', day: 'numeric' })
+    const html = `<!DOCTYPE html>
+<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">
+<head><meta charset="UTF-8"><title>Cuestionario de Diagnóstico - devmark</title>
+<style>
+  @page { size: A4; margin: 2cm 2.5cm; }
+  body { font-family: Calibri, Arial, sans-serif; font-size: 11pt; color: #222; line-height: 1.5; }
+  .header-bar { background: #0C2D4E; color: #fff; padding: 18px 24px; }
+  .header-bar h1 { font-size: 20pt; font-weight: bold; margin: 0 0 2px; }
+  .header-bar p { font-size: 9pt; margin: 0; opacity: 0.75; }
+  .teal-bar { background: #1D9E75; height: 5px; margin-bottom: 22px; }
+  .meta-row { display: flex; gap: 32px; margin-bottom: 18px; padding: 10px 14px; background: #F1EFE8; border-left: 4px solid #185FA5; }
+  .meta-item { flex: 1; }
+  .meta-item label { font-size: 8pt; font-weight: bold; color: #666; text-transform: uppercase; letter-spacing: 0.08em; display: block; margin-bottom: 4px; }
+  .meta-item .line { border-bottom: 1.5px solid #999; height: 20px; }
+  .nota { background: #FFF8E7; border-left: 4px solid #F6C90E; padding: 8px 12px; font-size: 9pt; color: #7A5C00; margin-bottom: 20px; }
+  .section { margin-bottom: 22px; page-break-inside: avoid; }
+  .section-title { background: #0C2D4E; color: #fff; padding: 7px 14px; font-size: 10pt; font-weight: bold; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 14px; }
+  .row2 { display: flex; gap: 24px; }
+  .row2 > * { flex: 1; }
+  .field { margin-bottom: 12px; }
+  .field label { font-size: 9pt; font-weight: bold; color: #185FA5; display: block; margin-bottom: 4px; }
+  .line-s { border-bottom: 1px solid #aaa; height: 22px; width: 100%; }
+  .line-m { border: 1px solid #ccc; height: 54px; width: 100%; margin-bottom: 6px; }
+  .options { display: flex; flex-wrap: wrap; gap: 4px 22px; margin-top: 4px; }
+  .option, .chk { font-size: 10pt; color: #333; min-width: 170px; }
+  .footer { margin-top: 28px; padding-top: 12px; border-top: 2px solid #1D9E75; display: flex; justify-content: space-between; align-items: flex-end; }
+  .footer-brand { font-size: 15pt; font-weight: bold; color: #0C2D4E; }
+  .footer-info { font-size: 8pt; color: #888; text-align: right; }
+</style></head>
+<body>
+<div class="header-bar"><h1>devmark</h1><p>Cuestionario de Diagnóstico Digital — Visita a cliente</p></div>
+<div class="teal-bar"></div>
+<div class="meta-row">
+  <div class="meta-item"><label>Fecha de visita</label><div class="line">&nbsp;</div></div>
+  <div class="meta-item"><label>Consultor devmark</label><div class="line">&nbsp;</div></div>
+  <div class="meta-item"><label>Folio interno</label><div class="line">&nbsp;</div></div>
+</div>
+<div class="nota">📋 <strong>Instrucciones:</strong> Completa este cuestionario durante la visita al cliente. Al terminar, ingresa los datos en <strong>app.devmark.mx → Diagnóstico de cliente</strong> para generar la propuesta automáticamente.</div>
+
+<div class="section">
+  <div class="section-title">1 · Datos del negocio</div>
+  <div class="field"><label>Nombre del negocio *</label><div class="line-s"></div></div>
+  <div class="row2">
+    <div class="field"><label>Nombre del contacto *</label><div class="line-s"></div></div>
+    <div class="field"><label>Cargo / Puesto</label><div class="line-s"></div></div>
+  </div>
+  <div class="row2">
+    <div class="field"><label>Teléfono / WhatsApp *</label><div class="line-s"></div></div>
+    <div class="field"><label>Email (opcional)</label><div class="line-s"></div></div>
+  </div>
+  <div class="row2">
+    <div class="field"><label>Industria / Giro del negocio</label>
+      <div class="options" style="flex-direction:column; gap:3px;">
+        <div class="option">☐ Restaurante / Cafetería</div><div class="option">☐ Taquería / Fonda</div>
+        <div class="option">☐ Ferretería / Tlapalería</div><div class="option">☐ Tienda de abarrotes</div>
+        <div class="option">☐ Boutique / Ropa</div><div class="option">☐ Salón de belleza / Barbería</div>
+        <div class="option">☐ Contaduría / Despacho fiscal</div><div class="option">☐ Despacho jurídico</div>
+        <div class="option">☐ Clínica / Consultorio</div><div class="option">☐ Gimnasio / Spa</div>
+        <div class="option">☐ Constructora / Inmobiliaria</div><div class="option">☐ Escuela / Academia</div>
+        <div class="option">☐ Taller mecánico</div><div class="option">☐ Farmacia</div>
+        <div class="option">☐ Otro: ______________________</div>
+      </div>
+    </div>
+    <div class="field"><label>Tamaño del negocio</label>
+      <div class="options" style="flex-direction:column; gap:4px;">
+        <div class="option">☐ Solo el dueño</div><div class="option">☐ 2 – 5 empleados</div>
+        <div class="option">☐ 6 – 15 empleados</div><div class="option">☐ 16 – 50 empleados</div>
+        <div class="option">☐ Más de 50 empleados</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-title">2 · Situación actual del negocio</div>
+  <div class="field"><label>¿Cuál es el problema o necesidad principal? *</label>
+    <div class="line-m"></div><div class="line-m"></div>
+  </div>
+  <div class="field"><label>Presencia digital actual</label>
+    <div class="options" style="flex-direction:column; gap:3px;">
+      <div class="option">☐ No tiene nada digital</div>
+      <div class="option">☐ Tiene sitio web pero está desactualizado o no funciona bien</div>
+      <div class="option">☐ Tiene un sistema pero necesita mejoras</div>
+      <div class="option">☐ Tiene un bot/automatización pero falla o es limitado</div>
+    </div>
+  </div>
+  <div class="field"><label>Herramientas que usa actualmente (marcar todas las que apliquen)</label>
+    <div class="options">
+      <div class="chk">☐ Papel / libreta</div><div class="chk">☐ Excel / Google Sheets</div>
+      <div class="chk">☐ WhatsApp (grupos/notas)</div><div class="chk">☐ Sistema POS / caja</div>
+      <div class="chk">☐ Sistema propio (desactualizado)</div><div class="chk">☐ Sin herramientas digitales</div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-title">3 · Solución deseada</div>
+  <div class="field"><label>Tipo de solución que busca</label>
+    <div class="options">
+      <div class="option">☐ Sitio web profesional</div>
+      <div class="option">☐ Sistema a medida (inventario, ventas, citas…)</div>
+      <div class="option">☐ Bot de WhatsApp / atención al cliente</div>
+      <div class="option">☐ Dashboard / panel de control</div>
+      <div class="option">☐ Automatización de procesos internos</div>
+      <div class="option">☐ No sé, necesita orientación</div>
+    </div>
+  </div>
+  <div class="field"><label>¿Qué quiere lograr con esta solución? (objetivo concreto)</label>
+    <div class="line-m"></div>
+  </div>
+  <div class="field"><label>¿Alguna integración o sistema existente al que deba conectarse?</label>
+    <div class="line-s"></div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-title">4 · Información comercial</div>
+  <div class="row2">
+    <div class="field"><label>Presupuesto aproximado</label>
+      <div class="options" style="flex-direction:column; gap:3px;">
+        <div class="option">☐ Menos de $5,000 MXN</div><div class="option">☐ $5,000 – $15,000 MXN</div>
+        <div class="option">☐ $15,000 – $50,000 MXN</div><div class="option">☐ Más de $50,000 MXN</div>
+        <div class="option">☐ No definido aún</div>
+      </div>
+    </div>
+    <div class="field"><label>Urgencia del proyecto</label>
+      <div class="options" style="flex-direction:column; gap:3px;">
+        <div class="option">☐ Lo antes posible</div><div class="option">☐ En el próximo mes</div>
+        <div class="option">☐ En los próximos 3 meses</div><div class="option">☐ Sin fecha límite definida</div>
+      </div>
+    </div>
+  </div>
+  <div class="field"><label>¿Está presente quien toma la decisión de compra?</label>
+    <div class="options" style="gap:24px;">
+      <div class="option">☐ Sí — puede decidir hoy</div>
+      <div class="option">☐ No — necesita consultarlo</div>
+    </div>
+    <div style="margin-top:6px; font-size:9pt; color:#555;">Si NO: ¿Con quién consulta? / ¿Cuándo puede dar respuesta? <div class="line-s"></div></div>
+  </div>
+  <div class="field"><label>Notas adicionales / observaciones del consultor</label>
+    <div class="line-m"></div><div class="line-m"></div>
+  </div>
+</div>
+
+<div class="footer">
+  <div>
+    <div class="footer-brand">devmark</div>
+    <div style="font-size:8pt; color:#888;">devmark.mx · Guadalajara, México</div>
+  </div>
+  <div class="footer-info">Cuestionario generado: ${today}<br>Ingresar en: app.devmark.mx → Diagnóstico de cliente</div>
+</div>
+</body></html>`
+
+    const blob = new Blob(['\ufeff', html], { type: 'application/msword' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = 'cuestionario-diagnostico-devmark.doc'
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
   }
 
   return (
@@ -283,10 +449,22 @@ export function DiagnosticoTab() {
 
       {/* Header */}
       <div className="diagnostico-header" style={{ marginBottom: 28 }}>
-        <h1 style={{ fontSize: 22, fontWeight: 800, color: T.navy, margin: '0 0 4px' }}>Diagnóstico de cliente</h1>
-        <p style={{ fontSize: 13, color: T.textMuted, margin: 0 }}>
-          Completa el formulario con las necesidades del cliente. Los agentes generarán una propuesta completa al instante.
-        </p>
+        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
+          <div>
+            <h1 style={{ fontSize: 22, fontWeight: 800, color: T.navy, margin: '0 0 4px' }}>Diagnóstico de cliente</h1>
+            <p style={{ fontSize: 13, color: T.textMuted, margin: 0 }}>
+              Completa el formulario con las necesidades del cliente. Los agentes generarán una propuesta completa al instante.
+            </p>
+          </div>
+          <button onClick={downloadQuestionnaire} title="Descargar cuestionario en Word para llevar a la visita" style={{
+            display: 'flex', alignItems: 'center', gap: 7, flexShrink: 0,
+            background: '#fff', color: T.navy, border: `1.5px solid ${T.cardBorder}`,
+            borderRadius: 8, padding: '8px 14px', fontSize: 12, fontWeight: 600,
+            cursor: 'pointer', transition: 'all 0.15s', whiteSpace: 'nowrap',
+          }}>
+            <span style={{ fontSize: 15 }}>📋</span> Cuestionario (.doc)
+          </button>
+        </div>
       </div>
 
       {step === 'form' && (
@@ -349,13 +527,14 @@ export function DiagnosticoTab() {
                 rows={3} style={{ ...inputStyle, resize: 'vertical' }} />
             </Field>
 
-            <Field label="Presencia digital actual">
+            <Field label="Presencia digital actual (puede seleccionar varias)">
               <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                 {SITUATION_OPTIONS.map(opt => (
                   <label key={opt.value} style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}>
-                    <input type="radio" name="current_situation" value={opt.value}
-                      checked={form.current_situation === opt.value}
-                      onChange={() => update('current_situation', opt.value)} />
+                    <input type="checkbox"
+                      checked={form.current_situation.includes(opt.value)}
+                      onChange={() => toggleMulti('current_situation', opt.value)}
+                      style={{ accentColor: T.navy }} />
                     <span style={{ fontSize: 13, color: T.carbon }}>{opt.label}</span>
                   </label>
                 ))}
@@ -373,7 +552,7 @@ export function DiagnosticoTab() {
                     transition: 'all 0.12s',
                   }}>
                     <input type="checkbox" checked={form.current_tools.includes(opt.value)}
-                      onChange={() => toggleTool(opt.value)}
+                      onChange={() => toggleMulti('current_tools', opt.value)}
                       style={{ accentColor: T.teal }} />
                     <span style={{ fontSize: 12, color: T.carbon }}>{opt.label}</span>
                   </label>
@@ -386,21 +565,21 @@ export function DiagnosticoTab() {
           <div style={{ background: '#fff', border: `1px solid ${T.cardBorder}`, borderRadius: 10, padding: '18px 20px', display: 'flex', flexDirection: 'column', gap: 14 }}>
             <p style={{ fontSize: 11, fontWeight: 700, color: T.navy, textTransform: 'uppercase', letterSpacing: '0.08em', margin: 0 }}>3 · Solución deseada</p>
 
-            <Field label="¿Qué tipo de solución busca?">
+            <Field label="¿Qué tipo de solución busca? (puede seleccionar varias)">
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 8 }}>
                 {SOLUTION_OPTIONS.map(opt => (
                   <label key={opt.value} style={{
                     display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer',
                     padding: '8px 12px', borderRadius: 8, border: '1.5px solid',
-                    borderColor: form.desired_solution === opt.value ? T.blue : T.cardBorder,
-                    background: form.desired_solution === opt.value ? 'rgba(24,95,165,0.06)' : '#fff',
+                    borderColor: form.desired_solution.includes(opt.value) ? T.blue : T.cardBorder,
+                    background: form.desired_solution.includes(opt.value) ? 'rgba(24,95,165,0.06)' : '#fff',
                     transition: 'all 0.12s',
                   }}>
-                    <input type="radio" name="desired_solution" value={opt.value}
-                      checked={form.desired_solution === opt.value}
-                      onChange={() => update('desired_solution', opt.value)}
+                    <input type="checkbox" value={opt.value}
+                      checked={form.desired_solution.includes(opt.value)}
+                      onChange={() => toggleMulti('desired_solution', opt.value)}
                       style={{ accentColor: T.blue }} />
-                    <span style={{ fontSize: 12, color: T.carbon, fontWeight: form.desired_solution === opt.value ? 600 : 400 }}>{opt.label}</span>
+                    <span style={{ fontSize: 12, color: T.carbon, fontWeight: form.desired_solution.includes(opt.value) ? 600 : 400 }}>{opt.label}</span>
                   </label>
                 ))}
               </div>

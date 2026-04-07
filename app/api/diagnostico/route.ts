@@ -146,10 +146,29 @@ REGLAS DE PRECIOS (MXN, toma en cuenta que el developer vive en Guadalajara, Mé
 - Pago: 50% anticipo, 50% al entregar
 - Ajusta el precio según la complejidad real del caso
 
-Responde ÚNICAMENTE con el JSON, sin markdown, sin explicaciones.`
+RESPONDE EXCLUSIVAMENTE CON EL OBJETO JSON. PROHIBIDO incluir texto antes, después, explicaciones, comentarios ni bloques markdown. El primer carácter debe ser { y el último }.`
+
+  // Extrae el primer JSON válido de un string (maneja markdown, texto extra, etc.)
+  function extractJSON(raw: string): Record<string, unknown> | null {
+    const text = raw.trim()
+    // Intentar parse directo
+    try { return JSON.parse(text) } catch { /* continuar */ }
+    // Extraer primer bloque ```json ... ``` o ``` ... ```
+    const mdMatch = text.match(/```(?:json)?\s*([\s\S]*?)```/)
+    if (mdMatch) {
+      try { return JSON.parse(mdMatch[1].trim()) } catch { /* continuar */ }
+    }
+    // Extraer desde primer { hasta último }
+    const start = text.indexOf('{')
+    const end   = text.lastIndexOf('}')
+    if (start !== -1 && end > start) {
+      try { return JSON.parse(text.slice(start, end + 1)) } catch { /* continuar */ }
+    }
+    return null
+  }
 
   try {
-    // Llamar al PM (agente id=2)
+    // Llamar al PM (agente id=2) — primer intento
     const coreRes = await fetch(`${CORE_API}/agent/2/chat`, {
       method:  'POST',
       headers: { 'Content-Type': 'application/json', 'x-api-secret': API_SECRET },
@@ -163,35 +182,47 @@ Responde ÚNICAMENTE con el JSON, sin markdown, sin explicaciones.`
     }
 
     const coreData  = await coreRes.json()
-    const rawOutput = coreData.response ?? ''
+    let   rawOutput = coreData.response ?? ''
+    let   propuesta = extractJSON(rawOutput)
 
-    // Parsear JSON de la propuesta
-    let propuesta: Record<string, unknown> | null = null
-    try {
-      const clean = rawOutput.trim()
-      const start = clean.indexOf('{')
-      const end   = clean.lastIndexOf('}') + 1
-      if (start !== -1 && end > start) {
-        propuesta = JSON.parse(clean.slice(start, end))
-      }
-    } catch {
-      propuesta = null
+    // Si falló, reintentar con prompt de recuperación
+    if (!propuesta) {
+      const retryPrompt = `El JSON que devolviste no pudo parsearse. Devuelve SOLAMENTE el objeto JSON sin ningún texto adicional. Aquí estaba la respuesta anterior:\n\n${rawOutput}\n\nExtrae los datos y devuélvelos SOLO como JSON puro empezando con { y terminando con }.`
+      try {
+        const retryRes = await fetch(`${CORE_API}/agent/2/chat`, {
+          method:  'POST',
+          headers: { 'Content-Type': 'application/json', 'x-api-secret': API_SECRET },
+          body:    JSON.stringify({ message: retryPrompt }),
+          signal:  AbortSignal.timeout(60_000),
+        })
+        if (retryRes.ok) {
+          const retryData = await retryRes.json()
+          rawOutput = retryData.response ?? rawOutput
+          propuesta = extractJSON(rawOutput)
+        }
+      } catch { /* si falla el retry, usamos lo que tenemos */ }
     }
 
-    // Guardar propuesta en BD
-    await pool.query(
-      'UPDATE diagnosticos SET propuesta=$1, raw_output=$2, status=$3 WHERE id=$4',
-      [propuesta ? JSON.stringify(propuesta) : null, rawOutput, propuesta ? 'completado' : 'parcial', diagnostico.id]
-    )
+    // Guardar propuesta en BD (separado del try principal para no perder el resultado)
+    try {
+      await pool.query(
+        'UPDATE diagnosticos SET propuesta=$1, raw_output=$2, status=$3 WHERE id=$4',
+        [propuesta ? JSON.stringify(propuesta) : null, rawOutput, propuesta ? 'completado' : 'parcial', diagnostico.id]
+      )
+    } catch (updateErr) {
+      console.error('Error al actualizar diagnóstico:', updateErr)
+    }
 
     return NextResponse.json({
-      ok:         true,
+      ok:          true,
       diagnostico: { ...diagnostico, propuesta, status: propuesta ? 'completado' : 'parcial' },
     })
 
   } catch (e: unknown) {
     const msg = e instanceof Error ? e.message : 'Error de conexión'
-    await pool.query('UPDATE diagnosticos SET status=$1 WHERE id=$2', ['error', diagnostico.id])
+    try {
+      await pool.query('UPDATE diagnosticos SET status=$1 WHERE id=$2', ['error', diagnostico.id])
+    } catch { /* ignorar */ }
     return NextResponse.json({ error: msg, diagnostico }, { status: 503 })
   }
 }
