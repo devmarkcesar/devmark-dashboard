@@ -50,23 +50,26 @@ export function ProspuestaView({ p, businessName }: { p: Propuesta; businessName
   })
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-
-      {/* Logo repetido en TODAS las hojas — fijo en el área de margen (position:fixed en print) */}
+    <>
+      {/* Logo fijo — aparece en TODAS las hojas (incluida p1) — solo logo, sin fecha */}
+      {/* En pantalla está oculto; en print: position:fixed lo repite cada página */}
       <div className="print-logo-repeat" style={{ display: 'none' }}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/logos/horizontal/dev-hori-1.png" alt="devmark" style={{ height: 32, objectFit: 'contain' }} />
+        <img src="/logos/horizontal/dev-hori-1.png" alt="devmark" style={{ height: 40, objectFit: 'contain' }} />
       </div>
 
-      {/* Header completo con logo + fecha — flujo normal, solo aparece en página 1 */}
+      {/* Header p1: logo + fecha — en el FLUJO normal, solo aparece página 1 */}
+      {/* En pantalla está oculto; en print se muestra como primer elemento del flujo */}
       <div className="print-header-p1" style={{ display: 'none' }}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/logos/horizontal/dev-hori-1.png" alt="devmark" style={{ height: 44, objectFit: 'contain' }} />
+        <img src="/logos/horizontal/dev-hori-1.png" alt="devmark" style={{ height: 46, objectFit: 'contain' }} />
         <div style={{ textAlign: 'right', fontSize: 10, lineHeight: 1.5 }}>
           <div style={{ fontWeight: 700, color: '#0C2D4E' }}>Guadalajara, Jalisco</div>
           <div style={{ fontWeight: 700, color: '#0C2D4E' }}>{fechaFormateada} · {horaFormateada}</div>
         </div>
       </div>
+
+      <div className="print-propuesta" style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
 
       {/* Encabezado */}
       <div style={{ background: T.navy, borderRadius: 10, padding: '20px 24px', color: '#fff' }}>
@@ -156,6 +159,7 @@ export function ProspuestaView({ p, businessName }: { p: Propuesta; businessName
           devmark · Guadalajara, Jalisco · devmark.mx
         </p>
       </div>
-    </div>
+      </div>
+    </>
   )
 }

@@ -35,7 +35,7 @@ export default async function PropuestaPublica({ params }: Props) {
         <img
           src="/logos/horizontal/dev-hori-1.png"
           alt="devmark"
-          style={{ height: 58, objectFit: 'contain' }}
+          style={{ height: 70, objectFit: 'contain' }}
         />
         <PrintButton />
       </div>

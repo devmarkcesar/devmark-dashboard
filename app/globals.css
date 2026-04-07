@@ -312,65 +312,76 @@ body {
     gap: 0 !important;
   }
 
-  /* Solo mostrar el contenedor de propuesta */
+  /* Contenedor de propuesta */
   .print-propuesta {
     display: block !important;
     width: 100%;
     max-width: 100%;
     margin: 0;
-    padding: 0;
+    padding: 22mm 0 0 0;   /* empuja el contenido real debajo del logo fijo en pág 2+ */
   }
 
   /* Page breaks */
   .print-break-before { page-break-before: always; }
   .print-break-avoid  { page-break-inside: avoid; }
 
-  /* Tamaño carta y márgenes — margin-top 28mm = espacio reservado para el header fijo en TODAS las hojas */
+  /* Tamaño carta — margin-top:0 suprime el encabezado generado por el browser */
   @page {
     size: letter portrait;
-    margin: 28mm 30mm 25mm 30mm;
+    margin: 0 30mm 25mm 30mm;
   }
 
   /* Evitar que los bloques se corten entre páginas */
-  .print-propuesta > div > * {
+  .print-propuesta > div {
     break-inside: avoid;
     page-break-inside: avoid;
   }
 
-  /* Ajustes tipográficos */
+  /* Ajustes tipográficos y colores */
   * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
 
-  /* Ocultar botones de acción y header del formulario en la propuesta */
+  /* Ocultar botones de acción y header del formulario */
   .diagnostico-header,
   .diagnostico-actions {
     display: none !important;
   }
 
-  /* Header página 1 — en flujo normal, aparece solo en la primera hoja */
-  .print-header-p1 {
-    display: flex !important;
-    align-items: center;
-    justify-content: space-between;
-    padding-bottom: 6mm;
-    margin-bottom: 6mm;
-    border-bottom: 2px solid #1D9E75;
-  }
-
-  /* Logo que se repite en página 2+ — position:fixed lo ancla al área de margen en cada hoja */
+  /* ── Logo fijo: aparece en TODAS las páginas (incluida la 1) ──────────── */
+  /* Gracias a @page margin-top: 0, este elemento ocupa desde y=0 físico.    */
+  /* El padding-top de .print-propuesta asegura que el contenido fluido      */
+  /* no quede debajo de este logo en páginas 2+.                             */
   .print-logo-repeat {
     display: flex !important;
+    align-items: center;
     position: fixed;
     top: 0;
     left: 0;
     right: 0;
-    height: 25mm;
     background: #fff;
     box-sizing: border-box;
-    padding: 6mm 30mm 4mm 30mm;
-    align-items: center;
+    padding: 6mm 0 4mm 0;   /* sin padding lateral: los márgenes de @page lo manejan */
+    border-bottom: 2px solid #1D9E75;
+    z-index: 10;
   }
 
-  /* El header-page-header legacy ya no se usa en print — se oculta */
+  /* ── Header p1: logo + fecha en el FLUJO — solo página 1 ─────────────── */
+  /* Al estar en flujo normal (hermano anterior de .print-propuesta), vive   */
+  /* en la "banda" que está ANTES del padding-top del wrapper.               */
+  /* En página 1 reemplaza visualmente al logo fijo (mismo logo, misma pos). */
+  /* El logo fijo sigue ahí pero queda "tapado" por este header en la p1.   */
+  .print-header-p1 {
+    display: flex !important;
+    align-items: center;
+    justify-content: space-between;
+    padding: 6mm 0 4mm 0;
+    margin-bottom: 0;
+    border-bottom: 2px solid #1D9E75;
+    background: #fff;
+    position: relative;
+    z-index: 20;   /* sobre el logo fijo */
+  }
+
+  /* El header-page-header legacy — ocultar */
   .print-page-header {
     display: none !important;
   }
