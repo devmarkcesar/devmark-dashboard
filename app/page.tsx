@@ -163,7 +163,7 @@ export default function Dashboard() {
         {tab === 'projects' && <ProjectsTab projects={projects} tasks={tasks} />}
         {tab === 'telegram' && <LogsTab logs={logs} />}
         {tab === 'crm' && <CRMTab prospects={prospects} onProspectsChange={setProspects} />}
-        {tab === 'diagnostico' && <DiagnosticoTab />}
+        {tab === 'diagnostico' && <DiagnosticoTab prospects={prospects} />}
 
         <footer style={{ borderTop: '1px solid rgba(255,255,255,0.06)', marginTop: 16, padding: '28px 24px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10 }}>
           <img

@@ -6,7 +6,7 @@ import { LogoutButton } from './LogoutButton'
 export function NavbarWrapper() {
   const pathname = usePathname()
 
-  if (pathname === '/login') return null
+  if (pathname === '/login' || pathname.startsWith('/propuesta')) return null
 
   return (
     <nav className="print-hide" style={{

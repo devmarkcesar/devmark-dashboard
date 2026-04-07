@@ -16,7 +16,7 @@ export async function GET(req: NextRequest) {
 
   const query = prospectId
     ? 'SELECT * FROM diagnosticos WHERE prospect_id = $1 ORDER BY created_at DESC'
-    : 'SELECT * FROM diagnosticos ORDER BY created_at DESC LIMIT 50'
+    : 'SELECT * FROM diagnosticos ORDER BY created_at DESC LIMIT 200'
 
   const params = prospectId ? [prospectId] : []
   const res    = await pool.query(query, params)

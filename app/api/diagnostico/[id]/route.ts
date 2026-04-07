@@ -81,6 +81,26 @@ function extractJSON(raw: string): Record<string, unknown> | null {
   return null
 }
 
+// GET — obtener diagnóstico por ID (protegido por sesión)
+export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const session = await getServerSession(authOptions)
+  if (!session) return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
+
+  const { id } = await params
+  const numId = parseInt(id)
+  if (isNaN(numId)) return NextResponse.json({ error: 'ID inválido' }, { status: 400 })
+
+  const res = await pool.query('SELECT * FROM diagnosticos WHERE id = $1', [numId])
+  if (res.rows.length === 0) return NextResponse.json({ error: 'No encontrado' }, { status: 404 })
+
+  const row = res.rows[0]
+  const diagnostico = {
+    ...row,
+    propuesta: typeof row.propuesta === 'string' ? JSON.parse(row.propuesta) : row.propuesta,
+  }
+  return NextResponse.json({ diagnostico })
+}
+
 // DELETE — eliminar diagnóstico
 export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const session = await getServerSession(authOptions)

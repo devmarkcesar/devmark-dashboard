@@ -1,6 +1,8 @@
 'use client'
 import { useState, useEffect, useCallback } from 'react'
 import { T } from './tokens'
+import type { Prospect } from './types'
+import { ProspuestaView, type Propuesta } from './ProspuestaView'
 
 const INDUSTRIES = [
   'Restaurante / Cafetería', 'Taquería / Fonda', 'Ferretería / Tlapalería',
@@ -81,44 +83,6 @@ interface DiagnosticoRecord {
   created_at:        string
 }
 
-interface Propuesta {
-  diagnostico_resumen:           string
-  solucion_propuesta:            string
-  stack_tecnologico:             string[]
-  entregables:                   string[]
-  no_incluye:                    string[]
-  costo_minimo:                  number
-  costo_maximo:                  number
-  costo_infraestructura_mensual: number
-  anticipo:                      number
-  timeline_semanas:              number
-  fases:                         { semana: string; descripcion: string }[]
-  garantia_dias:                 number
-  notas_adicionales:             string
-}
-
-function fmt(n: number) {
-  return n?.toLocaleString('es-MX', { style: 'currency', currency: 'MXN', maximumFractionDigits: 0 })
-}
-
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
-  return (
-    <div style={{ background: '#fff', border: `1px solid ${T.cardBorder}`, borderRadius: 10, padding: '16px 20px' }}>
-      <p style={{ fontSize: 12, fontWeight: 700, color: T.navy, textTransform: 'uppercase', letterSpacing: '0.07em', margin: '0 0 10px' }}>{title}</p>
-      {children}
-    </div>
-  )
-}
-
-function CostCard({ label, value, accent }: { label: string; value: string; accent: string }) {
-  return (
-    <div style={{ background: '#fff', border: `1px solid ${T.cardBorder}`, borderRadius: 10, padding: '14px 16px', textAlign: 'center' }}>
-      <p style={{ fontSize: 10, color: T.textMuted, textTransform: 'uppercase', letterSpacing: '0.08em', margin: '0 0 4px' }}>{label}</p>
-      <p style={{ fontSize: 16, fontWeight: 800, color: accent, margin: 0 }}>{value}</p>
-    </div>
-  )
-}
-
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
@@ -128,107 +92,7 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
   )
 }
 
-function ProspuestaView({ p, businessName }: { p: Propuesta; businessName: string }) {
-  const now = new Date()
-  const fechaFormateada = now.toLocaleDateString('es-MX', {
-    day: 'numeric', month: 'long', year: 'numeric',
-  })
-  const horaFormateada = now.toLocaleTimeString('es-MX', {
-    hour: '2-digit', minute: '2-digit', hour12: true,
-  })
 
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-
-      {/* Header de impresión — solo visible al imprimir, se repite en cada hoja */}
-      <div className="print-page-header" style={{ display: 'none' }}>
-        {/* Logo izquierda */}
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/logos/horizontal/dev-hori-1.png" alt="devmark" style={{ height: 36, objectFit: 'contain' }} />
-        {/* Fecha derecha */}
-        <div style={{ textAlign: 'right', fontSize: 10, color: '#555', lineHeight: 1.5 }}>
-          <div style={{ fontWeight: 700, color: '#0C2D4E' }}>Guadalajara, Jalisco</div>
-          <div>{fechaFormateada} · {horaFormateada}</div>
-        </div>
-      </div>
-
-      {/* Encabezado */}
-      <div style={{ background: T.navy, borderRadius: 10, padding: '20px 24px', color: '#fff' }}>
-        <div style={{ fontSize: 11, opacity: 0.6, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 4 }}>Propuesta para</div>
-        <div style={{ fontSize: 22, fontWeight: 800 }}>{businessName}</div>
-        <div style={{ fontSize: 12, opacity: 0.55, marginTop: 2 }}>
-          devmark — {fechaFormateada}
-        </div>
-      </div>
-
-      <Section title="📋 Diagnóstico">
-        <p style={{ fontSize: 14, color: T.carbon, lineHeight: 1.7 }}>{p.diagnostico_resumen}</p>
-      </Section>
-
-      <Section title="💡 Solución propuesta">
-        <p style={{ fontSize: 14, color: T.carbon, lineHeight: 1.7 }}>{p.solucion_propuesta}</p>
-      </Section>
-
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 12 }}>
-        <CostCard label="Inversión"       value={`${fmt(p.costo_minimo)} – ${fmt(p.costo_maximo)}`}                         accent={T.navy} />
-        <CostCard label="Anticipo (50%)"  value={fmt(p.anticipo || Math.round(p.costo_minimo * 0.5))}                       accent={T.blue} />
-        <CostCard label="Infraestructura" value={`${fmt(p.costo_infraestructura_mensual)}/mes`}                             accent={T.teal} />
-        <CostCard label="Tiempo estimado" value={`${p.timeline_semanas} semanas`}                                           accent="#BA7517" />
-      </div>
-
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-        <Section title="✅ Qué incluye">
-          <ul style={{ paddingLeft: 18, margin: 0, display: 'flex', flexDirection: 'column', gap: 4 }}>
-            {p.entregables?.map((e, i) => <li key={i} style={{ fontSize: 13, color: T.carbon, lineHeight: 1.5 }}>{e}</li>)}
-          </ul>
-        </Section>
-        <Section title="❌ No incluye">
-          <ul style={{ paddingLeft: 18, margin: 0, display: 'flex', flexDirection: 'column', gap: 4 }}>
-            {p.no_incluye?.map((e, i) => <li key={i} style={{ fontSize: 13, color: T.carbon, lineHeight: 1.5 }}>{e}</li>)}
-          </ul>
-        </Section>
-      </div>
-
-      <Section title="🛠 Stack tecnológico">
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-          {p.stack_tecnologico?.map((tech, i) => (
-            <span key={i} style={{
-              background: 'rgba(24,95,165,0.1)', color: T.blue, fontSize: 12, fontWeight: 600,
-              padding: '4px 10px', borderRadius: 99, border: `1px solid rgba(24,95,165,0.2)`,
-            }}>{tech}</span>
-          ))}
-        </div>
-      </Section>
-
-      <Section title="📅 Plan de trabajo">
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-          {p.fases?.map((f, i) => (
-            <div key={i} style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
-              <div style={{ background: T.teal, color: '#fff', fontSize: 10, fontWeight: 700, padding: '3px 8px', borderRadius: 6, whiteSpace: 'nowrap', flexShrink: 0 }}>
-                Sem {f.semana}
-              </div>
-              <p style={{ fontSize: 13, color: T.carbon, margin: 0, lineHeight: 1.5 }}>{f.descripcion}</p>
-            </div>
-          ))}
-        </div>
-      </Section>
-
-      <Section title="🛡 Garantía y soporte">
-        <p style={{ fontSize: 13, color: T.carbon, lineHeight: 1.6 }}>
-          {p.garantia_dias} días de garantía post-entrega ante errores de funcionamiento. Soporte incluido durante el periodo de garantía.
-        </p>
-        {p.notas_adicionales && (
-          <p style={{ fontSize: 13, color: T.textMuted, marginTop: 8, fontStyle: 'italic' }}>{p.notas_adicionales}</p>
-        )}
-      </Section>
-
-      <div style={{ background: T.bone, border: `1px solid ${T.cardBorder}`, borderRadius: 10, padding: '16px 20px', textAlign: 'center' }}>
-        <p style={{ fontSize: 13, color: T.navy, fontWeight: 700, margin: '0 0 4px' }}>Forma de pago: 50% anticipo al iniciar · 50% al entregar</p>
-        <p style={{ fontSize: 12, color: T.textMuted, margin: 0 }}>devmark · Guadalajara, México · devmark.mx</p>
-      </div>
-    </div>
-  )
-}
 
 const inputStyle: React.CSSProperties = {
   width: '100%', padding: '9px 12px', fontSize: 13, color: T.carbon,
@@ -249,7 +113,7 @@ function isRateLimit(raw: string): { limited: boolean; retryIn: string } {
   return { limited: true, retryIn: match?.[1] ?? '' }
 }
 
-export function DiagnosticoTab() {
+export function DiagnosticoTab({ prospects = [] }: { prospects?: Prospect[] }) {
   const [step, setStep]               = useState<'form' | 'loading' | 'result' | 'historial' | 'historial-detail'>('form')
   const [error, setError]             = useState<string | null>(null)
   const [propuesta, setPropuesta]     = useState<Propuesta | null>(null)
@@ -261,6 +125,11 @@ export function DiagnosticoTab() {
   const [regenLoading, setRegenLoading] = useState(false)
   const [regenError, setRegenError]     = useState<string | null>(null)
   const [editingFrom, setEditingFrom]   = useState<DiagnosticoRecord | null>(null)
+  const [histSearch,  setHistSearch]    = useState('')
+  const [histPage,    setHistPage]      = useState(1)
+  const HIST_PER_PAGE = 20
+
+  const [selectedProspectId, setSelectedProspectId] = useState<number | null>(null)
 
   const [form, setForm] = useState({
     business_name:     '',
@@ -362,6 +231,14 @@ export function DiagnosticoTab() {
       setError('Nombre del negocio, contacto y problema principal son obligatorios.')
       return
     }
+    if (form.contact_phone && !/^[\d\s\-\+\(\)]{7,20}$/.test(form.contact_phone.trim())) {
+      setError('El teléfono no parece válido. Ej: 33 1234 5678')
+      return
+    }
+    if (form.contact_email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.contact_email.trim())) {
+      setError('El email no parece válido. Ej: juan@negocio.com')
+      return
+    }
     setError(null)
     setStep('loading')
     setCurrentName(form.business_name)
@@ -372,6 +249,7 @@ export function DiagnosticoTab() {
         headers: { 'Content-Type': 'application/json' },
         body:    JSON.stringify({
           ...form,
+          prospect_id:       selectedProspectId ?? undefined,
           current_situation: form.current_situation.join(', '),
           current_tools:     form.current_tools.join(', '),
           desired_solution:  form.desired_solution.join(', '),
@@ -401,6 +279,7 @@ export function DiagnosticoTab() {
     setRawOutput('')
     setError(null)
     setEditingFrom(null)
+    setSelectedProspectId(null)
     setForm({
       business_name: '', business_type: '', contact_name: '',
       contact_phone: '', contact_email: '', num_employees: '',
@@ -637,6 +516,37 @@ export function DiagnosticoTab() {
           <div style={{ background: '#fff', border: `1px solid ${T.cardBorder}`, borderRadius: 10, padding: '18px 20px', display: 'flex', flexDirection: 'column', gap: 14 }}>
             <p style={{ fontSize: 11, fontWeight: 700, color: T.navy, textTransform: 'uppercase', letterSpacing: '0.08em', margin: 0 }}>1 · Datos del negocio</p>
 
+            {/* Selector de prospecto del CRM */}
+            {prospects.length > 0 && (
+              <Field label="Vincular a prospecto del CRM (opcional)">
+                <select
+                  value={selectedProspectId ?? ''}
+                  onChange={e => {
+                    const id = e.target.value ? Number(e.target.value) : null
+                    setSelectedProspectId(id)
+                    if (id) {
+                      const p = prospects.find(pr => pr.id === id)
+                      if (p) {
+                        update('business_name',  p.business_name  || form.business_name)
+                        update('business_type',  p.business_type  || form.business_type)
+                        update('contact_name',   p.contact_name   || form.contact_name)
+                        update('contact_phone',  p.phone          || form.contact_phone)
+                        update('contact_email',  p.email          || form.contact_email)
+                      }
+                    }
+                  }}
+                  style={{ ...inputStyle, color: selectedProspectId ? T.navy : T.textMuted }}
+                >
+                  <option value="">— Sin vincular —</option>
+                  {prospects.map(p => (
+                    <option key={p.id} value={p.id}>
+                      {p.business_name} · {p.contact_name}
+                    </option>
+                  ))}
+                </select>
+              </Field>
+            )}
+
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 12 }}>
               <Field label="Nombre del negocio *">
                 <input value={form.business_name} onChange={e => update('business_name', e.target.value)}
@@ -864,6 +774,13 @@ export function DiagnosticoTab() {
 
       {step === 'historial' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+          {/* Barra de búsqueda */}
+          <input
+            value={histSearch}
+            onChange={e => { setHistSearch(e.target.value); setHistPage(1) }}
+            placeholder="Buscar por nombre, contacto o problema..."
+            style={{ ...inputStyle, padding: '10px 14px', fontSize: 13 }}
+          />
           {histLoading && (
             <p style={{ textAlign: 'center', fontSize: 13, color: T.textMuted, padding: '32px 0' }}>Cargando diagnósticos...</p>
           )}
@@ -874,36 +791,71 @@ export function DiagnosticoTab() {
               <p style={{ fontSize: 13, color: T.textMuted, margin: 0 }}>Genera el primer diagnóstico con el formulario.</p>
             </div>
           )}
-          {!histLoading && historial.map(d => {
-            const st = STATUS_COLORS[d.status] ?? STATUS_COLORS.pendiente
-            const costo = d.propuesta ? `${(d.propuesta.costo_minimo / 1000).toFixed(0)}k – ${(d.propuesta.costo_maximo / 1000).toFixed(0)}k MXN` : null
-            return (
-              <button key={d.id} onClick={() => { setSelected(d); setStep('historial-detail') }} style={{
-                display: 'flex', alignItems: 'center', gap: 14, background: '#fff',
-                border: `1px solid ${T.cardBorder}`, borderRadius: 10, padding: '14px 18px',
-                cursor: 'pointer', textAlign: 'left', transition: 'box-shadow 0.15s',
-                width: '100%',
-              }}>
-                <div style={{ width: 42, height: 42, borderRadius: 10, background: T.bone, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, flexShrink: 0 }}>
-                  🏢
-                </div>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, flexWrap: 'wrap' }}>
-                    <span style={{ fontSize: 14, fontWeight: 700, color: T.navy }}>{d.business_name}</span>
-                    <span style={{ fontSize: 11, color: T.textMuted }}>{d.business_type}</span>
-                  </div>
-                  <div style={{ fontSize: 12, color: T.textMuted, marginTop: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                    {d.contact_name} · {d.main_problem?.slice(0, 70)}{(d.main_problem?.length ?? 0) > 70 ? '…' : ''}
-                  </div>
-                </div>
-                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4, flexShrink: 0 }}>
-                  <span style={{ fontSize: 10, fontWeight: 700, padding: '3px 8px', borderRadius: 99, background: st.bg, color: st.color }}>{st.label}</span>
-                  {costo && <span style={{ fontSize: 11, fontWeight: 600, color: T.teal }}>{costo}</span>}
-                  <span style={{ fontSize: 10, color: T.textMuted }}>{new Date(d.created_at).toLocaleDateString('es-MX', { day: '2-digit', month: 'short', year: 'numeric' })}</span>
-                </div>
-              </button>
+          {!histLoading && (() => {
+            const q = histSearch.toLowerCase()
+            const filtered = historial.filter(d =>
+              !q ||
+              d.business_name?.toLowerCase().includes(q) ||
+              d.contact_name?.toLowerCase().includes(q)  ||
+              d.main_problem?.toLowerCase().includes(q)
             )
-          })}
+            const totalPages = Math.max(1, Math.ceil(filtered.length / HIST_PER_PAGE))
+            const page = Math.min(histPage, totalPages)
+            const visible = filtered.slice((page - 1) * HIST_PER_PAGE, page * HIST_PER_PAGE)
+
+            return (
+              <>
+                {filtered.length === 0 && histSearch && (
+                  <p style={{ textAlign: 'center', fontSize: 13, color: T.textMuted, padding: '24px 0' }}>
+                    Sin resultados para &ldquo;{histSearch}&rdquo;
+                  </p>
+                )}
+                {visible.map(d => {
+                  const st = STATUS_COLORS[d.status] ?? STATUS_COLORS.pendiente
+                  const costo = d.propuesta ? `${(d.propuesta.costo_minimo / 1000).toFixed(0)}k – ${(d.propuesta.costo_maximo / 1000).toFixed(0)}k MXN` : null
+                  return (
+                    <button key={d.id} onClick={() => { setSelected(d); setStep('historial-detail') }} style={{
+                      display: 'flex', alignItems: 'center', gap: 14, background: '#fff',
+                      border: `1px solid ${T.cardBorder}`, borderRadius: 10, padding: '14px 18px',
+                      cursor: 'pointer', textAlign: 'left', transition: 'box-shadow 0.15s',
+                      width: '100%',
+                    }}>
+                      <div style={{ width: 42, height: 42, borderRadius: 10, background: T.bone, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, flexShrink: 0 }}>
+                        🏢
+                      </div>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, flexWrap: 'wrap' }}>
+                          <span style={{ fontSize: 14, fontWeight: 700, color: T.navy }}>{d.business_name}</span>
+                          <span style={{ fontSize: 11, color: T.textMuted }}>{d.business_type}</span>
+                        </div>
+                        <div style={{ fontSize: 12, color: T.textMuted, marginTop: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          {d.contact_name} · {d.main_problem?.slice(0, 70)}{(d.main_problem?.length ?? 0) > 70 ? '…' : ''}
+                        </div>
+                      </div>
+                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4, flexShrink: 0 }}>
+                        <span style={{ fontSize: 10, fontWeight: 700, padding: '3px 8px', borderRadius: 99, background: st.bg, color: st.color }}>{st.label}</span>
+                        {costo && <span style={{ fontSize: 11, fontWeight: 600, color: T.teal }}>{costo}</span>}
+                        <span style={{ fontSize: 10, color: T.textMuted }}>{new Date(d.created_at).toLocaleDateString('es-MX', { day: '2-digit', month: 'short', year: 'numeric' })}</span>
+                      </div>
+                    </button>
+                  )
+                })}
+                {totalPages > 1 && (
+                  <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 8, paddingTop: 4 }}>
+                    <button onClick={() => setHistPage(p => Math.max(1, p - 1))} disabled={page === 1}
+                      style={{ background: 'none', border: `1px solid ${T.cardBorder}`, borderRadius: 6, padding: '5px 12px', fontSize: 12, cursor: page === 1 ? 'default' : 'pointer', opacity: page === 1 ? 0.4 : 1 }}>
+                      ←
+                    </button>
+                    <span style={{ fontSize: 12, color: T.textMuted }}>{page} / {totalPages}</span>
+                    <button onClick={() => setHistPage(p => Math.min(totalPages, p + 1))} disabled={page === totalPages}
+                      style={{ background: 'none', border: `1px solid ${T.cardBorder}`, borderRadius: 6, padding: '5px 12px', fontSize: 12, cursor: page === totalPages ? 'default' : 'pointer', opacity: page === totalPages ? 0.4 : 1 }}>
+                      →
+                    </button>
+                  </div>
+                )}
+              </>
+            )
+          })()}
         </div>
       )}
 
@@ -941,6 +893,18 @@ export function DiagnosticoTab() {
                 borderRadius: 8, padding: '9px 16px', fontSize: 13, fontWeight: 600, cursor: 'pointer',
               }}>
                 🖨 Imprimir / PDF
+              </button>
+            )}
+            {selected.propuesta && (
+              <button onClick={() => {
+                const url = `${window.location.origin}/propuesta/${selected.id}`
+                navigator.clipboard.writeText(url).then(() => alert('Enlace copiado:\n' + url))
+              }} style={{
+                display: 'flex', alignItems: 'center', gap: 6,
+                background: '#fff', color: T.teal, border: `1.5px solid ${T.teal}`,
+                borderRadius: 8, padding: '9px 16px', fontSize: 13, fontWeight: 600, cursor: 'pointer',
+              }}>
+                🔗 Copiar enlace cliente
               </button>
             )}
             <button onClick={() => deleteDiagnostico(selected.id)} style={{
