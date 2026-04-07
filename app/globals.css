@@ -312,23 +312,23 @@ body {
     gap: 0 !important;
   }
 
-  /* Solo mostrar el contenedor de propuesta — padding-top reserva espacio para el header fijo */
+  /* Solo mostrar el contenedor de propuesta */
   .print-propuesta {
     display: block !important;
     width: 100%;
     max-width: 100%;
     margin: 0;
-    padding: 28mm 0 0 0;
+    padding: 0;
   }
 
   /* Page breaks */
   .print-break-before { page-break-before: always; }
   .print-break-avoid  { page-break-inside: avoid; }
 
-  /* Tamaño y márgenes — top:0 elimina el header nativo del browser; lados/inferior dan margen de impresión */
+  /* Tamaño carta y márgenes — margin-top 28mm = espacio reservado para el header fijo en TODAS las hojas */
   @page {
     size: letter portrait;
-    margin: 0 30mm 25mm 30mm;
+    margin: 28mm 30mm 25mm 30mm;
   }
 
   /* Evitar que los bloques se corten entre páginas */
@@ -346,19 +346,33 @@ body {
     display: none !important;
   }
 
-  /* Header de impresión — position:fixed lo repite en todas las hojas en Chrome/Edge */
-  .print-page-header {
+  /* Header página 1 — en flujo normal, aparece solo en la primera hoja */
+  .print-header-p1 {
+    display: flex !important;
+    align-items: center;
+    justify-content: space-between;
+    padding-bottom: 6mm;
+    margin-bottom: 6mm;
+    border-bottom: 2px solid #1D9E75;
+  }
+
+  /* Logo que se repite en página 2+ — position:fixed lo ancla al área de margen en cada hoja */
+  .print-logo-repeat {
     display: flex !important;
     position: fixed;
     top: 0;
     left: 0;
     right: 0;
+    height: 25mm;
     background: #fff;
     box-sizing: border-box;
-    padding: 8mm 30mm 5mm 30mm;
+    padding: 6mm 30mm 4mm 30mm;
     align-items: center;
-    justify-content: space-between;
-    border-bottom: 2px solid #1D9E75;
+  }
+
+  /* El header-page-header legacy ya no se usa en print — se oculta */
+  .print-page-header {
+    display: none !important;
   }
 }
 

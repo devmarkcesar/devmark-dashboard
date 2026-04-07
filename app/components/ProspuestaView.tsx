@@ -52,11 +52,17 @@ export function ProspuestaView({ p, businessName }: { p: Propuesta; businessName
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
 
-      {/* Header de impresión — solo visible al imprimir, se repite en cada hoja */}
-      <div className="print-page-header" style={{ display: 'none' }}>
+      {/* Logo repetido en TODAS las hojas — fijo en el área de margen (position:fixed en print) */}
+      <div className="print-logo-repeat" style={{ display: 'none' }}>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/logos/horizontal/dev-hori-1.png" alt="devmark" style={{ height: 32, objectFit: 'contain' }} />
+      </div>
+
+      {/* Header completo con logo + fecha — flujo normal, solo aparece en página 1 */}
+      <div className="print-header-p1" style={{ display: 'none' }}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src="/logos/horizontal/dev-hori-1.png" alt="devmark" style={{ height: 44, objectFit: 'contain' }} />
-        <div style={{ textAlign: 'right', fontSize: 10, color: '#555', lineHeight: 1.5 }}>
+        <div style={{ textAlign: 'right', fontSize: 10, lineHeight: 1.5 }}>
           <div style={{ fontWeight: 700, color: '#0C2D4E' }}>Guadalajara, Jalisco</div>
           <div style={{ fontWeight: 700, color: '#0C2D4E' }}>{fechaFormateada} · {horaFormateada}</div>
         </div>
