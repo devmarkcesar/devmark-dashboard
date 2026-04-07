@@ -51,13 +51,6 @@ export function ProspuestaView({ p, businessName }: { p: Propuesta; businessName
 
   return (
     <>
-      {/* Logo fijo — aparece en TODAS las hojas (incluida p1) — solo logo, sin fecha */}
-      {/* En pantalla está oculto; en print: position:fixed lo repite cada página */}
-      <div className="print-logo-repeat" style={{ display: 'none' }}>
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/logos/horizontal/dev-hori-1.png" alt="devmark" style={{ height: 40, objectFit: 'contain' }} />
-      </div>
-
       {/* Header p1: logo + fecha — en el FLUJO normal, solo aparece página 1 */}
       {/* En pantalla está oculto; en print se muestra como primer elemento del flujo */}
       <div className="print-header-p1" style={{ display: 'none' }}>
