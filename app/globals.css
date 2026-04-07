@@ -50,6 +50,7 @@ body {
 .main-content {
   flex: 1;
   min-width: 0;
+  overflow-x: hidden;
   background: #F1EFE8;
   padding: 24px 32px;
   display: flex;
@@ -136,6 +137,9 @@ body {
 
 /* ─── Mobile (<640px) ───────────────────────────────────────────────────── */
 @media (max-width: 639px) {
+  .sidebar {
+    width: 100%;
+  }
   .main-content {
     padding: 16px;
     gap: 12px;

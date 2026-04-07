@@ -75,10 +75,10 @@ export function AgentsTab({ agents, tasks, onShowProjects }: AgentsTabProps) {
             {selected?.prompt || 'Haz clic en cualquier agente para ver su prompt del sistema y asignarle una tarea vía Telegram.'}
           </div>
 
-          <div style={{ display: 'flex', gap: 6 }}>
+          <div style={{ display: 'flex', gap: 6, minWidth: 0 }}>
             <input
               style={{
-                flex: 1, fontSize: 11, padding: '7px 10px',
+                flex: 1, minWidth: 0, fontSize: 11, padding: '7px 10px',
                 border: `1px solid ${T.cardBorder}`, borderRadius: 7,
                 background: T.bone, color: T.navy, outline: 'none',
               }}
@@ -107,7 +107,8 @@ export function AgentsTab({ agents, tasks, onShowProjects }: AgentsTabProps) {
                 return (
                   <div key={t.id} style={{
                     display: 'flex', alignItems: 'center', gap: 8, padding: '7px 10px',
-                    borderRadius: 7, border: `1px solid ${T.cardBorder}`, background: T.bone, marginBottom: 5,
+                    borderRadius: 7, border: `1px solid ${T.cardBorder}`, background: T.bone,
+                    marginBottom: 5, overflow: 'hidden', minWidth: 0,
                   }}>
                     <span style={{ fontSize: 10, fontWeight: 700, color: T.blue, minWidth: 62, fontFamily: 'monospace' }}>{t.jira_key || '—'}</span>
                     <span style={{ fontSize: 11, color: T.navy, flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t.title}</span>
