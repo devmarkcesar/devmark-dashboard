@@ -279,6 +279,68 @@ body {
   }
 }
 
+/* ─── Print / PDF ───────────────────────────────────────────────────────── */
+@media print {
+  /* Ocultar todo el chrome del dashboard */
+  nav,
+  .sidebar,
+  .sidebar-overlay,
+  .navbar-hamburger,
+  [class*="NavbarWrapper"],
+  header,
+  footer,
+  .print-hide {
+    display: none !important;
+  }
+
+  /* Fondo blanco, sin scroll */
+  html, body {
+    background: #fff !important;
+    color: #222 !important;
+    margin: 0;
+    padding: 0;
+  }
+
+  /* Quitar layout flex del dashboard */
+  .dashboard-layout {
+    display: block !important;
+  }
+
+  .main-content {
+    padding: 0 !important;
+    background: #fff !important;
+    gap: 0 !important;
+  }
+
+  /* Solo mostrar el contenedor de propuesta */
+  .print-propuesta {
+    display: block !important;
+    width: 100%;
+    max-width: 100%;
+    margin: 0;
+    padding: 0;
+  }
+
+  /* Page breaks */
+  .print-break-before { page-break-before: always; }
+  .print-break-avoid  { page-break-inside: avoid; }
+
+  /* Tamaño y márgenes de página */
+  @page {
+    size: A4 portrait;
+    margin: 18mm 18mm 18mm 18mm;
+  }
+
+  /* Ajustes tipográficos */
+  * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+
+  /* Ocultar botones de acción y header del formulario en la propuesta */
+  .diagnostico-header,
+  .diagnostico-actions {
+    display: none !important;
+  }
+}
+
 /* ─── Agent detail page ──────────────────────────────────────────────────── */
 .agent-detail-content {
   max-width: 800px;

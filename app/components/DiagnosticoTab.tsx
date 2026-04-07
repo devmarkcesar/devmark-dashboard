@@ -282,7 +282,7 @@ export function DiagnosticoTab() {
     <div style={{ maxWidth: 720, margin: '0 auto', padding: '24px 16px 48px', fontFamily: 'inherit' }}>
 
       {/* Header */}
-      <div style={{ marginBottom: 28 }}>
+      <div className="diagnostico-header" style={{ marginBottom: 28 }}>
         <h1 style={{ fontSize: 22, fontWeight: 800, color: T.navy, margin: '0 0 4px' }}>Diagnóstico de cliente</h1>
         <p style={{ fontSize: 13, color: T.textMuted, margin: 0 }}>
           Completa el formulario con las necesidades del cliente. Los agentes generarán una propuesta completa al instante.
@@ -477,6 +477,7 @@ export function DiagnosticoTab() {
 
       {step === 'result' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+          <div className="print-propuesta">
           {propuesta
             ? <ProspuestaView p={propuesta} businessName={form.business_name} />
             : (
@@ -490,8 +491,9 @@ export function DiagnosticoTab() {
               </div>
             )
           }
+          </div>
 
-          <div style={{ display: 'flex', gap: 10 }}>
+          <div className="diagnostico-actions" style={{ display: 'flex', gap: 10 }}>
             <button onClick={handleReset} style={{
               flex: 1, background: T.bone, color: T.navy, border: `1px solid ${T.cardBorder}`,
               borderRadius: 10, padding: '12px 20px', fontSize: 14, fontWeight: 600, cursor: 'pointer',

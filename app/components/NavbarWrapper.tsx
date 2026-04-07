@@ -9,7 +9,7 @@ export function NavbarWrapper() {
   if (pathname === '/login') return null
 
   return (
-    <nav style={{
+    <nav className="print-hide" style={{
       background: '#0C2D4E',
       borderBottom: '2px solid #1D9E75',
       position: 'sticky',
