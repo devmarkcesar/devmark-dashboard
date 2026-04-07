@@ -6,6 +6,20 @@ import { NextRequest, NextResponse } from 'next/server'
 const CORE_API   = process.env.CORE_API_URL    ?? 'http://127.0.0.1:8000'
 const API_SECRET = process.env.DASHBOARD_API_SECRET ?? ''
 
+// S1 — Rate limiting en memoria: máx 10 mensajes/min por sesión
+const rateLimitMap = new Map<string, { count: number; resetAt: number }>()
+function checkRateLimit(sessionEmail: string): boolean {
+  const now = Date.now()
+  const entry = rateLimitMap.get(sessionEmail)
+  if (!entry || now > entry.resetAt) {
+    rateLimitMap.set(sessionEmail, { count: 1, resetAt: now + 60_000 })
+    return true
+  }
+  if (entry.count >= 10) return false
+  entry.count++
+  return true
+}
+
 export async function GET(
   _req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -59,6 +73,17 @@ export async function POST(
   const body    = await req.json().catch(() => null)
   const message = (body?.message ?? '').toString().trim()
   if (!message) return NextResponse.json({ error: 'Mensaje requerido' }, { status: 400 })
+
+  // S3 — Validar longitud máxima
+  if (message.length > 2000) {
+    return NextResponse.json({ error: 'El mensaje no puede superar los 2000 caracteres' }, { status: 400 })
+  }
+
+  // S1 — Rate limit
+  const userEmail = (session.user?.email ?? 'unknown')
+  if (!checkRateLimit(userEmail)) {
+    return NextResponse.json({ error: 'Demasiadas solicitudes. Espera un minuto.' }, { status: 429 })
+  }
 
   try {
     const coreRes = await fetch(`${CORE_API}/agent/${agentId}/chat`, {
