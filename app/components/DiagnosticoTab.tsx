@@ -10,6 +10,23 @@ const INDUSTRIES = [
   'Escuela / Academia', 'Taller mecánico', 'Farmacia', 'Otro',
 ]
 
+const EMPLOYEES_OPTIONS = [
+  { value: 'solo',   label: 'Solo el dueño' },
+  { value: '2_5',    label: '2 – 5 empleados' },
+  { value: '6_15',   label: '6 – 15 empleados' },
+  { value: '16_50',  label: '16 – 50 empleados' },
+  { value: 'mas_50', label: 'Más de 50 empleados' },
+]
+
+const CURRENT_TOOLS = [
+  { value: 'papel',    label: '📄 Papel / libreta' },
+  { value: 'excel',    label: '📊 Excel / Google Sheets' },
+  { value: 'whatsapp', label: '💬 WhatsApp (grupos/notas)' },
+  { value: 'pos',      label: '🖥 Sistema POS / caja' },
+  { value: 'sistema',  label: '⚙️ Sistema propio (desactualizado)' },
+  { value: 'nada',     label: '❌ Sin herramientas digitales' },
+]
+
 const SITUATION_OPTIONS = [
   { value: 'nada',          label: 'No tiene nada digital' },
   { value: 'tiene_web',     label: 'Tiene sitio web pero está desactualizado o no funciona bien' },
@@ -185,21 +202,36 @@ export function DiagnosticoTab() {
     business_name:     '',
     business_type:     '',
     contact_name:      '',
+    contact_phone:     '',
+    contact_email:     '',
+    num_employees:     '',
     main_problem:      '',
     current_situation: '',
+    current_tools:     [] as string[],
     desired_solution:  '',
+    main_objective:    '',
     budget_range:      'no_definido',
     urgency:           'sin_prisa',
+    decision_maker:    true,
     extra_notes:       '',
   })
 
-  function update(field: string, value: string) {
+  function update(field: string, value: string | boolean) {
     setForm(f => ({ ...f, [field]: value }))
   }
 
+  function toggleTool(value: string) {
+    setForm(f => ({
+      ...f,
+      current_tools: f.current_tools.includes(value)
+        ? f.current_tools.filter(t => t !== value)
+        : [...f.current_tools, value],
+    }))
+  }
+
   async function handleSubmit() {
-    if (!form.business_name.trim() || !form.main_problem.trim()) {
-      setError('El nombre del negocio y el problema principal son obligatorios.')
+    if (!form.business_name.trim() || !form.main_problem.trim() || !form.contact_name.trim()) {
+      setError('Nombre del negocio, contacto y problema principal son obligatorios.')
       return
     }
     setError(null)
@@ -209,7 +241,10 @@ export function DiagnosticoTab() {
       const res = await fetch('/api/diagnostico', {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
-        body:    JSON.stringify(form),
+        body:    JSON.stringify({
+          ...form,
+          current_tools: form.current_tools.join(', '),
+        }),
       })
       const data = await res.json()
 
@@ -235,8 +270,11 @@ export function DiagnosticoTab() {
     setError(null)
     setForm({
       business_name: '', business_type: '', contact_name: '',
-      main_problem: '', current_situation: '', desired_solution: '',
-      budget_range: 'no_definido', urgency: 'sin_prisa', extra_notes: '',
+      contact_phone: '', contact_email: '', num_employees: '',
+      main_problem: '', current_situation: '', current_tools: [],
+      desired_solution: '', main_objective: '',
+      budget_range: 'no_definido', urgency: 'sin_prisa',
+      decision_maker: true, extra_notes: '',
     })
   }
 
@@ -259,57 +297,97 @@ export function DiagnosticoTab() {
             </div>
           )}
 
-          {/* Datos del negocio */}
+          {/* ── SECCIÓN 1: Datos del negocio ── */}
           <div style={{ background: '#fff', border: `1px solid ${T.cardBorder}`, borderRadius: 10, padding: '18px 20px', display: 'flex', flexDirection: 'column', gap: 14 }}>
-            <p style={{ fontSize: 11, fontWeight: 700, color: T.navy, textTransform: 'uppercase', letterSpacing: '0.08em', margin: 0 }}>Datos del negocio</p>
+            <p style={{ fontSize: 11, fontWeight: 700, color: T.navy, textTransform: 'uppercase', letterSpacing: '0.08em', margin: 0 }}>1 · Datos del negocio</p>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 12 }}>
               <Field label="Nombre del negocio *">
                 <input value={form.business_name} onChange={e => update('business_name', e.target.value)}
                   placeholder="Ej: Tacos El Güero" style={inputStyle} />
               </Field>
-              <Field label="Nombre del contacto">
-                <input value={form.contact_name} onChange={e => update('contact_name', e.target.value)}
-                  placeholder="Ej: Juan López" style={inputStyle} />
+              <Field label="Industria / Giro">
+                <select value={form.business_type} onChange={e => update('business_type', e.target.value)} style={inputStyle}>
+                  <option value="">Selecciona una opción</option>
+                  {INDUSTRIES.map(i => <option key={i} value={i}>{i}</option>)}
+                </select>
               </Field>
             </div>
 
-            <Field label="Industria / Giro del negocio">
-              <select value={form.business_type} onChange={e => update('business_type', e.target.value)} style={inputStyle}>
-                <option value="">Selecciona una opción</option>
-                {INDUSTRIES.map(i => <option key={i} value={i}>{i}</option>)}
-              </select>
-            </Field>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 12 }}>
+              <Field label="Nombre del contacto *">
+                <input value={form.contact_name} onChange={e => update('contact_name', e.target.value)}
+                  placeholder="Ej: Juan López" style={inputStyle} />
+              </Field>
+              <Field label="Teléfono / WhatsApp *">
+                <input value={form.contact_phone} onChange={e => update('contact_phone', e.target.value)}
+                  placeholder="Ej: 33 1234 5678" style={inputStyle} type="tel" />
+              </Field>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 12 }}>
+              <Field label="Email (opcional)">
+                <input value={form.contact_email} onChange={e => update('contact_email', e.target.value)}
+                  placeholder="Ej: juan@negocio.com" style={inputStyle} type="email" />
+              </Field>
+              <Field label="Tamaño del negocio">
+                <select value={form.num_employees} onChange={e => update('num_employees', e.target.value)} style={inputStyle}>
+                  <option value="">Selecciona una opción</option>
+                  {EMPLOYEES_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+                </select>
+              </Field>
+            </div>
           </div>
 
-          {/* Problema principal */}
+          {/* ── SECCIÓN 2: Situación actual ── */}
           <div style={{ background: '#fff', border: `1px solid ${T.cardBorder}`, borderRadius: 10, padding: '18px 20px', display: 'flex', flexDirection: 'column', gap: 14 }}>
-            <p style={{ fontSize: 11, fontWeight: 700, color: T.navy, textTransform: 'uppercase', letterSpacing: '0.08em', margin: 0 }}>Problema y necesidad</p>
+            <p style={{ fontSize: 11, fontWeight: 700, color: T.navy, textTransform: 'uppercase', letterSpacing: '0.08em', margin: 0 }}>2 · Situación actual del negocio</p>
 
-            <Field label="¿Cuál es el problema principal del negocio? *">
+            <Field label="¿Cuál es el problema o necesidad principal? *">
               <textarea value={form.main_problem} onChange={e => update('main_problem', e.target.value)}
-                placeholder="Ej: No tienen sistema para llevar el inventario, lo hacen en papel y se pierde producto..."
+                placeholder="Ej: No tienen sistema para llevar el inventario, lo hacen en papel y constantemente se les acaban ingredientes sin darse cuenta..."
                 rows={3} style={{ ...inputStyle, resize: 'vertical' }} />
             </Field>
 
-            <Field label="Situación digital actual">
-              {SITUATION_OPTIONS.map(opt => (
-                <label key={opt.value} style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', marginBottom: 6 }}>
-                  <input type="radio" name="current_situation" value={opt.value}
-                    checked={form.current_situation === opt.value}
-                    onChange={() => update('current_situation', opt.value)} />
-                  <span style={{ fontSize: 13, color: T.carbon }}>{opt.label}</span>
-                </label>
-              ))}
+            <Field label="Presencia digital actual">
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                {SITUATION_OPTIONS.map(opt => (
+                  <label key={opt.value} style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}>
+                    <input type="radio" name="current_situation" value={opt.value}
+                      checked={form.current_situation === opt.value}
+                      onChange={() => update('current_situation', opt.value)} />
+                    <span style={{ fontSize: 13, color: T.carbon }}>{opt.label}</span>
+                  </label>
+                ))}
+              </div>
+            </Field>
+
+            <Field label="¿Qué herramientas usa actualmente? (selecciona todas las que apliquen)">
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 8 }}>
+                {CURRENT_TOOLS.map(opt => (
+                  <label key={opt.value} style={{
+                    display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer',
+                    padding: '7px 12px', borderRadius: 8, border: '1.5px solid',
+                    borderColor: form.current_tools.includes(opt.value) ? T.teal : T.cardBorder,
+                    background: form.current_tools.includes(opt.value) ? 'rgba(29,158,117,0.06)' : '#fff',
+                    transition: 'all 0.12s',
+                  }}>
+                    <input type="checkbox" checked={form.current_tools.includes(opt.value)}
+                      onChange={() => toggleTool(opt.value)}
+                      style={{ accentColor: T.teal }} />
+                    <span style={{ fontSize: 12, color: T.carbon }}>{opt.label}</span>
+                  </label>
+                ))}
+              </div>
             </Field>
           </div>
 
-          {/* Solución deseada */}
+          {/* ── SECCIÓN 3: Solución y objetivos ── */}
           <div style={{ background: '#fff', border: `1px solid ${T.cardBorder}`, borderRadius: 10, padding: '18px 20px', display: 'flex', flexDirection: 'column', gap: 14 }}>
-            <p style={{ fontSize: 11, fontWeight: 700, color: T.navy, textTransform: 'uppercase', letterSpacing: '0.08em', margin: 0 }}>Solución y presupuesto</p>
+            <p style={{ fontSize: 11, fontWeight: 700, color: T.navy, textTransform: 'uppercase', letterSpacing: '0.08em', margin: 0 }}>3 · Solución deseada</p>
 
             <Field label="¿Qué tipo de solución busca?">
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 8 }}>
                 {SOLUTION_OPTIONS.map(opt => (
                   <label key={opt.value} style={{
                     display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer',
@@ -328,7 +406,18 @@ export function DiagnosticoTab() {
               </div>
             </Field>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+            <Field label="¿Qué quiere lograr con esta solución?">
+              <textarea value={form.main_objective} onChange={e => update('main_objective', e.target.value)}
+                placeholder="Ej: Quiero poder ver en tiempo real cuánto producto me queda, recibir alertas automáticas y eliminar el inventario en papel..."
+                rows={2} style={{ ...inputStyle, resize: 'vertical' }} />
+            </Field>
+          </div>
+
+          {/* ── SECCIÓN 4: Información comercial ── */}
+          <div style={{ background: '#fff', border: `1px solid ${T.cardBorder}`, borderRadius: 10, padding: '18px 20px', display: 'flex', flexDirection: 'column', gap: 14 }}>
+            <p style={{ fontSize: 11, fontWeight: 700, color: T.navy, textTransform: 'uppercase', letterSpacing: '0.08em', margin: 0 }}>4 · Información comercial</p>
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 12 }}>
               <Field label="Presupuesto aproximado">
                 <select value={form.budget_range} onChange={e => update('budget_range', e.target.value)} style={inputStyle}>
                   {BUDGET_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
@@ -341,9 +430,24 @@ export function DiagnosticoTab() {
               </Field>
             </div>
 
+            <Field label="¿Está presente quien toma la decisión de compra?">
+              <div style={{ display: 'flex', gap: 16 }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}>
+                  <input type="radio" name="decision_maker" checked={form.decision_maker === true}
+                    onChange={() => update('decision_maker', true)} />
+                  <span style={{ fontSize: 13, color: T.carbon, fontWeight: 600 }}>✅ Sí, está presente</span>
+                </label>
+                <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}>
+                  <input type="radio" name="decision_maker" checked={form.decision_maker === false}
+                    onChange={() => update('decision_maker', false)} />
+                  <span style={{ fontSize: 13, color: T.carbon }}>⏳ No, necesita consultarlo</span>
+                </label>
+              </div>
+            </Field>
+
             <Field label="Notas adicionales (opcional)">
               <textarea value={form.extra_notes} onChange={e => update('extra_notes', e.target.value)}
-                placeholder="Cualquier detalle adicional que sea útil para la propuesta..."
+                placeholder="Detalles que ayuden a afinar la propuesta: integraciones requeridas, sistemas a conectar, restricciones, etc."
                 rows={2} style={{ ...inputStyle, resize: 'vertical' }} />
             </Field>
           </div>

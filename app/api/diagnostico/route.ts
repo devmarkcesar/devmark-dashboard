@@ -36,11 +36,17 @@ export async function POST(req: NextRequest) {
     business_name,
     business_type,
     contact_name,
+    contact_phone,
+    contact_email,
+    num_employees,
     main_problem,
-    current_situation,   // 'nada' | 'tiene_web' | 'tiene_sistema' | 'tiene_bot'
-    desired_solution,    // 'sitio_web' | 'sistema' | 'bot' | 'dashboard' | 'automatizacion' | 'otro'
-    budget_range,        // 'menos_5k' | '5k_15k' | '15k_50k' | 'mas_50k' | 'no_definido'
-    urgency,             // 'inmediata' | '1_mes' | '3_meses' | 'sin_prisa'
+    current_situation,
+    current_tools,
+    desired_solution,
+    main_objective,
+    budget_range,
+    urgency,
+    decision_maker,
     extra_notes,
   } = body
 
@@ -52,13 +58,20 @@ export async function POST(req: NextRequest) {
   const insertRes = await pool.query(
     `INSERT INTO diagnosticos
        (prospect_id, business_name, business_type, contact_name,
-        main_problem, current_situation, desired_solution,
-        budget_range, urgency, extra_notes, status)
-     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,'pendiente')
+        contact_phone, contact_email, num_employees,
+        main_problem, current_situation, current_tools,
+        desired_solution, main_objective,
+        budget_range, urgency, decision_maker, extra_notes, status)
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,'pendiente')
      RETURNING *`,
-    [prospect_id ?? null, business_name, business_type ?? '', contact_name ?? '',
-     main_problem, current_situation ?? '', desired_solution ?? '',
-     budget_range ?? 'no_definido', urgency ?? 'sin_prisa', extra_notes ?? '']
+    [
+      prospect_id ?? null, business_name, business_type ?? '', contact_name ?? '',
+      contact_phone ?? '', contact_email ?? '', num_employees ?? '',
+      main_problem, current_situation ?? '', current_tools ?? '',
+      desired_solution ?? '', main_objective ?? '',
+      budget_range ?? 'no_definido', urgency ?? 'sin_prisa',
+      decision_maker ?? true, extra_notes ?? '',
+    ]
   )
   const diagnostico = insertRes.rows[0]
 
@@ -85,16 +98,20 @@ export async function POST(req: NextRequest) {
     'otro':          'Solución a definir',
   }
 
-  const pmPrompt = `Eres el Agente Project Manager de devmark. Analiza este diagnóstico de cliente y genera una propuesta profesional completa.
+  const pmPrompt = `Eres el Agente Project Manager de devmark, una agencia de desarrollo de software en Guadalajara, México. Analiza este diagnóstico de cliente y genera una propuesta profesional completa y convincente.
 
 DIAGNÓSTICO DEL CLIENTE:
 - Negocio: ${business_name} (${business_type || 'tipo no especificado'})
-- Contacto: ${contact_name || 'No especificado'}
+- Contacto: ${contact_name || 'No especificado'} | Tel: ${contact_phone || 'N/A'} | Email: ${contact_email || 'N/A'}
+- Tamaño: ${num_employees || 'no especificado'}
 - Problema principal: ${main_problem}
-- Situación actual: ${current_situation || 'no especificada'}
-- Solución deseada: ${solutionMap[desired_solution] ?? desired_solution ?? 'a definir'}
+- Objetivo deseado: ${main_objective || 'no especificado'}
+- Situación digital actual: ${current_situation || 'no especificada'}
+- Herramientas que usa hoy: ${current_tools || 'no especificadas'}
+- Tipo de solución deseada: ${solutionMap[desired_solution] ?? desired_solution ?? 'a definir'}
 - Presupuesto: ${budgetMap[budget_range] ?? 'no definido'}
 - Urgencia: ${urgencyMap[urgency] ?? 'sin prisa'}
+- Tomador de decisión presente: ${decision_maker ? 'SÍ — puede cerrar hoy' : 'NO — necesita consultarlo'}
 - Notas adicionales: ${extra_notes || 'ninguna'}
 
 GENERA UNA PROPUESTA COMPLETA CON ESTE FORMATO EXACTO (JSON):
