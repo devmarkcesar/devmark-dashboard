@@ -1,5 +1,5 @@
 'use client'
-import { useState } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { T } from './tokens'
 
 const INDUSTRIES = [
@@ -57,6 +57,19 @@ const URGENCY_OPTIONS = [
   { value: '3_meses',   label: 'En los próximos 3 meses' },
   { value: 'sin_prisa', label: 'Sin fecha límite definida' },
 ]
+
+interface DiagnosticoRecord {
+  id:            number
+  business_name: string
+  business_type: string
+  contact_name:  string
+  contact_phone: string
+  main_problem:  string
+  budget_range:  string
+  status:        string
+  propuesta:     Propuesta | null
+  created_at:    string
+}
 
 interface Propuesta {
   diagnostico_resumen:           string
@@ -192,11 +205,22 @@ const inputStyle: React.CSSProperties = {
   background: '#FAFAFA', boxSizing: 'border-box',
 }
 
+const STATUS_COLORS: Record<string, { bg: string; color: string; label: string }> = {
+  completado: { bg: 'rgba(29,158,117,0.12)', color: '#1D9E75', label: 'Completado' },
+  parcial:    { bg: 'rgba(246,201,14,0.15)', color: '#9A7C00', label: 'Sin estructurar' },
+  error:      { bg: 'rgba(192,86,33,0.10)',  color: '#C05621', label: 'Error' },
+  pendiente:  { bg: 'rgba(100,100,100,0.10)',color: '#666',    label: 'Pendiente' },
+}
+
 export function DiagnosticoTab() {
-  const [step, setStep]           = useState<'form' | 'loading' | 'result'>('form')
-  const [error, setError]         = useState<string | null>(null)
-  const [propuesta, setPropuesta] = useState<Propuesta | null>(null)
-  const [rawOutput, setRawOutput] = useState('')
+  const [step, setStep]               = useState<'form' | 'loading' | 'result' | 'historial' | 'historial-detail'>('form')
+  const [error, setError]             = useState<string | null>(null)
+  const [propuesta, setPropuesta]     = useState<Propuesta | null>(null)
+  const [rawOutput, setRawOutput]     = useState('')
+  const [historial, setHistorial]     = useState<DiagnosticoRecord[]>([])
+  const [histLoading, setHistLoading] = useState(false)
+  const [selected, setSelected]       = useState<DiagnosticoRecord | null>(null)
+  const [currentName, setCurrentName] = useState('')
 
   const [form, setForm] = useState({
     business_name:     '',
@@ -220,6 +244,20 @@ export function DiagnosticoTab() {
     setForm(f => ({ ...f, [field]: value }))
   }
 
+  const loadHistorial = useCallback(async () => {
+    setHistLoading(true)
+    try {
+      const res = await fetch('/api/diagnostico')
+      if (res.ok) {
+        const data = await res.json()
+        setHistorial(data.diagnosticos ?? [])
+      }
+    } catch { /* silencioso */ }
+    setHistLoading(false)
+  }, [])
+
+  useEffect(() => { loadHistorial() }, [loadHistorial])
+
   function toggleMulti(field: 'current_situation' | 'current_tools' | 'desired_solution', value: string) {
     setForm(f => {
       const arr = f[field] as string[]
@@ -234,6 +272,7 @@ export function DiagnosticoTab() {
     }
     setError(null)
     setStep('loading')
+    setCurrentName(form.business_name)
 
     try {
       const res = await fetch('/api/diagnostico', {
@@ -257,6 +296,7 @@ export function DiagnosticoTab() {
       setPropuesta(data.diagnostico.propuesta ?? null)
       setRawOutput(data.diagnostico.raw_output ?? '')
       setStep('result')
+      loadHistorial() // refrescar historial en segundo plano
     } catch {
       setError('Sin conexión al servidor')
       setStep('form')
@@ -464,6 +504,19 @@ export function DiagnosticoTab() {
           }}>
             <span style={{ fontSize: 15 }}>📋</span> Cuestionario (.doc)
           </button>
+          <button
+            onClick={() => { step === 'historial' || step === 'historial-detail' ? setStep('form') : (loadHistorial(), setStep('historial')) }}
+            style={{
+              display: 'flex', alignItems: 'center', gap: 7, flexShrink: 0,
+              background: (step === 'historial' || step === 'historial-detail') ? T.navy : '#fff',
+              color: (step === 'historial' || step === 'historial-detail') ? '#fff' : T.navy,
+              border: `1.5px solid ${T.cardBorder}`,
+              borderRadius: 8, padding: '8px 14px', fontSize: 12, fontWeight: 600,
+              cursor: 'pointer', transition: 'all 0.15s', whiteSpace: 'nowrap',
+            }}>
+            <span style={{ fontSize: 15 }}>🗂</span>
+            Historial {historial.length > 0 && `(${historial.length})`}
+          </button>
         </div>
       </div>
 
@@ -658,7 +711,7 @@ export function DiagnosticoTab() {
         <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
           <div className="print-propuesta">
           {propuesta
-            ? <ProspuestaView p={propuesta} businessName={form.business_name} />
+            ? <ProspuestaView p={propuesta} businessName={currentName || form.business_name} />
             : (
               <div style={{ background: '#FEF3F0', border: '1px solid #F8C4B4', borderRadius: 10, padding: '16px 20px' }}>
                 <p style={{ fontSize: 13, fontWeight: 700, color: '#C05621', margin: '0 0 8px' }}>
@@ -686,6 +739,82 @@ export function DiagnosticoTab() {
               🖨 Imprimir / PDF
             </button>
           </div>
+        </div>
+      )}
+
+      {step === 'historial' && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+          {histLoading && (
+            <p style={{ textAlign: 'center', fontSize: 13, color: T.textMuted, padding: '32px 0' }}>Cargando diagnósticos...</p>
+          )}
+          {!histLoading && historial.length === 0 && (
+            <div style={{ textAlign: 'center', padding: '48px 20px' }}>
+              <div style={{ fontSize: 36, marginBottom: 12 }}>📂</div>
+              <p style={{ fontSize: 15, fontWeight: 700, color: T.navy, margin: '0 0 6px' }}>Sin diagnósticos aún</p>
+              <p style={{ fontSize: 13, color: T.textMuted, margin: 0 }}>Genera el primer diagnóstico con el formulario.</p>
+            </div>
+          )}
+          {!histLoading && historial.map(d => {
+            const st = STATUS_COLORS[d.status] ?? STATUS_COLORS.pendiente
+            const costo = d.propuesta ? `${(d.propuesta.costo_minimo / 1000).toFixed(0)}k – ${(d.propuesta.costo_maximo / 1000).toFixed(0)}k MXN` : null
+            return (
+              <button key={d.id} onClick={() => { setSelected(d); setStep('historial-detail') }} style={{
+                display: 'flex', alignItems: 'center', gap: 14, background: '#fff',
+                border: `1px solid ${T.cardBorder}`, borderRadius: 10, padding: '14px 18px',
+                cursor: 'pointer', textAlign: 'left', transition: 'box-shadow 0.15s',
+                width: '100%',
+              }}>
+                <div style={{ width: 42, height: 42, borderRadius: 10, background: T.bone, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, flexShrink: 0 }}>
+                  🏢
+                </div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, flexWrap: 'wrap' }}>
+                    <span style={{ fontSize: 14, fontWeight: 700, color: T.navy }}>{d.business_name}</span>
+                    <span style={{ fontSize: 11, color: T.textMuted }}>{d.business_type}</span>
+                  </div>
+                  <div style={{ fontSize: 12, color: T.textMuted, marginTop: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {d.contact_name} · {d.main_problem?.slice(0, 70)}{(d.main_problem?.length ?? 0) > 70 ? '…' : ''}
+                  </div>
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4, flexShrink: 0 }}>
+                  <span style={{ fontSize: 10, fontWeight: 700, padding: '3px 8px', borderRadius: 99, background: st.bg, color: st.color }}>{st.label}</span>
+                  {costo && <span style={{ fontSize: 11, fontWeight: 600, color: T.teal }}>{costo}</span>}
+                  <span style={{ fontSize: 10, color: T.textMuted }}>{new Date(d.created_at).toLocaleDateString('es-MX', { day: '2-digit', month: 'short', year: 'numeric' })}</span>
+                </div>
+              </button>
+            )
+          })}
+        </div>
+      )}
+
+      {step === 'historial-detail' && selected && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+          <button onClick={() => setStep('historial')} style={{
+            display: 'flex', alignItems: 'center', gap: 6, background: 'none', border: 'none',
+            color: T.blue, fontSize: 13, fontWeight: 600, cursor: 'pointer', padding: 0,
+          }}>
+            ← Volver al historial
+          </button>
+          <div className="print-propuesta">
+            {selected.propuesta
+              ? <ProspuestaView p={selected.propuesta} businessName={selected.business_name} />
+              : (
+                <div style={{ background: '#FEF3F0', border: '1px solid #F8C4B4', borderRadius: 10, padding: '16px 20px' }}>
+                  <p style={{ fontSize: 13, fontWeight: 700, color: '#C05621', margin: 0 }}>
+                    Este diagnóstico no pudo estructurarse. No hay propuesta disponible.
+                  </p>
+                </div>
+              )
+            }
+          </div>
+          {selected.propuesta && (
+            <button onClick={() => window.print()} style={{
+              background: T.teal, color: '#fff', border: 'none', borderRadius: 10,
+              padding: '12px 20px', fontSize: 14, fontWeight: 700, cursor: 'pointer',
+            }}>
+              🖨 Imprimir / PDF
+            </button>
+          )}
         </div>
       )}
     </div>
