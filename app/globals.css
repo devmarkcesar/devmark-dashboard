@@ -328,7 +328,7 @@ body {
   /* Tamaño y márgenes — margin-top: 0 elimina el header nativo del browser */
   @page {
     size: A4 portrait;
-    margin: 0 12mm 12mm 12mm;
+    margin: 12mm 12mm 12mm 12mm;
   }
 
   /* Ajustes tipográficos */

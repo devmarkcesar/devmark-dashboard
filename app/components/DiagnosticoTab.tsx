@@ -777,7 +777,12 @@ export function DiagnosticoTab({ prospects = [] }: { prospects?: Prospect[] }) {
             }}>
               ← Nuevo diagnóstico
             </button>
-            <button onClick={() => window.print()} style={{
+            <button onClick={() => {
+              const prev = document.title
+              document.title = `Diagnostico cliente - ${currentName || form.business_name}`
+              window.print()
+              document.title = prev
+            }} style={{
               flex: 1, background: T.teal, color: '#fff', border: 'none',
               borderRadius: 10, padding: '12px 20px', fontSize: 14, fontWeight: 700, cursor: 'pointer',
             }}>
@@ -909,7 +914,12 @@ export function DiagnosticoTab({ prospects = [] }: { prospects?: Prospect[] }) {
               ✏️ Editar y re-enviar
             </button>
             {selected.propuesta && (
-              <button onClick={() => window.print()} style={{
+              <button onClick={() => {
+                const prev = document.title
+                document.title = `Diagnostico cliente - ${selected.business_name}`
+                window.print()
+                document.title = prev
+              }} style={{
                 display: 'flex', alignItems: 'center', gap: 6,
                 background: '#fff', color: T.navy, border: `1.5px solid ${T.cardBorder}`,
                 borderRadius: 8, padding: '9px 16px', fontSize: 13, fontWeight: 600, cursor: 'pointer',
