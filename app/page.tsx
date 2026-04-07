@@ -94,7 +94,7 @@ export default function Dashboard() {
         onTabChange={setTab}
         onCatFilter={setCatFilter}
         onClose={() => setSidebarOpen(false)}
-        onToggleCollapse={() => setSidebarCollapsed(prev => !prev)}
+        onToggleCollapse={() => { setSidebarCollapsed(prev => !prev); setSidebarOpen(false) }}
       />
 
       <div className="main-content">

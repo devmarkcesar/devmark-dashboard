@@ -160,9 +160,29 @@ body {
   .sidebar.open {
     transform: translateX(0);
   }
-  /* Hide desktop hamburger on mobile */
+  /* En móvil el ☰ Menú también es visible pero cierra en vez de colapsar */
   .sidebar-desktop-toggle {
-    display: none;
+    display: flex;
+  }
+  /* Cancelar efectos de collapsed en móvil (es overlay, no tiene sentido colapsar) */
+  .sidebar.desktop-collapsed {
+    width: 260px !important;
+    overflow: visible !important;
+  }
+  .sidebar.desktop-collapsed .nav-label,
+  .sidebar.desktop-collapsed .nav-section {
+    display: revert !important;
+  }
+  .sidebar.desktop-collapsed .nav-item {
+    justify-content: flex-start !important;
+    padding: 7px 16px !important;
+  }
+  .sidebar.desktop-collapsed .nav-dot-item {
+    display: flex !important;
+  }
+  .sidebar.desktop-collapsed .sidebar-desktop-toggle button {
+    justify-content: flex-start !important;
+    padding: 6px 4px !important;
   }
   .sidebar-toggle {
     display: flex;

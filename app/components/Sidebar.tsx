@@ -38,10 +38,6 @@ export function Sidebar({ tab, catFilter, sidebarOpen, collapsed, onTabChange, o
         </button>
       </div>
 
-      {/* ✕ Close — Mobile only (shown via .sidebar-toggle CSS class) */}
-      <div className="sidebar-toggle" style={{ justifyContent: 'flex-end', padding: '0 12px 8px' }}>
-        <button onClick={onClose} style={{ background: 'none', border: 'none', color: T.sideText, fontSize: 18, cursor: 'pointer', opacity: 0.5 }}>✕</button>
-      </div>
 
       <p className="nav-section" style={{ fontSize: 12, fontWeight: 700, letterSpacing: '0.1em', color: T.sideText, opacity: 0.3, textTransform: 'uppercase', padding: '0 16px 6px' }}>Sistema</p>
       {([
