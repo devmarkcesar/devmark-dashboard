@@ -24,7 +24,7 @@ function fmt(n: number) {
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <div style={{ background: '#fff', border: `1px solid ${T.cardBorder}`, borderRadius: 10, padding: '16px 20px' }}>
+    <div style={{ background: '#fff', border: `1px solid ${T.cardBorder}`, borderRadius: 10, padding: '16px 20px', breakInside: 'avoid', pageBreakInside: 'avoid' }}>
       <p style={{ fontSize: 12, fontWeight: 700, color: T.navy, textTransform: 'uppercase', letterSpacing: '0.07em', margin: '0 0 10px' }}>{title}</p>
       {children}
     </div>
@@ -79,14 +79,14 @@ export function ProspuestaView({ p, businessName }: { p: Propuesta; businessName
         <p style={{ fontSize: 14, color: T.carbon, lineHeight: 1.7 }}>{p.solucion_propuesta}</p>
       </Section>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 12 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 12, breakInside: 'avoid', pageBreakInside: 'avoid' }}>
         <CostCard label="Inversión"       value={`${fmt(p.costo_minimo)} – ${fmt(p.costo_maximo)}`}          accent={T.navy} />
         <CostCard label="Anticipo (50%)"  value={fmt(p.anticipo || Math.round(p.costo_minimo * 0.5))}        accent={T.blue} />
         <CostCard label="Infraestructura" value={`${fmt(p.costo_infraestructura_mensual)}/mes`}              accent={T.teal} />
         <CostCard label="Tiempo estimado" value={`${p.timeline_semanas} semanas`}                            accent="#BA7517" />
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, breakInside: 'avoid', pageBreakInside: 'avoid' }}>
         <Section title="✅ Qué incluye">
           <ul style={{ paddingLeft: 18, margin: 0, display: 'flex', flexDirection: 'column', gap: 4 }}>
             {p.entregables?.map((e, i) => <li key={i} style={{ fontSize: 13, color: T.carbon, lineHeight: 1.5 }}>{e}</li>)}
@@ -132,7 +132,7 @@ export function ProspuestaView({ p, businessName }: { p: Propuesta; businessName
         )}
       </Section>
 
-      <div style={{ background: T.bone, border: `1px solid ${T.cardBorder}`, borderRadius: 10, padding: '16px 20px' }}>
+      <div style={{ background: T.bone, border: `1px solid ${T.cardBorder}`, borderRadius: 10, padding: '16px 20px', breakInside: 'avoid', pageBreakInside: 'avoid' }}>
         <p style={{ fontSize: 12, fontWeight: 700, color: T.navy, textTransform: 'uppercase', letterSpacing: '0.08em', margin: '0 0 10px' }}>📋 Condiciones comerciales</p>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 10 }}>
           <div style={{ background: '#fff', border: `1px solid ${T.cardBorder}`, borderRadius: 8, padding: '10px 14px' }}>

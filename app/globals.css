@@ -325,10 +325,16 @@ body {
   .print-break-before { page-break-before: always; }
   .print-break-avoid  { page-break-inside: avoid; }
 
-  /* Tamaño y márgenes — margin-top: 0 elimina el header nativo del browser */
+  /* Tamaño y márgenes — top:0 elimina el header nativo del browser; lados/inferior dan margen de impresión */
   @page {
     size: A4 portrait;
-    margin: 12mm 12mm 12mm 12mm;
+    margin: 0 30mm 25mm 30mm;
+  }
+
+  /* Evitar que los bloques se corten entre páginas */
+  .print-propuesta > div > * {
+    break-inside: avoid;
+    page-break-inside: avoid;
   }
 
   /* Ajustes tipográficos */
