@@ -1,6 +1,6 @@
 'use client'
 import { useState } from 'react'
-import { Panel, PanelTitle } from './ui'
+import { Panel } from './ui'
 import { T } from './tokens'
 import type { Log } from './types'
 
@@ -13,8 +13,8 @@ export function LogsTab({ logs }: { logs: Log[] }) {
 
   return (
     <Panel>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14, flexWrap: 'wrap' }}>
-        <PanelTitle style={{ marginBottom: 0 }}>Telegram — Logs del sistema</PanelTitle>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14, flexWrap: 'wrap', paddingBottom: 10, borderBottom: `1px solid ${T.cardBorder}` }}>
+        <p style={{ fontSize: 11, fontWeight: 700, color: T.navy, textTransform: 'uppercase', letterSpacing: '0.06em', margin: 0 }}>Telegram — Logs del sistema</p>
         <div style={{ display: 'flex', gap: 4, marginLeft: 'auto' }}>
           {LEVELS.map(lv => {
             const active = levelFilter === lv
