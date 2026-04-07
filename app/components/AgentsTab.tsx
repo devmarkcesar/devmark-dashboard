@@ -8,13 +8,14 @@ import type { Agent, Task } from './types'
 
 // Markdown inline renderer
 function MdLine({ text }: { text: string }) {
-  const parts = text.split(/(\*\*[^*]+\*\*|\*[^*]+\*|`[^`]+`)/g)
+  const parts = text.split(/(\*\*[^*]+\*\*|\*[^*]+\*|`[^`]+`|https?:\/\/[^\s)]+)/g)
   return (
     <>
       {parts.map((p, i) => {
         if (p.startsWith('**') && p.endsWith('**')) return <strong key={i}>{p.slice(2, -2)}</strong>
         if (p.startsWith('*') && p.endsWith('*'))   return <em key={i}>{p.slice(1, -1)}</em>
         if (p.startsWith('`') && p.endsWith('`'))   return <code key={i} style={{ background: 'rgba(0,0,0,0.07)', borderRadius: 3, padding: '1px 5px', fontSize: '0.88em', fontFamily: 'monospace' }}>{p.slice(1, -1)}</code>
+        if (p.startsWith('http://') || p.startsWith('https://')) return <a key={i} href={p} target="_blank" rel="noreferrer" style={{ color: T.teal, textDecoration: 'underline', wordBreak: 'break-all' }}>{p}</a>
         return <span key={i}>{p}</span>
       })}
     </>
