@@ -7,15 +7,17 @@ import { Sidebar } from './components/Sidebar'
 import { AgentsTab } from './components/AgentsTab'
 import { ProjectsTab } from './components/ProjectsTab'
 import { LogsTab } from './components/LogsTab'
-import type { Agent, Project, Task, Log } from './components/types'
+import { CRMTab } from './components/CRMTab'
+import type { Agent, Project, Task, Log, Prospect } from './components/types'
 
-type TabId = 'agents' | 'projects' | 'telegram'
+type TabId = 'agents' | 'projects' | 'telegram' | 'crm'
 
 export default function Dashboard() {
   const [agents,      setAgents]      = useState<Agent[]>([])
   const [projects,    setProjects]    = useState<Project[]>([])
   const [tasks,       setTasks]       = useState<Task[]>([])
   const [logs,        setLogs]        = useState<Log[]>([])
+  const [prospects,   setProspects]   = useState<Prospect[]>([])
   const [loading,     setLoading]     = useState(true)
   const [refreshing,  setRefreshing]  = useState(false)
   const [fetchError,  setFetchError]  = useState<string | null>(null)
@@ -32,13 +34,17 @@ export default function Dashboard() {
   async function fetchAll() {
     setRefreshing(true)
     try {
-      const res = await fetch('/api/data')
-      if (!res.ok) { setFetchError(`Error ${res.status} al obtener datos`); return }
-      const data = await res.json()
+      const [dataRes, crmRes] = await Promise.all([
+        fetch('/api/data'),
+        fetch('/api/crm/prospects'),
+      ])
+      if (!dataRes.ok) { setFetchError(`Error ${dataRes.status} al obtener datos`); return }
+      const data = await dataRes.json()
       if (data.agents)   setAgents(data.agents)
       if (data.projects) setProjects(data.projects)
       if (data.tasks)    setTasks(data.tasks)
       if (data.logs)     setLogs(data.logs)
+      if (crmRes.ok) { const crm = await crmRes.json(); setProspects(crm) }
       setFetchError(null)
     } catch {
       setFetchError('Sin conexión con el servidor')
@@ -119,6 +125,7 @@ export default function Dashboard() {
         )}
         {tab === 'projects' && <ProjectsTab projects={projects} tasks={tasks} />}
         {tab === 'telegram' && <LogsTab logs={logs} />}
+        {tab === 'crm' && <CRMTab prospects={prospects} onProspectsChange={setProspects} />}
 
         <footer style={{ borderTop: '1px solid rgba(255,255,255,0.06)', marginTop: 16, padding: '28px 24px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10 }}>
           <img
