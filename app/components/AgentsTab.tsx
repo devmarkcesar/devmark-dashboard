@@ -109,16 +109,37 @@ export function AgentsTab({ agents, tasks, onShowProjects, externalCatFilter }: 
   const [thinking,    setThinking]   = useState(false)
   const [chatHistory, setChatHistory] = useState<ChatMsg[]>([])
   const [loadingHist, setLoadingHist] = useState(false)
+  const [histOffset,  setHistOffset]  = useState(0)
+  const [histTotal,   setHistTotal]   = useState(0)
+  const [loadingMore, setLoadingMore] = useState(false)
 
+  // F2 — Toast global
+  const [toast,       setToast]       = useState<{ msg: string; type: 'error' | 'ok' } | null>(null)
+
+  // F3 — Broadcast expandible por agente
+  interface BcItem { agent_id: number; agent: string; icon: string; response: string; ok: boolean }
   const [bcInput,     setBcInput]    = useState('')
   const [bcSending,   setBcSending]  = useState(false)
-  const [bcResult,    setBcResult]   = useState<string | null>(null)
+  const [bcItems,     setBcItems]    = useState<BcItem[]>([])
+  const [bcExpanded,  setBcExpanded] = useState<number | null>(null)
 
   const [projDesc,    setProjDesc]   = useState('')
   const [projSending, setProjSending] = useState(false)
   const [projResult,  setProjResult] = useState<string | null>(null)
+  const [projJiraKey, setProjJiraKey] = useState<string | null>(null)
 
   const chatContainerRef = useRef<HTMLDivElement>(null)
+
+  // F2 — auto-dismiss toast
+  useEffect(() => {
+    if (!toast) return
+    const t = setTimeout(() => setToast(null), 5000)
+    return () => clearTimeout(t)
+  }, [toast])
+
+  function showToast(msg: string, type: 'error' | 'ok' = 'error') {
+    setToast({ msg, type })
+  }
 
   // Sincronizar filtro externo del sidebar
   useEffect(() => {
@@ -135,21 +156,55 @@ export function AgentsTab({ agents, tasks, onShowProjects, externalCatFilter }: 
   async function selectAgent(agent: Agent) {
     setSelected(agent)
     setChatHistory([])
+    setHistOffset(0)
+    setHistTotal(0)
     setTaskInput('')
     setThinking(false)
     setLoadingHist(true)
     try {
-      const res = await fetch(`/api/agent/${agent.id}`)
+      const res = await fetch(`/api/agent/${agent.id}?offset=0`)
       if (res.ok) {
         const data = await res.json()
         if (Array.isArray(data.history)) {
           setChatHistory(data.history.map((m: ChatMsg) => ({
             id: m.id, role: m.role, content: m.content, created_at: m.created_at,
           })))
+          setHistTotal(data.total ?? 0)
+          setHistOffset(data.offset ?? 0)
         }
+      } else {
+        showToast('Error al cargar el historial del agente')
       }
-    } catch { /* historial vacio si falla */ }
-    finally { setLoadingHist(false) }
+    } catch {
+      showToast('Sin conexión al cargar el historial')
+    } finally {
+      setLoadingHist(false)
+    }
+  }
+
+  async function loadMoreHistory() {
+    if (!selected || loadingMore) return
+    const newOffset = histOffset + 20
+    setLoadingMore(true)
+    try {
+      const res = await fetch(`/api/agent/${selected.id}?offset=${newOffset}`)
+      if (res.ok) {
+        const data = await res.json()
+        if (Array.isArray(data.history) && data.history.length > 0) {
+          setChatHistory(prev => [
+            ...data.history.map((m: ChatMsg) => ({ id: m.id, role: m.role, content: m.content, created_at: m.created_at })),
+            ...prev,
+          ])
+          setHistOffset(newOffset)
+        }
+      } else {
+        showToast('Error al cargar más mensajes')
+      }
+    } catch {
+      showToast('Sin conexión al cargar más mensajes')
+    } finally {
+      setLoadingMore(false)
+    }
   }
 
   async function handleSend() {
@@ -172,7 +227,8 @@ export function AgentsTab({ agents, tasks, onShowProjects, externalCatFilter }: 
         setChatHistory(prev => [...prev, { role: 'assistant', content: `Error: ${data.error ?? 'Error al contactar al agente.'}` }])
       }
     } catch {
-      setChatHistory(prev => [...prev, { role: 'assistant', content: 'Sin conexion con el servidor.' }])
+      setChatHistory(prev => [...prev, { role: 'assistant', content: 'Sin conexión con el servidor.' }])
+      showToast('Sin conexión con el servidor')
     } finally {
       setSending(false)
       setThinking(false)
@@ -182,7 +238,8 @@ export function AgentsTab({ agents, tasks, onShowProjects, externalCatFilter }: 
   async function handleBroadcast() {
     if (!bcInput.trim() || bcSending) return
     setBcSending(true)
-    setBcResult(null)
+    setBcItems([])
+    setBcExpanded(null)
     try {
       const res = await fetch('/api/agent/broadcast', {
         method: 'POST',
@@ -190,17 +247,14 @@ export function AgentsTab({ agents, tasks, onShowProjects, externalCatFilter }: 
         body: JSON.stringify({ message: bcInput.trim() }),
       })
       const data = await res.json().catch(() => ({}))
-      if (res.ok) {
-        const resumen = Object.entries(data.results ?? {})
-          .map(([id, r]: [string, unknown]) => `Agente ${id}: ${typeof r === 'object' && r !== null && 'response' in r ? String((r as {response: string}).response).slice(0, 120) : 'sin respuesta'}`)
-          .join('\n')
-        setBcResult(resumen || 'Broadcast enviado.')
+      if (res.ok && Array.isArray(data.results)) {
+        setBcItems(data.results as BcItem[])
         setBcInput('')
       } else {
-        setBcResult(`Error: ${data.error ?? 'Error en broadcast.'}`)
+        showToast(data.error ?? 'Error en broadcast')
       }
     } catch {
-      setBcResult('Sin conexion con el servidor.')
+      showToast('Sin conexión con el servidor')
     } finally {
       setBcSending(false)
     }
@@ -210,6 +264,7 @@ export function AgentsTab({ agents, tasks, onShowProjects, externalCatFilter }: 
     if (!projDesc.trim() || projSending) return
     setProjSending(true)
     setProjResult(null)
+    setProjJiraKey(null)
     try {
       const res = await fetch('/api/project', {
         method: 'POST',
@@ -219,12 +274,20 @@ export function AgentsTab({ agents, tasks, onShowProjects, externalCatFilter }: 
       const data = await res.json().catch(() => ({}))
       if (res.ok && data.response) {
         setProjResult(data.response)
+        // Extraer la epic key si viene en la respuesta (formato DVM-XX)
+        const match = String(data.response).match(/\b(DVM-\d+)\b/)
+        if (match) setProjJiraKey(match[1])
         setProjDesc('')
+        showToast('Proyecto creado en Jira', 'ok')
       } else {
-        setProjResult(`Error: ${data.error ?? 'Error al crear el proyecto.'}`)
+        const msg = data.error ?? 'Error al crear el proyecto'
+        setProjResult(`Error: ${msg}`)
+        showToast(msg)
       }
     } catch {
-      setProjResult('Sin conexion con el servidor.')
+      const msg = 'Sin conexión con el servidor'
+      setProjResult(msg)
+      showToast(msg)
     } finally {
       setProjSending(false)
     }
@@ -234,6 +297,19 @@ export function AgentsTab({ agents, tasks, onShowProjects, externalCatFilter }: 
 
   return (
     <>
+      {/* F2 — Toast global */}
+      {toast && (
+        <div style={{
+          position: 'fixed', bottom: 24, left: '50%', transform: 'translateX(-50%)',
+          zIndex: 9999, padding: '10px 20px', borderRadius: 8, fontWeight: 600, fontSize: 12,
+          background: toast.type === 'ok' ? T.teal : '#C05621',
+          color: '#fff', boxShadow: '0 4px 16px rgba(0,0,0,0.18)',
+          maxWidth: 360, textAlign: 'center',
+          animation: 'fadeIn 0.2s ease',
+        }}>
+          {toast.msg}
+        </div>
+      )}
       {/* Filtros de categoria */}
       <div className="agents-header">
         <p style={{ fontSize: 11, fontWeight: 700, color: T.navy, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
@@ -292,6 +368,18 @@ export function AgentsTab({ agents, tasks, onShowProjects, externalCatFilter }: 
         >
           {loadingHist && (
             <p style={{ fontSize: 11, color: T.textMuted, fontStyle: 'italic', textAlign: 'center' }}>Cargando historial...</p>
+          )}
+          {/* F1 — Botón cargar más */}
+          {!loadingHist && histOffset + 20 < histTotal && (
+            <button
+              onClick={loadMoreHistory}
+              disabled={loadingMore}
+              style={{
+                alignSelf: 'center', fontSize: 10, padding: '4px 14px', borderRadius: 6,
+                border: `1px solid ${T.cardBorder}`, background: T.white, color: T.blue,
+                cursor: loadingMore ? 'not-allowed' : 'pointer', fontWeight: 700,
+              }}
+            >{loadingMore ? 'Cargando...' : `Cargar más (${histTotal - histOffset - 20} anteriores)`}</button>
           )}
           {!loadingHist && chatHistory.length === 0 && !thinking && (
             <p style={{ fontSize: 11, color: T.textMuted, fontStyle: 'italic', textAlign: 'center', margin: 'auto' }}>
@@ -416,9 +504,32 @@ export function AgentsTab({ agents, tasks, onShowProjects, externalCatFilter }: 
             }}
           >{bcSending ? 'Enviando...' : 'Broadcast'}</button>
         </div>
-        {bcResult && (
-          <div style={{ marginTop: 10, fontSize: 11, color: T.navy, background: T.bone, border: `1px solid ${T.cardBorder}`, borderRadius: 7, padding: '8px 12px', maxHeight: 200, overflowY: 'auto' }}>
-            <MdContent content={bcResult} />
+        {bcItems.length > 0 && (
+          <div style={{ marginTop: 10, display: 'flex', flexDirection: 'column', gap: 6 }}>
+            {bcItems.map(item => (
+              <div key={item.agent_id} style={{ border: `1px solid ${T.cardBorder}`, borderRadius: 7, background: T.bone, overflow: 'hidden' }}>
+                <button
+                  onClick={() => setBcExpanded(bcExpanded === item.agent_id ? null : item.agent_id)}
+                  style={{
+                    width: '100%', display: 'flex', alignItems: 'center', gap: 8,
+                    padding: '7px 12px', background: 'none', border: 'none', cursor: 'pointer',
+                    textAlign: 'left',
+                  }}
+                >
+                  <span style={{ fontSize: 14 }}>{item.icon}</span>
+                  <span style={{ fontSize: 11, fontWeight: 700, color: T.navy, flex: 1 }}>{item.agent}</span>
+                  <span style={{ fontSize: 10, color: item.ok ? T.teal : '#C05621', fontWeight: 600 }}>
+                    {item.ok ? 'OK' : 'Error'}
+                  </span>
+                  <span style={{ fontSize: 10, color: T.textMuted }}>{bcExpanded === item.agent_id ? '▲' : '▼'}</span>
+                </button>
+                {bcExpanded === item.agent_id && (
+                  <div style={{ padding: '0 12px 10px', maxHeight: 300, overflowY: 'auto' }}>
+                    <MdContent content={item.response} />
+                  </div>
+                )}
+              </div>
+            ))}
           </div>
         )}
       </Panel>
@@ -451,7 +562,16 @@ export function AgentsTab({ agents, tasks, onShowProjects, externalCatFilter }: 
             background: projSending ? '#8A8A87' : T.blue, color: '#fff', fontWeight: 700,
             opacity: !projDesc.trim() ? 0.6 : 1,
           }}
-        >{projSending ? 'Procesando...' : 'Crear proyecto'}</button>
+        >{projSending ? 'Creando en Jira...' : 'Crear proyecto en Jira'}</button>
+        {projJiraKey && (
+          <p style={{ fontSize: 10, color: T.teal, marginTop: 6, fontWeight: 700 }}>
+            Epic creado: <a
+              href={`https://${process.env.NEXT_PUBLIC_JIRA_DOMAIN ?? 'devmark.atlassian.net'}/browse/${projJiraKey}`}
+              target="_blank" rel="noreferrer"
+              style={{ color: T.teal }}
+            >{projJiraKey}</a>
+          </p>
+        )}
         {projResult && (
           <div style={{ marginTop: 10, fontSize: 11, color: T.navy, background: T.bone, border: `1px solid ${T.cardBorder}`, borderRadius: 7, padding: '8px 12px', maxHeight: 300, overflowY: 'auto' }}>
             <MdContent content={projResult} />

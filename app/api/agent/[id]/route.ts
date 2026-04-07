@@ -17,17 +17,31 @@ export async function GET(
   const agentId = Number(id)
   if (isNaN(agentId)) return NextResponse.json({ error: 'ID inválido' }, { status: 400 })
 
-  const [agentRes, historyRes] = await Promise.all([
+  const url    = new URL(_req.url)
+  const offset = Math.max(0, Number(url.searchParams.get('offset') ?? 0))
+  const limit  = 20
+
+  const [agentRes, historyRes, countRes] = await Promise.all([
     pool.query('SELECT * FROM agents WHERE id = $1', [agentId]),
     pool.query(
-      'SELECT id, agent_id, role, content, created_at FROM chat_history WHERE agent_id = $1 ORDER BY created_at ASC',
-      [agentId]
+      `SELECT id, agent_id, role, content, created_at
+       FROM (
+         SELECT * FROM chat_history WHERE agent_id = $1 ORDER BY created_at DESC LIMIT $2 OFFSET $3
+       ) sub ORDER BY created_at ASC`,
+      [agentId, limit, offset]
     ),
+    pool.query('SELECT COUNT(*) FROM chat_history WHERE agent_id = $1', [agentId]),
   ])
+
+  const total = Number(countRes.rows[0].count)
 
   return NextResponse.json({
     agent:   agentRes.rows[0] ?? null,
     history: historyRes.rows,
+    total,
+    offset,
+    limit,
+    hasMore: offset + limit < total,
   })
 }
 
