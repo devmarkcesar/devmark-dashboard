@@ -129,14 +129,35 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 }
 
 function ProspuestaView({ p, businessName }: { p: Propuesta; businessName: string }) {
+  const now = new Date()
+  const fechaFormateada = now.toLocaleDateString('es-MX', {
+    day: 'numeric', month: 'long', year: 'numeric',
+  })
+  const horaFormateada = now.toLocaleTimeString('es-MX', {
+    hour: '2-digit', minute: '2-digit', hour12: true,
+  })
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+
+      {/* Header de impresión — solo visible al imprimir, se repite en cada hoja */}
+      <div className="print-page-header" style={{ display: 'none' }}>
+        {/* Logo izquierda */}
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/logos/horizontal/dev-hori-1.png" alt="devmark" style={{ height: 36, objectFit: 'contain' }} />
+        {/* Fecha derecha */}
+        <div style={{ textAlign: 'right', fontSize: 10, color: '#555', lineHeight: 1.5 }}>
+          <div style={{ fontWeight: 700, color: '#0C2D4E' }}>Guadalajara, Jalisco</div>
+          <div>{fechaFormateada} · {horaFormateada}</div>
+        </div>
+      </div>
+
       {/* Encabezado */}
       <div style={{ background: T.navy, borderRadius: 10, padding: '20px 24px', color: '#fff' }}>
         <div style={{ fontSize: 11, opacity: 0.6, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 4 }}>Propuesta para</div>
         <div style={{ fontSize: 22, fontWeight: 800 }}>{businessName}</div>
         <div style={{ fontSize: 12, opacity: 0.55, marginTop: 2 }}>
-          devmark — {new Date().toLocaleDateString('es-MX', { year: 'numeric', month: 'long', day: 'numeric' })}
+          devmark — {fechaFormateada}
         </div>
       </div>
 

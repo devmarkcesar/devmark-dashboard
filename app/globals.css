@@ -325,10 +325,10 @@ body {
   .print-break-before { page-break-before: always; }
   .print-break-avoid  { page-break-inside: avoid; }
 
-  /* Tamaño y márgenes de página */
+  /* Tamaño y márgenes — margin-top: 0 elimina el header nativo del browser */
   @page {
     size: A4 portrait;
-    margin: 18mm 18mm 18mm 18mm;
+    margin: 0 12mm 12mm 12mm;
   }
 
   /* Ajustes tipográficos */
@@ -338,6 +338,22 @@ body {
   .diagnostico-header,
   .diagnostico-actions {
     display: none !important;
+  }
+
+  /* Header de impresión — aparece en cada hoja */
+  .print-page-header {
+    display: flex !important;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10mm 0 6mm 0;
+    border-bottom: 2px solid #1D9E75;
+    margin-bottom: 7mm;
+    position: running(pageHeader);
+  }
+
+  /* Empujar contenido hacia abajo para dejar espacio al header */
+  .print-propuesta > * {
+    padding-top: 0;
   }
 }
 
