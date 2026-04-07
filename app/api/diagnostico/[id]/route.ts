@@ -128,6 +128,17 @@ export async function PATCH(_req: NextRequest, { params }: { params: Promise<{ i
     let   rawOutput = coreData.response ?? ''
     let   propuesta = extractJSON(rawOutput)
 
+    // Detectar rate limit de Groq (429)
+    if (rawOutput.includes('429') || rawOutput.includes('rate_limit_exceeded')) {
+      await pool.query('UPDATE diagnosticos SET status=$1, raw_output=$2 WHERE id=$3', ['error', rawOutput, numId])
+      const match    = rawOutput.match(/try again in ([^\s"]+)/i)
+      const retryMsg = match ? ` Espera aproximadamente ${match[1]}.` : ' Espera unos minutos e intenta de nuevo.'
+      return NextResponse.json(
+        { error: `Límite diario de Groq alcanzado.${retryMsg}`, rateLimit: true },
+        { status: 429 }
+      )
+    }
+
     if (!propuesta) {
       const retryPrompt = `El JSON que devolviste no pudo parsearse. Devuelve SOLAMENTE el objeto JSON sin ningún texto adicional. Aquí estaba la respuesta anterior:\n\n${rawOutput}\n\nExtrae los datos y devuélvelos SOLO como JSON puro empezando con { y terminando con }.`
       try {

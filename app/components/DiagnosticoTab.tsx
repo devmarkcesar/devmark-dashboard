@@ -243,6 +243,12 @@ const STATUS_COLORS: Record<string, { bg: string; color: string; label: string }
   pendiente:  { bg: 'rgba(100,100,100,0.10)',color: '#666',    label: 'Pendiente' },
 }
 
+function isRateLimit(raw: string): { limited: boolean; retryIn: string } {
+  if (!raw || (!raw.includes('429') && !raw.includes('rate_limit_exceeded'))) return { limited: false, retryIn: '' }
+  const match = raw.match(/try again in ([^\s"]+)/i)
+  return { limited: true, retryIn: match?.[1] ?? '' }
+}
+
 export function DiagnosticoTab() {
   const [step, setStep]               = useState<'form' | 'loading' | 'result' | 'historial' | 'historial-detail'>('form')
   const [error, setError]             = useState<string | null>(null)
@@ -253,6 +259,8 @@ export function DiagnosticoTab() {
   const [selected, setSelected]       = useState<DiagnosticoRecord | null>(null)
   const [currentName, setCurrentName] = useState('')
   const [regenLoading, setRegenLoading] = useState(false)
+  const [regenError, setRegenError]     = useState<string | null>(null)
+  const [editingFrom, setEditingFrom]   = useState<DiagnosticoRecord | null>(null)
 
   const [form, setForm] = useState({
     business_name:     '',
@@ -300,15 +308,20 @@ export function DiagnosticoTab() {
 
   async function regenerarDiagnostico(d: DiagnosticoRecord) {
     setRegenLoading(true)
+    setRegenError(null)
     try {
       const res  = await fetch(`/api/diagnostico/${d.id}`, { method: 'PATCH' })
       const data = await res.json()
-      if (data.ok) {
+      if (res.status === 429 || data.rateLimit) {
+        setRegenError(data.error ?? 'Límite de tokens de Groq alcanzado. Espera unos minutos e inténtalo de nuevo.')
+      } else if (data.ok) {
         const updated = data.diagnostico
         setSelected(updated)
         setHistorial(prev => prev.map(x => x.id === d.id ? { ...x, ...updated } : x))
+      } else {
+        setRegenError(data.error ?? 'Error al regenerar la propuesta.')
       }
-    } catch { /* ignorar */ }
+    } catch { setRegenError('Sin conexión al servidor.') }
     setRegenLoading(false)
   }
 
@@ -333,7 +346,7 @@ export function DiagnosticoTab() {
     setPropuesta(null)
     setRawOutput('')
     setError(null)
-    setSelected(null)
+    setEditingFrom(d)   // guardamos de dónde venimos
     setStep('form')
   }
 
@@ -387,6 +400,7 @@ export function DiagnosticoTab() {
     setPropuesta(null)
     setRawOutput('')
     setError(null)
+    setEditingFrom(null)
     setForm({
       business_name: '', business_type: '', contact_name: '',
       contact_phone: '', contact_email: '', num_employees: '',
@@ -601,6 +615,18 @@ export function DiagnosticoTab() {
 
       {step === 'form' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+          {editingFrom && (
+            <button
+              onClick={() => { setStep('historial-detail'); setEditingFrom(null) }}
+              style={{
+                alignSelf: 'flex-start', display: 'flex', alignItems: 'center', gap: 6,
+                background: 'none', border: 'none', color: T.textMuted,
+                fontSize: 13, fontWeight: 600, cursor: 'pointer', padding: 0,
+              }}
+            >
+              ← Cancelar y volver al historial
+            </button>
+          )}
           {error && (
             <div style={{ background: '#FEF3F0', border: '1px solid #F8C4B4', borderRadius: 8, padding: '10px 14px', fontSize: 13, color: '#C05621' }}>
               {error}
@@ -792,14 +818,29 @@ export function DiagnosticoTab() {
           {propuesta
             ? <ProspuestaView p={propuesta} businessName={currentName || form.business_name} />
             : (
-              <div style={{ background: '#FEF3F0', border: '1px solid #F8C4B4', borderRadius: 10, padding: '16px 20px' }}>
-                <p style={{ fontSize: 13, fontWeight: 700, color: '#C05621', margin: '0 0 8px' }}>
-                  La propuesta se generó pero no pudo estructurarse automáticamente.
-                </p>
-                <pre style={{ fontSize: 11, color: T.carbon, whiteSpace: 'pre-wrap', background: T.bone, borderRadius: 6, padding: 12, margin: 0 }}>
-                  {rawOutput}
-                </pre>
-              </div>
+              (() => {
+                const rl = isRateLimit(rawOutput)
+                return rl.limited
+                  ? (
+                    <div style={{ background: '#FFF7E0', border: '1px solid #F6D25A', borderRadius: 10, padding: '16px 20px' }}>
+                      <p style={{ fontSize: 13, fontWeight: 700, color: '#7A5C00', margin: '0 0 6px' }}>
+                        ⏳ Límite diario de Groq alcanzado
+                      </p>
+                      <p style={{ fontSize: 13, color: '#7A5C00', margin: 0 }}>
+                        Se alcanzó el límite de 100 000 tokens diarios.{rl.retryIn ? ` Vuelve a intentarlo en aproximadamente ${rl.retryIn}.` : ' Espera unos minutos e intenta de nuevo.'}
+                      </p>
+                    </div>
+                  ) : (
+                    <div style={{ background: '#FEF3F0', border: '1px solid #F8C4B4', borderRadius: 10, padding: '16px 20px' }}>
+                      <p style={{ fontSize: 13, fontWeight: 700, color: '#C05621', margin: '0 0 8px' }}>
+                        La propuesta se generó pero no pudo estructurarse automáticamente.
+                      </p>
+                      <pre style={{ fontSize: 11, color: T.carbon, whiteSpace: 'pre-wrap', background: T.bone, borderRadius: 6, padding: 12, margin: 0 }}>
+                        {rawOutput}
+                      </pre>
+                    </div>
+                  )
+              })()
             )
           }
           </div>
@@ -876,7 +917,8 @@ export function DiagnosticoTab() {
           </button>
 
           {/* Barra de acciones */}
-          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
             <button onClick={() => regenerarDiagnostico(selected)} disabled={regenLoading} style={{
               display: 'flex', alignItems: 'center', gap: 6,
               background: T.teal, color: '#fff', border: 'none',
@@ -908,6 +950,15 @@ export function DiagnosticoTab() {
             }}>
               🗑 Eliminar
             </button>
+            </div>
+            {regenError && (
+              <div style={{ background: isRateLimit(regenError).limited ? '#FFF7E0' : '#FEF3F0', border: `1px solid ${isRateLimit(regenError).limited ? '#F6D25A' : '#F8C4B4'}`, borderRadius: 8, padding: '10px 14px', fontSize: 13, color: isRateLimit(regenError).limited ? '#7A5C00' : '#C05621' }}>
+                {isRateLimit(regenError).limited
+                  ? `⏳ Límite diario de Groq alcanzado.${isRateLimit(regenError).retryIn ? ` Espera ~${isRateLimit(regenError).retryIn}.` : ' Espera unos minutos.'}`
+                  : regenError
+                }
+              </div>
+            )}
           </div>
 
           <div className="print-propuesta">
@@ -915,15 +966,28 @@ export function DiagnosticoTab() {
               ? <ProspuestaView p={selected.propuesta} businessName={selected.business_name} />
               : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                  <div style={{ background: '#FEF3F0', border: '1px solid #F8C4B4', borderRadius: 10, padding: '16px 20px' }}>
-                    <p style={{ fontSize: 13, fontWeight: 700, color: '#C05621', margin: '0 0 4px' }}>
-                      Este diagnóstico no pudo estructurarse automáticamente.
-                    </p>
-                    <p style={{ fontSize: 12, color: '#C05621', margin: 0 }}>
-                      Usa <strong>Regenerar propuesta</strong> para reintentarlo, o <strong>Editar y re-enviar</strong> para ajustar los datos.
-                    </p>
-                  </div>
-                  {selected.raw_output && (
+                  {(() => {
+                    const rl = isRateLimit(selected.raw_output ?? '')
+                    return rl.limited
+                      ? (
+                        <div style={{ background: '#FFF7E0', border: '1px solid #F6D25A', borderRadius: 10, padding: '16px 20px' }}>
+                          <p style={{ fontSize: 13, fontWeight: 700, color: '#7A5C00', margin: '0 0 6px' }}>⏳ Límite diario de Groq alcanzado</p>
+                          <p style={{ fontSize: 13, color: '#7A5C00', margin: 0 }}>
+                            {rl.retryIn ? `Vuelve a intentarlo en ~${rl.retryIn}.` : 'Espera unos minutos e intenta regenerar.'}
+                          </p>
+                        </div>
+                      ) : (
+                        <div style={{ background: '#FEF3F0', border: '1px solid #F8C4B4', borderRadius: 10, padding: '16px 20px' }}>
+                          <p style={{ fontSize: 13, fontWeight: 700, color: '#C05621', margin: '0 0 4px' }}>
+                            Este diagnóstico no pudo estructurarse automáticamente.
+                          </p>
+                          <p style={{ fontSize: 12, color: '#C05621', margin: 0 }}>
+                            Usa <strong>Regenerar propuesta</strong> para reintentarlo, o <strong>Editar y re-enviar</strong> para ajustar los datos.
+                          </p>
+                        </div>
+                      )
+                  })()}
+                  {selected.raw_output && !isRateLimit(selected.raw_output).limited && (
                     <details style={{ background: T.bone, border: `1px solid ${T.cardBorder}`, borderRadius: 8, padding: '12px 16px' }}>
                       <summary style={{ fontSize: 12, fontWeight: 600, color: T.textMuted, cursor: 'pointer' }}>Ver respuesta cruda del agente</summary>
                       <pre style={{ fontSize: 11, color: T.carbon, whiteSpace: 'pre-wrap', marginTop: 10 }}>{selected.raw_output}</pre>
