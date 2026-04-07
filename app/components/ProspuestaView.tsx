@@ -55,10 +55,10 @@ export function ProspuestaView({ p, businessName }: { p: Propuesta; businessName
       {/* Header de impresión — solo visible al imprimir, se repite en cada hoja */}
       <div className="print-page-header" style={{ display: 'none' }}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/logos/horizontal/dev-hori-1.png" alt="devmark" style={{ height: 36, objectFit: 'contain' }} />
+        <img src="/logos/horizontal/dev-hori-1.png" alt="devmark" style={{ height: 44, objectFit: 'contain' }} />
         <div style={{ textAlign: 'right', fontSize: 10, color: '#555', lineHeight: 1.5 }}>
           <div style={{ fontWeight: 700, color: '#0C2D4E' }}>Guadalajara, Jalisco</div>
-          <div>{fechaFormateada} · {horaFormateada}</div>
+          <div style={{ fontWeight: 700, color: '#0C2D4E' }}>{fechaFormateada} · {horaFormateada}</div>
         </div>
       </div>
 

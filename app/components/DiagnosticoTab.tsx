@@ -107,6 +107,17 @@ const STATUS_COLORS: Record<string, { bg: string; color: string; label: string }
   pendiente:  { bg: 'rgba(100,100,100,0.10)',color: '#666',    label: 'Pendiente' },
 }
 
+function slugify(text: string) {
+  return text
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9\s]/g, '')
+    .trim()
+    .replace(/\s+/g, '-')
+    .slice(0, 40)
+}
+
 function isRateLimit(raw: string): { limited: boolean; retryIn: string } {
   if (!raw || (!raw.includes('429') && !raw.includes('rate_limit_exceeded'))) return { limited: false, retryIn: '' }
   const match = raw.match(/try again in ([^\s"]+)/i)
@@ -166,6 +177,9 @@ export function DiagnosticoTab({ prospects = [] }: { prospects?: Prospect[] }) {
   }, [])
 
   useEffect(() => { loadHistorial() }, [loadHistorial])
+
+  // Scroll al inicio cada vez que cambia la vista interna
+  useEffect(() => { window.scrollTo({ top: 0, behavior: 'smooth' }) }, [step])
 
   async function deleteDiagnostico(id: number) {
     if (!confirm('¿Eliminar este diagnóstico? Esta acción no se puede deshacer.')) return
@@ -476,19 +490,20 @@ export function DiagnosticoTab({ prospects = [] }: { prospects?: Prospect[] }) {
           }}>
             <span style={{ fontSize: 15 }}>📋</span> Cuestionario (.doc)
           </button>
-          <button
-            onClick={() => { step === 'historial' || step === 'historial-detail' ? setStep('form') : (loadHistorial(), setStep('historial')) }}
-            style={{
-              display: 'flex', alignItems: 'center', gap: 7, flexShrink: 0,
-              background: (step === 'historial' || step === 'historial-detail') ? T.navy : '#fff',
-              color: (step === 'historial' || step === 'historial-detail') ? '#fff' : T.navy,
-              border: `1.5px solid ${T.cardBorder}`,
-              borderRadius: 8, padding: '8px 14px', fontSize: 12, fontWeight: 600,
-              cursor: 'pointer', transition: 'all 0.15s', whiteSpace: 'nowrap',
-            }}>
-            <span style={{ fontSize: 15 }}>🗂</span>
-            Historial {historial.length > 0 && `(${historial.length})`}
-          </button>
+          {(step === 'form' || step === 'result') && (
+            <button
+              onClick={() => { loadHistorial(); setStep('historial') }}
+              style={{
+                display: 'flex', alignItems: 'center', gap: 7, flexShrink: 0,
+                background: '#fff', color: T.navy,
+                border: `1.5px solid ${T.cardBorder}`,
+                borderRadius: 8, padding: '8px 14px', fontSize: 12, fontWeight: 600,
+                cursor: 'pointer', transition: 'all 0.15s', whiteSpace: 'nowrap',
+              }}>
+              <span style={{ fontSize: 15 }}>🗂</span>
+              Historial {historial.length > 0 && `(${historial.length})`}
+            </button>
+          )}
         </div>
       </div>
 
@@ -774,6 +789,13 @@ export function DiagnosticoTab({ prospects = [] }: { prospects?: Prospect[] }) {
 
       {step === 'historial' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+          <button onClick={() => setStep('form')} style={{
+            alignSelf: 'flex-start', display: 'flex', alignItems: 'center', gap: 6,
+            background: 'none', border: 'none', color: T.blue,
+            fontSize: 13, fontWeight: 600, cursor: 'pointer', padding: 0,
+          }}>
+            ← Nuevo diagnóstico
+          </button>
           {/* Barra de búsqueda */}
           <input
             value={histSearch}
@@ -861,7 +883,7 @@ export function DiagnosticoTab({ prospects = [] }: { prospects?: Prospect[] }) {
 
       {step === 'historial-detail' && selected && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-          <button onClick={() => setStep('historial')} style={{
+          <button onClick={() => setStep('historial')} className="print-hide" style={{
             display: 'flex', alignItems: 'center', gap: 6, background: 'none', border: 'none',
             color: T.blue, fontSize: 13, fontWeight: 600, cursor: 'pointer', padding: 0,
           }}>
@@ -869,7 +891,7 @@ export function DiagnosticoTab({ prospects = [] }: { prospects?: Prospect[] }) {
           </button>
 
           {/* Barra de acciones */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          <div className="diagnostico-actions" style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
             <button onClick={() => regenerarDiagnostico(selected)} disabled={regenLoading} style={{
               display: 'flex', alignItems: 'center', gap: 6,
@@ -897,7 +919,8 @@ export function DiagnosticoTab({ prospects = [] }: { prospects?: Prospect[] }) {
             )}
             {selected.propuesta && (
               <button onClick={() => {
-                const url = `${window.location.origin}/propuesta/${selected.id}`
+                const slug = `${selected.id}-${slugify(selected.business_name)}`
+                const url = `${window.location.origin}/propuesta/${slug}`
                 navigator.clipboard.writeText(url).then(() => alert('Enlace copiado:\n' + url))
               }} style={{
                 display: 'flex', alignItems: 'center', gap: 6,
