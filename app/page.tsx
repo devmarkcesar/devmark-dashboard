@@ -52,10 +52,14 @@ export default function Dashboard() {
     return () => window.removeEventListener('devmark:go-home', handler)
   }, [])
 
+  // Scroll al tope cada vez que cambia la tab
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'instant' })
+  }, [tab])
+
   function handleTabChange(t: TabId) {
     setTab(t)
     localStorage.setItem('devmark-tab', t)
-    window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
   async function fetchAll() {

@@ -101,9 +101,9 @@ export function LogsTab({ logs }: { logs: Log[] }) {
               </div>
               <div style={{ padding: '6px 0' }}>
                 {group.cmds.map(c => (
-                  <div key={c.cmd} style={{ display: 'flex', gap: 8, padding: '5px 12px', alignItems: 'flex-start' }}>
-                    <span style={{ fontSize: 10, fontFamily: 'monospace', fontWeight: 700, color: group.color, whiteSpace: 'nowrap', minWidth: 0 }}>{c.cmd}</span>
-                    <span style={{ fontSize: 10, color: T.carbon, lineHeight: 1.4, opacity: 0.8 }}>{c.desc}</span>
+                  <div key={c.cmd} style={{ display: 'grid', gridTemplateColumns: 'auto 1fr', gap: '4px 8px', padding: '5px 12px', alignItems: 'start' }}>
+                    <span style={{ fontSize: 10, fontFamily: 'monospace', fontWeight: 700, color: group.color, whiteSpace: 'nowrap' }}>{c.cmd}</span>
+                    <span style={{ fontSize: 10, color: T.carbon, lineHeight: 1.4, opacity: 0.8, wordBreak: 'break-word' }}>{c.desc}</span>
                   </div>
                 ))}
               </div>
