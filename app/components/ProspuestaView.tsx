@@ -24,9 +24,26 @@ function fmt(n: number) {
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <div style={{ background: '#fff', border: `1px solid ${T.cardBorder}`, borderRadius: 10, padding: '16px 20px', breakInside: 'avoid', pageBreakInside: 'avoid' }}>
+    <div style={{ background: '#fff', border: `1px solid ${T.cardBorder}`, borderRadius: 10, padding: '16px 20px' }}>
       <p style={{ fontSize: 12, fontWeight: 700, color: T.navy, textTransform: 'uppercase', letterSpacing: '0.07em', margin: '0 0 10px' }}>{title}</p>
       {children}
+    </div>
+  )
+}
+
+/** Encabezado que se repite al inicio de cada hoja impresa */
+function PrintHeader({ fecha, hora }: { fecha: string; hora: string }) {
+  return (
+    <div style={{
+      display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+      paddingBottom: '5mm', borderBottom: '2.5px solid #1D9E75', marginBottom: '7mm',
+    }}>
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src="/logos/horizontal/dev-hori-1.png" alt="devmark" style={{ height: 46, objectFit: 'contain' }} />
+      <div style={{ textAlign: 'right', fontSize: 10, lineHeight: 1.6 }}>
+        <div style={{ fontWeight: 700, color: '#0C2D4E' }}>Guadalajara, Jalisco</div>
+        <div style={{ fontWeight: 700, color: '#0C2D4E' }}>{fecha} · {hora}</div>
+      </div>
     </div>
   )
 }
@@ -51,107 +68,188 @@ export function ProspuestaView({ p, businessName }: { p: Propuesta; businessName
 
   return (
     <>
-      {/* Header p1: logo + fecha — en el FLUJO normal, solo aparece página 1 */}
-      {/* En pantalla está oculto; en print se muestra como primer elemento del flujo */}
-      <div className="print-header-p1" style={{ display: 'none' }}>
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/logos/horizontal/dev-hori-1.png" alt="devmark" style={{ height: 46, objectFit: 'contain' }} />
-        <div style={{ textAlign: 'right', fontSize: 10, lineHeight: 1.5 }}>
-          <div style={{ fontWeight: 700, color: '#0C2D4E' }}>Guadalajara, Jalisco</div>
-          <div style={{ fontWeight: 700, color: '#0C2D4E' }}>{fechaFormateada} · {horaFormateada}</div>
+      {/* ── VISTA PANTALLA: flujo continuo normal ───────────────────────── */}
+      <div className="propuesta-screen" style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+
+        <div style={{ background: T.navy, borderRadius: 10, padding: '20px 24px', color: '#fff' }}>
+          <div style={{ fontSize: 11, opacity: 0.6, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 4 }}>Propuesta para</div>
+          <div style={{ fontSize: 22, fontWeight: 800 }}>{businessName}</div>
+          <div style={{ fontSize: 12, opacity: 0.55, marginTop: 2 }}>devmark — {fechaFormateada}</div>
         </div>
-      </div>
 
-      <div className="print-propuesta" style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-
-      {/* Encabezado */}
-      <div style={{ background: T.navy, borderRadius: 10, padding: '20px 24px', color: '#fff' }}>
-        <div style={{ fontSize: 11, opacity: 0.6, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 4 }}>Propuesta para</div>
-        <div style={{ fontSize: 22, fontWeight: 800 }}>{businessName}</div>
-        <div style={{ fontSize: 12, opacity: 0.55, marginTop: 2 }}>
-          devmark — {fechaFormateada}
-        </div>
-      </div>
-
-      <Section title="📋 Diagnóstico">
-        <p style={{ fontSize: 14, color: T.carbon, lineHeight: 1.7 }}>{p.diagnostico_resumen}</p>
-      </Section>
-
-      <Section title="💡 Solución propuesta">
-        <p style={{ fontSize: 14, color: T.carbon, lineHeight: 1.7 }}>{p.solucion_propuesta}</p>
-      </Section>
-
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 12, breakInside: 'avoid', pageBreakInside: 'avoid' }}>
-        <CostCard label="Inversión"       value={`${fmt(p.costo_minimo)} – ${fmt(p.costo_maximo)}`}          accent={T.navy} />
-        <CostCard label="Anticipo (50%)"  value={fmt(p.anticipo || Math.round(p.costo_minimo * 0.5))}        accent={T.blue} />
-        <CostCard label="Infraestructura" value={`${fmt(p.costo_infraestructura_mensual)}/mes`}              accent={T.teal} />
-        <CostCard label="Tiempo estimado" value={`${p.timeline_semanas} semanas`}                            accent="#BA7517" />
-      </div>
-
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, breakInside: 'avoid', pageBreakInside: 'avoid' }}>
-        <Section title="✅ Qué incluye">
-          <ul style={{ paddingLeft: 18, margin: 0, display: 'flex', flexDirection: 'column', gap: 4 }}>
-            {p.entregables?.map((e, i) => <li key={i} style={{ fontSize: 13, color: T.carbon, lineHeight: 1.5 }}>{e}</li>)}
-          </ul>
+        <Section title="📋 Diagnóstico">
+          <p style={{ fontSize: 14, color: T.carbon, lineHeight: 1.7 }}>{p.diagnostico_resumen}</p>
         </Section>
-        <Section title="❌ No incluye">
-          <ul style={{ paddingLeft: 18, margin: 0, display: 'flex', flexDirection: 'column', gap: 4 }}>
-            {p.no_incluye?.map((e, i) => <li key={i} style={{ fontSize: 13, color: T.carbon, lineHeight: 1.5 }}>{e}</li>)}
-          </ul>
+
+        <Section title="💡 Solución propuesta">
+          <p style={{ fontSize: 14, color: T.carbon, lineHeight: 1.7 }}>{p.solucion_propuesta}</p>
         </Section>
-      </div>
 
-      <Section title="🛠 Stack tecnológico">
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-          {p.stack_tecnologico?.map((tech, i) => (
-            <span key={i} style={{
-              background: 'rgba(24,95,165,0.1)', color: T.blue, fontSize: 12, fontWeight: 600,
-              padding: '4px 10px', borderRadius: 99, border: `1px solid rgba(24,95,165,0.2)`,
-            }}>{tech}</span>
-          ))}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 12 }}>
+          <CostCard label="Inversión"       value={`${fmt(p.costo_minimo)} – ${fmt(p.costo_maximo)}`}         accent={T.navy} />
+          <CostCard label="Anticipo (50%)"  value={fmt(p.anticipo || Math.round(p.costo_minimo * 0.5))}       accent={T.blue} />
+          <CostCard label="Infraestructura" value={`${fmt(p.costo_infraestructura_mensual)}/mes`}             accent={T.teal} />
+          <CostCard label="Tiempo estimado" value={`${p.timeline_semanas} semanas`}                          accent="#BA7517" />
         </div>
-      </Section>
 
-      <Section title="📅 Plan de trabajo">
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-          {p.fases?.map((f, i) => (
-            <div key={i} style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
-              <div style={{ background: T.teal, color: '#fff', fontSize: 10, fontWeight: 700, padding: '3px 8px', borderRadius: 6, whiteSpace: 'nowrap', flexShrink: 0 }}>
-                Sem {f.semana}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+          <Section title="✅ Qué incluye">
+            <ul style={{ paddingLeft: 18, margin: 0, display: 'flex', flexDirection: 'column', gap: 4 }}>
+              {p.entregables?.map((e, i) => <li key={i} style={{ fontSize: 13, color: T.carbon, lineHeight: 1.5 }}>{e}</li>)}
+            </ul>
+          </Section>
+          <Section title="❌ No incluye">
+            <ul style={{ paddingLeft: 18, margin: 0, display: 'flex', flexDirection: 'column', gap: 4 }}>
+              {p.no_incluye?.map((e, i) => <li key={i} style={{ fontSize: 13, color: T.carbon, lineHeight: 1.5 }}>{e}</li>)}
+            </ul>
+          </Section>
+        </div>
+
+        <Section title="🛠 Stack tecnológico">
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+            {p.stack_tecnologico?.map((tech, i) => (
+              <span key={i} style={{ background: 'rgba(24,95,165,0.1)', color: T.blue, fontSize: 12, fontWeight: 600, padding: '4px 10px', borderRadius: 99, border: `1px solid rgba(24,95,165,0.2)` }}>{tech}</span>
+            ))}
+          </div>
+        </Section>
+
+        <Section title="📅 Plan de trabajo">
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            {p.fases?.map((f, i) => (
+              <div key={i} style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
+                <div style={{ background: T.teal, color: '#fff', fontSize: 10, fontWeight: 700, padding: '3px 8px', borderRadius: 6, whiteSpace: 'nowrap', flexShrink: 0 }}>Sem {f.semana}</div>
+                <p style={{ fontSize: 13, color: T.carbon, margin: 0, lineHeight: 1.5 }}>{f.descripcion}</p>
               </div>
-              <p style={{ fontSize: 13, color: T.carbon, margin: 0, lineHeight: 1.5 }}>{f.descripcion}</p>
+            ))}
+          </div>
+        </Section>
+
+        <Section title="🛡 Garantía y soporte">
+          <p style={{ fontSize: 13, color: T.carbon, lineHeight: 1.6 }}>
+            {p.garantia_dias} días de garantía post-entrega ante errores de funcionamiento. Soporte incluido durante el periodo de garantía.
+          </p>
+          {p.notas_adicionales && (
+            <p style={{ fontSize: 13, color: T.textMuted, marginTop: 8, fontStyle: 'italic' }}>{p.notas_adicionales}</p>
+          )}
+        </Section>
+
+        <div style={{ background: T.bone, border: `1px solid ${T.cardBorder}`, borderRadius: 10, padding: '16px 20px' }}>
+          <p style={{ fontSize: 12, fontWeight: 700, color: T.navy, textTransform: 'uppercase', letterSpacing: '0.08em', margin: '0 0 10px' }}>📋 Condiciones comerciales</p>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 10 }}>
+            <div style={{ background: '#fff', border: `1px solid ${T.cardBorder}`, borderRadius: 8, padding: '10px 14px' }}>
+              <p style={{ fontSize: 10, color: T.textMuted, textTransform: 'uppercase', letterSpacing: '0.07em', margin: '0 0 3px' }}>Anticipo al iniciar (50%)</p>
+              <p style={{ fontSize: 15, fontWeight: 800, color: T.blue, margin: 0 }}>{fmt(p.anticipo || Math.round(p.costo_minimo * 0.5))}</p>
             </div>
-          ))}
-        </div>
-      </Section>
-
-      <Section title="🛡 Garantía y soporte">
-        <p style={{ fontSize: 13, color: T.carbon, lineHeight: 1.6 }}>
-          {p.garantia_dias} días de garantía post-entrega ante errores de funcionamiento. Soporte incluido durante el periodo de garantía.
-        </p>
-        {p.notas_adicionales && (
-          <p style={{ fontSize: 13, color: T.textMuted, marginTop: 8, fontStyle: 'italic' }}>{p.notas_adicionales}</p>
-        )}
-      </Section>
-
-      <div style={{ background: T.bone, border: `1px solid ${T.cardBorder}`, borderRadius: 10, padding: '16px 20px', breakInside: 'avoid', pageBreakInside: 'avoid' }}>
-        <p style={{ fontSize: 12, fontWeight: 700, color: T.navy, textTransform: 'uppercase', letterSpacing: '0.08em', margin: '0 0 10px' }}>📋 Condiciones comerciales</p>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 10 }}>
-          <div style={{ background: '#fff', border: `1px solid ${T.cardBorder}`, borderRadius: 8, padding: '10px 14px' }}>
-            <p style={{ fontSize: 10, color: T.textMuted, textTransform: 'uppercase', letterSpacing: '0.07em', margin: '0 0 3px' }}>Anticipo al iniciar (50%)</p>
-            <p style={{ fontSize: 15, fontWeight: 800, color: T.blue, margin: 0 }}>{fmt(p.anticipo || Math.round(p.costo_minimo * 0.5))}</p>
+            <div style={{ background: '#fff', border: `1px solid ${T.cardBorder}`, borderRadius: 8, padding: '10px 14px' }}>
+              <p style={{ fontSize: 10, color: T.textMuted, textTransform: 'uppercase', letterSpacing: '0.07em', margin: '0 0 3px' }}>Saldo al entregar (50%)</p>
+              <p style={{ fontSize: 15, fontWeight: 800, color: T.navy, margin: 0 }}>{fmt(p.anticipo || Math.round(p.costo_minimo * 0.5))}</p>
+            </div>
           </div>
-          <div style={{ background: '#fff', border: `1px solid ${T.cardBorder}`, borderRadius: 8, padding: '10px 14px' }}>
-            <p style={{ fontSize: 10, color: T.textMuted, textTransform: 'uppercase', letterSpacing: '0.07em', margin: '0 0 3px' }}>Saldo al entregar (50%)</p>
-            <p style={{ fontSize: 15, fontWeight: 800, color: T.navy, margin: 0 }}>{fmt(p.anticipo || Math.round(p.costo_minimo * 0.5))}</p>
-          </div>
+          <p style={{ fontSize: 12, color: T.textMuted, margin: 0, lineHeight: 1.6 }}>
+            Vigencia de esta propuesta: <strong>15 días naturales</strong>.
+            Los precios pueden variar si el alcance del proyecto es modificado por el cliente.
+            devmark · Guadalajara, Jalisco · devmark.mx
+          </p>
         </div>
-        <p style={{ fontSize: 12, color: T.textMuted, margin: 0, lineHeight: 1.6 }}>
-          Vigencia de esta propuesta: <strong>15 días naturales</strong>.
-          Los precios pueden variar si el alcance del proyecto es modificado por el cliente.
-          devmark · Guadalajara, Jalisco · devmark.mx
-        </p>
       </div>
+
+      {/* ── VISTA IMPRESIÓN: páginas explícitas con encabezado en cada hoja ── */}
+      {/* display:none en pantalla — activado solo por @media print en CSS       */}
+      <div className="propuesta-print" style={{ display: 'none' }}>
+
+        {/* ── HOJA 1: Propuesta para + Diagnóstico + Solución propuesta ──── */}
+        <div className="print-page">
+          <PrintHeader fecha={fechaFormateada} hora={horaFormateada} />
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+            <div style={{ background: T.navy, borderRadius: 10, padding: '18px 22px', color: '#fff' }}>
+              <div style={{ fontSize: 10, opacity: 0.6, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 4 }}>Propuesta para</div>
+              <div style={{ fontSize: 20, fontWeight: 800 }}>{businessName}</div>
+              <div style={{ fontSize: 11, opacity: 0.55, marginTop: 2 }}>devmark — {fechaFormateada}</div>
+            </div>
+            <Section title="📋 Diagnóstico">
+              <p style={{ fontSize: 13, color: T.carbon, lineHeight: 1.7 }}>{p.diagnostico_resumen}</p>
+            </Section>
+            <Section title="💡 Solución propuesta">
+              <p style={{ fontSize: 13, color: T.carbon, lineHeight: 1.7 }}>{p.solucion_propuesta}</p>
+            </Section>
+          </div>
+        </div>
+
+        {/* ── HOJA 2: Costos + Qué incluye/No incluye + Stack tecnológico ── */}
+        <div className="print-page">
+          <PrintHeader fecha={fechaFormateada} hora={horaFormateada} />
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10 }}>
+              <CostCard label="Inversión"       value={`${fmt(p.costo_minimo)} – ${fmt(p.costo_maximo)}`}         accent={T.navy} />
+              <CostCard label="Anticipo (50%)"  value={fmt(p.anticipo || Math.round(p.costo_minimo * 0.5))}       accent={T.blue} />
+              <CostCard label="Infraestructura" value={`${fmt(p.costo_infraestructura_mensual)}/mes`}             accent={T.teal} />
+              <CostCard label="Tiempo estimado" value={`${p.timeline_semanas} semanas`}                          accent="#BA7517" />
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+              <Section title="✅ Qué incluye">
+                <ul style={{ paddingLeft: 18, margin: 0, display: 'flex', flexDirection: 'column', gap: 4 }}>
+                  {p.entregables?.map((e, i) => <li key={i} style={{ fontSize: 13, color: T.carbon, lineHeight: 1.5 }}>{e}</li>)}
+                </ul>
+              </Section>
+              <Section title="❌ No incluye">
+                <ul style={{ paddingLeft: 18, margin: 0, display: 'flex', flexDirection: 'column', gap: 4 }}>
+                  {p.no_incluye?.map((e, i) => <li key={i} style={{ fontSize: 13, color: T.carbon, lineHeight: 1.5 }}>{e}</li>)}
+                </ul>
+              </Section>
+            </div>
+            <Section title="🛠 Stack tecnológico">
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                {p.stack_tecnologico?.map((tech, i) => (
+                  <span key={i} style={{ background: 'rgba(24,95,165,0.1)', color: T.blue, fontSize: 12, fontWeight: 600, padding: '4px 10px', borderRadius: 99, border: `1px solid rgba(24,95,165,0.2)` }}>{tech}</span>
+                ))}
+              </div>
+            </Section>
+          </div>
+        </div>
+
+        {/* ── HOJA 3: Plan de trabajo + Garantía + Condiciones comerciales ── */}
+        <div className="print-page print-last-page">
+          <PrintHeader fecha={fechaFormateada} hora={horaFormateada} />
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+            <Section title="📅 Plan de trabajo">
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                {p.fases?.map((f, i) => (
+                  <div key={i} style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
+                    <div style={{ background: T.teal, color: '#fff', fontSize: 10, fontWeight: 700, padding: '3px 8px', borderRadius: 6, whiteSpace: 'nowrap', flexShrink: 0 }}>Sem {f.semana}</div>
+                    <p style={{ fontSize: 13, color: T.carbon, margin: 0, lineHeight: 1.5 }}>{f.descripcion}</p>
+                  </div>
+                ))}
+              </div>
+            </Section>
+            <Section title="🛡 Garantía y soporte">
+              <p style={{ fontSize: 13, color: T.carbon, lineHeight: 1.6 }}>
+                {p.garantia_dias} días de garantía post-entrega ante errores de funcionamiento. Soporte incluido durante el periodo de garantía.
+              </p>
+              {p.notas_adicionales && (
+                <p style={{ fontSize: 13, color: T.textMuted, marginTop: 8, fontStyle: 'italic' }}>{p.notas_adicionales}</p>
+              )}
+            </Section>
+            <div style={{ background: T.bone, border: `1px solid ${T.cardBorder}`, borderRadius: 10, padding: '16px 20px' }}>
+              <p style={{ fontSize: 12, fontWeight: 700, color: T.navy, textTransform: 'uppercase', letterSpacing: '0.08em', margin: '0 0 10px' }}>📋 Condiciones comerciales</p>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 10 }}>
+                <div style={{ background: '#fff', border: `1px solid ${T.cardBorder}`, borderRadius: 8, padding: '10px 14px' }}>
+                  <p style={{ fontSize: 10, color: T.textMuted, textTransform: 'uppercase', letterSpacing: '0.07em', margin: '0 0 3px' }}>Anticipo al iniciar (50%)</p>
+                  <p style={{ fontSize: 15, fontWeight: 800, color: T.blue, margin: 0 }}>{fmt(p.anticipo || Math.round(p.costo_minimo * 0.5))}</p>
+                </div>
+                <div style={{ background: '#fff', border: `1px solid ${T.cardBorder}`, borderRadius: 8, padding: '10px 14px' }}>
+                  <p style={{ fontSize: 10, color: T.textMuted, textTransform: 'uppercase', letterSpacing: '0.07em', margin: '0 0 3px' }}>Saldo al entregar (50%)</p>
+                  <p style={{ fontSize: 15, fontWeight: 800, color: T.navy, margin: 0 }}>{fmt(p.anticipo || Math.round(p.costo_minimo * 0.5))}</p>
+                </div>
+              </div>
+              <p style={{ fontSize: 12, color: T.textMuted, margin: 0, lineHeight: 1.6 }}>
+                Vigencia de esta propuesta: <strong>15 días naturales</strong>.
+                Los precios pueden variar si el alcance del proyecto es modificado por el cliente.
+                devmark · Guadalajara, Jalisco · devmark.mx
+              </p>
+            </div>
+          </div>
+        </div>
+
       </div>
     </>
   )
