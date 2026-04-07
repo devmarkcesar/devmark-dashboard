@@ -24,6 +24,7 @@ export default function Dashboard() {
   const [tab,         setTab]         = useState<TabId>('agents')
   const [catFilter,   setCatFilter]   = useState<string | null>(null)
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
 
   useEffect(() => {
     fetchAll()
@@ -89,9 +90,11 @@ export default function Dashboard() {
         tab={tab}
         catFilter={catFilter}
         sidebarOpen={sidebarOpen}
+        collapsed={sidebarCollapsed}
         onTabChange={setTab}
         onCatFilter={setCatFilter}
         onClose={() => setSidebarOpen(false)}
+        onToggleCollapse={() => setSidebarCollapsed(prev => !prev)}
       />
 
       <div className="main-content">

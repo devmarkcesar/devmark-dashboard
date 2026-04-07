@@ -46,6 +46,33 @@ body {
   align-self: flex-start;
   height: calc(100vh - 58px);
   overflow-y: auto;
+  transition: width 0.25s ease;
+}
+
+.sidebar.desktop-collapsed {
+  width: 56px;
+  overflow: hidden;
+}
+.sidebar.desktop-collapsed .nav-label,
+.sidebar.desktop-collapsed .nav-section {
+  display: none;
+}
+.sidebar.desktop-collapsed .nav-item {
+  justify-content: center;
+  padding: 8px 0 !important;
+}
+.sidebar.desktop-collapsed .nav-dot-item {
+  display: none;
+}
+.sidebar.desktop-collapsed .sidebar-desktop-toggle button {
+  justify-content: center;
+  padding: 8px 0;
+  width: 100%;
+}
+
+/* Desktop hamburger toggle — visible on desktop, hidden on mobile */
+.sidebar-desktop-toggle {
+  display: flex;
 }
 
 .main-content {
@@ -132,6 +159,10 @@ body {
   }
   .sidebar.open {
     transform: translateX(0);
+  }
+  /* Hide desktop hamburger on mobile */
+  .sidebar-desktop-toggle {
+    display: none;
   }
   .sidebar-toggle {
     display: flex;
