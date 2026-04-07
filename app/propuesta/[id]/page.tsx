@@ -28,9 +28,9 @@ export default async function PropuestaPublica({ params }: Props) {
   const p: Propuesta = diag.propuesta
 
   return (
-    <div style={{ maxWidth: 760, margin: '0 auto', padding: '24px 16px 48px' }}>
+    <div className="propuesta-publica-wrapper" style={{ maxWidth: 760, margin: '0 auto', padding: '24px 16px 48px' }}>
       {/* Barra superior */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24, gap: 12 }}>
+      <div className="print-hide" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24, gap: 12 }}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src="/logos/horizontal/dev-hori-1.png"
@@ -42,7 +42,7 @@ export default async function PropuestaPublica({ params }: Props) {
 
       <ProspuestaView p={p} businessName={diag.business_name} />
 
-      <p style={{ textAlign: 'center', marginTop: 32, fontSize: 12, color: '#999' }}>
+      <p className="print-hide" style={{ textAlign: 'center', marginTop: 32, fontSize: 12, color: '#999' }}>
         Propuesta generada por devmark · devmark.mx · Guadalajara, Jalisco
       </p>
     </div>

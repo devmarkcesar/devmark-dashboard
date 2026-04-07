@@ -308,6 +308,13 @@ body {
   .dashboard-layout { display: block !important; }
   .main-content { padding: 0 !important; background: #fff !important; gap: 0 !important; }
 
+  /* Reset wrapper de la página pública /propuesta/[id] */
+  .propuesta-publica-wrapper {
+    max-width: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
   /* Clases legacy — ocultar si quedan en el DOM */
   .print-header-p1,
   .print-logo-repeat,
