@@ -137,9 +137,6 @@ body {
 
 /* ─── Mobile (<640px) ───────────────────────────────────────────────────── */
 @media (max-width: 639px) {
-  .sidebar {
-    width: 100%;
-  }
   .main-content {
     padding: 16px;
     gap: 12px;
@@ -156,6 +153,16 @@ body {
   .agents-header {
     flex-direction: column;
     align-items: flex-start;
+  }
+  .agent-task-row {
+    flex-direction: column !important;
+  }
+  .agent-task-row input {
+    width: 100%;
+  }
+  .agent-task-row button {
+    width: 100%;
+    padding: 9px 0 !important;
   }
 }
 
