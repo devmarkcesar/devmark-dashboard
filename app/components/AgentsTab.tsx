@@ -28,16 +28,16 @@ function MdContent({ content }: { content: string }) {
   while (i < lines.length) {
     const line = lines[i]
     if (line.startsWith('### ')) {
-      nodes.push(<p key={i} style={{ fontWeight: 700, fontSize: 11.5, color: T.navy, margin: '8px 0 3px' }}><MdLine text={line.slice(4)} /></p>)
+      nodes.push(<p key={i} style={{ fontWeight: 700, fontSize: 13, color: T.navy, margin: '8px 0 3px' }}><MdLine text={line.slice(4)} /></p>)
     } else if (line.startsWith('## ')) {
-      nodes.push(<p key={i} style={{ fontWeight: 700, fontSize: 12, color: T.navy, margin: '10px 0 4px', borderBottom: `1px solid ${T.cardBorder}`, paddingBottom: 3 }}><MdLine text={line.slice(3)} /></p>)
+      nodes.push(<p key={i} style={{ fontWeight: 700, fontSize: 13, color: T.navy, margin: '10px 0 4px', borderBottom: `1px solid ${T.cardBorder}`, paddingBottom: 3 }}><MdLine text={line.slice(3)} /></p>)
     } else if (line.startsWith('# ')) {
       nodes.push(<p key={i} style={{ fontWeight: 700, fontSize: 13, color: T.navy, margin: '10px 0 5px' }}><MdLine text={line.slice(2)} /></p>)
     } else if (line.startsWith('```')) {
       const code: string[] = []
       i++
       while (i < lines.length && !lines[i].startsWith('```')) { code.push(lines[i]); i++ }
-      nodes.push(<pre key={i} style={{ background: 'rgba(0,0,0,0.05)', borderRadius: 6, padding: '7px 10px', fontSize: 10, fontFamily: 'monospace', overflowX: 'auto', margin: '4px 0 6px', lineHeight: 1.5, whiteSpace: 'pre', border: `1px solid ${T.cardBorder}` }}>{code.join('\n')}</pre>)
+      nodes.push(<pre key={i} style={{ background: 'rgba(0,0,0,0.05)', borderRadius: 6, padding: '7px 10px', fontSize: 12, fontFamily: 'monospace', overflowX: 'auto', margin: '4px 0 6px', lineHeight: 1.5, whiteSpace: 'pre', border: `1px solid ${T.cardBorder}` }}>{code.join('\n')}</pre>)
     } else if (line.match(/^\d+\. /)) {
       const items: React.ReactNode[] = []
       while (i < lines.length && lines[i].match(/^\d+\. /)) {
@@ -45,7 +45,7 @@ function MdContent({ content }: { content: string }) {
         if (m) items.push(<li key={i} style={{ marginBottom: 2 }}><MdLine text={m[1]} /></li>)
         i++
       }
-      nodes.push(<ol key={`ol${i}`} style={{ paddingLeft: 18, margin: '3px 0 6px' }}>{items}</ol>)
+      nodes.push(<ol key={`ol${i}`} style={{ paddingLeft: 18, margin: '3px 0 6px', fontSize: 13 }}>{items}</ol>)
       continue
     } else if (line.startsWith('- ') || line.startsWith('* ')) {
       const items: React.ReactNode[] = []
@@ -53,7 +53,7 @@ function MdContent({ content }: { content: string }) {
         items.push(<li key={i} style={{ marginBottom: 2 }}><MdLine text={lines[i].slice(2)} /></li>)
         i++
       }
-      nodes.push(<ul key={`ul${i}`} style={{ paddingLeft: 16, margin: '3px 0 6px', listStyleType: 'disc' }}>{items}</ul>)
+      nodes.push(<ul key={`ul${i}`} style={{ paddingLeft: 16, margin: '3px 0 6px', listStyleType: 'disc', fontSize: 13 }}>{items}</ul>)
       continue
     } else if (line.startsWith('| ')) {
       const rows: string[] = []
@@ -63,7 +63,7 @@ function MdContent({ content }: { content: string }) {
       }
       nodes.push(
         <div key={`tbl${i}`} style={{ overflowX: 'auto', margin: '4px 0 8px' }}>
-          <table style={{ borderCollapse: 'collapse', fontSize: 10, width: '100%' }}>
+          <table style={{ borderCollapse: 'collapse', fontSize: 13, width: '100%' }}>
             {rows.map((row, ri) => (
               <tr key={ri}>
                 {row.split('|').filter((_, ci, arr) => ci > 0 && ci < arr.length - 1).map((cell, ci) => (
@@ -80,7 +80,7 @@ function MdContent({ content }: { content: string }) {
     } else if (line.trim() === '') {
       nodes.push(<div key={i} style={{ height: 4 }} />)
     } else {
-      nodes.push(<p key={i} style={{ margin: '2px 0', lineHeight: 1.6, fontSize: 11 }}><MdLine text={line} /></p>)
+      nodes.push(<p key={i} style={{ margin: '2px 0', lineHeight: 1.6, fontSize: 13 }}><MdLine text={line} /></p>)
     }
     i++
   }
