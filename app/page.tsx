@@ -106,10 +106,11 @@ export default function Dashboard() {
             <button onClick={fetchAll} style={{ marginLeft: 'auto', fontSize: 11, color: T.teal, background: 'none', border: 'none', cursor: 'pointer', fontWeight: 700 }}>Reintentar</button>
           </div>
         )}
-        <div className="stats-grid" style={{ position: 'relative' }}>
-          {refreshing && !loading && (
-            <span style={{ position: 'absolute', top: -18, right: 0, fontSize: 10, color: T.textMuted, opacity: 0.6 }}>actualizando...</span>
-          )}
+        {tab !== 'crm' && (
+          <div className="stats-grid" style={{ position: 'relative' }}>
+            {refreshing && !loading && (
+              <span style={{ position: 'absolute', top: -18, right: 0, fontSize: 10, color: T.textMuted, opacity: 0.6 }}>actualizando...</span>
+            )}
           <StatCard label="Agentes activos" value={activeCount + busyCount} sub={"De " + agents.length + " totales"} accent={T.blue} />
           <StatCard label="Proyectos Jira" value={projects.length} sub={inProgTasks + " en progreso"} accent={T.teal} />
           <StatCard label="Tareas completadas" value={totalTasksDone} sub={topAgent ? "Top: " + topAgent.name : 'Sin tareas'} accent={T.blue} />

@@ -68,6 +68,12 @@ body {
   gap: 14px;
 }
 
+.stats-grid-4 {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+}
+
 .agents-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -83,7 +89,8 @@ body {
 /* Prevent grid children from overflowing their cells */
 .detail-grid > *,
 .agents-grid > *,
-.stats-grid > * {
+.stats-grid > *,
+.stats-grid-4 > * {
   min-width: 0;
   overflow: hidden;
 }
@@ -153,6 +160,9 @@ body {
   .stats-grid {
     grid-template-columns: 1fr;
   }
+  .stats-grid-4 {
+    grid-template-columns: repeat(2, 1fr);
+  }
   .agents-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -177,6 +187,9 @@ body {
 
 @media (min-width: 640px) and (max-width: 767px) {
   .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .stats-grid-4 {
     grid-template-columns: repeat(2, 1fr);
   }
 }

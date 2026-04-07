@@ -88,13 +88,17 @@ function ProspectForm({
     setForm(prev => ({ ...prev, [k]: e.target.value }))
 
   return (
-    <div style={{
-      background: T.bone, border: `1.5px solid ${T.cardBorder}`, borderRadius: 12,
-      padding: 20, marginBottom: 16,
-    }}>
-      <p style={{ fontSize: 12, fontWeight: 700, color: T.navy, marginBottom: 16, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-        {initial.contact_name ? 'Editar prospecto' : 'Nuevo prospecto'}
-      </p>
+    <div>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
+        <div>
+          <p style={{ fontSize: 16, fontWeight: 700, color: T.navy, margin: 0 }}>
+            {initial.contact_name ? 'Editar prospecto' : 'Nuevo prospecto'}
+          </p>
+          <p style={{ fontSize: 12, color: T.textMuted, margin: '2px 0 0' }}>
+            Los campos marcados con * son obligatorios
+          </p>
+        </div>
+      </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 12, marginBottom: 12 }}>
         <Field label="Nombre contacto *">
@@ -198,36 +202,46 @@ function ProspectRow({
   }
 
   return (
-    <div style={{ border: `1px solid ${T.cardBorder}`, borderRadius: 10, marginBottom: 8, background: '#fff', overflow: 'hidden' }}>
+    <div style={{
+      border: `1px solid ${T.cardBorder}`, borderRadius: 10, marginBottom: 8,
+      background: '#fff', overflow: 'hidden',
+      boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
+      transition: 'box-shadow 0.15s',
+    }}>
       {/* Fila principal */}
       <div
-        style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '11px 14px', cursor: 'pointer', flexWrap: 'wrap' }}
+        style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '13px 16px', cursor: 'pointer' }}
         onClick={() => setExpanded(e => !e)}
       >
-        <span style={{ fontSize: 15, transform: expanded ? 'rotate(90deg)' : 'none', transition: 'transform 0.15s', color: T.textMuted }}>▶</span>
+        <div style={{
+          width: 36, height: 36, borderRadius: 9, flexShrink: 0,
+          background: `${PIPELINE_COLOR[p.pipeline] ?? T.blue}14`,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          fontSize: 16,
+        }}>
+          {p.pipeline === 'Cerrado' ? '✅' : p.pipeline === 'Perdido' ? '❌' : p.pipeline === 'Entregado' ? '🚀' : '🏢'}
+        </div>
 
         <div style={{ flex: 1, minWidth: 0 }}>
           <p style={{ fontSize: 13, fontWeight: 700, color: T.navy, margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
             {p.business_name}
           </p>
-          <p style={{ fontSize: 11, color: T.carbon, margin: 0, opacity: 0.7 }}>
-            {p.contact_name}{p.contact_role ? ` · ${p.contact_role}` : ''}
+          <p style={{ fontSize: 11, color: T.carbon, margin: '1px 0 0', opacity: 0.7 }}>
+            {p.contact_name}{p.contact_role ? ` · ${p.contact_role}` : ''}{p.city ? ` · ${p.city}` : ''}
           </p>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
           {p.service_type && (
-            <span style={{ fontSize: 9, padding: '2px 8px', borderRadius: 99, background: `${T.blue}12`, color: T.blue, fontWeight: 700 }}>
+            <span style={{ fontSize: 10, padding: '2px 8px', borderRadius: 99, background: `${T.blue}10`, color: T.blue, fontWeight: 700 }}>
               {p.service_type}
             </span>
           )}
           <PipelineBadge stage={p.pipeline} />
           {p.quote_amount && (
-            <span style={{ fontSize: 11, fontWeight: 700, color: T.teal }}>{fmt$(p.quote_amount)}</span>
+            <span style={{ fontSize: 12, fontWeight: 700, color: T.teal }}>{fmt$(p.quote_amount)}</span>
           )}
-          {p.followup_date && (
-            <span style={{ fontSize: 10, color: T.textMuted }}>↻ {fmtDate(p.followup_date)}</span>
-          )}
+          <span style={{ fontSize: 14, color: T.textMuted, opacity: 0.5, transform: expanded ? 'rotate(90deg)' : 'none', transition: 'transform 0.15s' }}>▶</span>
         </div>
       </div>
 
@@ -431,30 +445,55 @@ export function CRMTab({ prospects, onProspectsChange }: CRMTabProps) {
   return (
     <>
       {/* Métricas */}
-      <div className="stats-grid" style={{ marginBottom: 16 }}>
-        <StatCard label="Prospectos esta semana" value={thisWeek}  sub={`${prospects.length} totales`}      accent={T.blue} />
-        <StatCard label="Tasa de cierre"          value={`${closeRate}%`} sub={`${closed} cerrados / ${lost} perdidos`} accent={T.teal} />
-        <StatCard label="Valor en pipeline"       value={fmt$(pipelineValue)} sub="prospectos activos"         accent={T.blue} />
-        <StatCard label="En desarrollo"           value={active}  sub="proyectos activos"                    accent={T.teal} />
+      <div className="stats-grid-4" style={{ marginBottom: 16 }}>
+        <StatCard label="Prospectos esta semana" value={thisWeek}       sub={`${prospects.length} totales`}               accent={T.blue} />
+        <StatCard label="Tasa de cierre"         value={`${closeRate}%`} sub={`${closed} cerrados / ${lost} perdidos`} accent={T.teal} />
+        <StatCard label="Valor en pipeline"      value={fmt$(pipelineValue)} sub="prospectos activos"                    accent={T.blue} />
+        <StatCard label="En desarrollo"          value={active}          sub="proyectos activos"                        accent={T.teal} />
       </div>
+
+      {/* Modal formulario */}
+      {(showForm || editTarget) && (
+        <div
+          style={{
+            position: 'fixed', inset: 0, background: 'rgba(9,30,51,0.65)',
+            zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center',
+            padding: '16px',
+          }}
+          onClick={e => { if (e.target === e.currentTarget) { setShowForm(false); setEditTarget(null) } }}
+        >
+          <div style={{ background: '#fff', borderRadius: 14, padding: 28, width: '100%', maxWidth: 720, maxHeight: '90vh', overflowY: 'auto', boxShadow: '0 20px 60px rgba(0,0,0,0.4)' }}>
+            <ProspectForm
+              initial={editInitial}
+              onSave={handleSave}
+              onCancel={() => { setShowForm(false); setEditTarget(null) }}
+              saving={saving}
+            />
+          </div>
+        </div>
+      )}
 
       <Panel>
         {/* Cabecera */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14, flexWrap: 'wrap', paddingBottom: 10, borderBottom: `1px solid ${T.cardBorder}` }}>
-          <p style={{ fontSize: 11, fontWeight: 700, color: T.navy, textTransform: 'uppercase', letterSpacing: '0.06em', margin: 0 }}>Prospectos CRM</p>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14, paddingBottom: 12, borderBottom: `1px solid ${T.cardBorder}`, flexWrap: 'wrap' }}>
+          <div>
+            <p style={{ fontSize: 13, fontWeight: 700, color: T.navy, margin: 0 }}>Prospectos CRM</p>
+            <p style={{ fontSize: 11, color: T.textMuted, margin: 0 }}>{prospects.length} prospectos en total</p>
+          </div>
           <button
-            onClick={() => { setShowForm(!showForm); setEditTarget(null) }}
+            onClick={() => { setShowForm(true); setEditTarget(null) }}
             style={{
-              marginLeft: 'auto', fontSize: 11, padding: '6px 14px', borderRadius: 7,
+              marginLeft: 'auto', fontSize: 12, padding: '8px 18px', borderRadius: 8,
               border: 'none', background: T.teal, color: '#fff', cursor: 'pointer', fontWeight: 700,
+              boxShadow: '0 2px 8px rgba(29,158,117,0.3)',
             }}
           >+ Nuevo prospecto</button>
         </div>
 
         {/* Filtro pipeline */}
-        <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', marginBottom: 14 }}>
+        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 16 }}>
           {(['Todos', ...PIPELINE_STAGES] as const).map(stage => {
-            const active = pipelineFilter === stage
+            const isActive = pipelineFilter === stage
             const color = stage === 'Todos' ? T.navy : PIPELINE_COLOR[stage]
             const count = stage === 'Todos' ? prospects.length : prospects.filter(p => p.pipeline === stage).length
             return (
@@ -462,13 +501,15 @@ export function CRMTab({ prospects, onProspectsChange }: CRMTabProps) {
                 key={stage}
                 onClick={() => setPipelineFilter(stage)}
                 style={{
-                  fontSize: 10, padding: '4px 11px', borderRadius: 99, cursor: 'pointer',
-                  fontWeight: 700, border: 'none',
-                  background: active ? `${color}18` : 'transparent',
-                  color: active ? color : T.textMuted,
-                  outline: active ? `1px solid ${color}40` : 'none',
+                  fontSize: 11, padding: '5px 13px', borderRadius: 99, cursor: 'pointer', fontWeight: 600,
+                  border: isActive ? `1.5px solid ${color}60` : `1px solid ${T.cardBorder}`,
+                  background: isActive ? `${color}14` : '#fff',
+                  color: isActive ? color : T.carbon,
+                  transition: 'all 0.12s',
                 }}
-              >{stage} {count > 0 && <span style={{ opacity: 0.6 }}>({count})</span>}</button>
+              >
+                {stage}{count > 0 && <span style={{ marginLeft: 5, fontSize: 10, opacity: 0.55, fontWeight: 700 }}>{count}</span>}
+              </button>
             )
           })}
         </div>
@@ -485,9 +526,15 @@ export function CRMTab({ prospects, onProspectsChange }: CRMTabProps) {
 
         {/* Lista */}
         {visible.length === 0 ? (
-          <p style={{ fontSize: 12, color: T.textMuted, textAlign: 'center', padding: '30px 0', fontStyle: 'italic' }}>
-            {pipelineFilter === 'Todos' ? 'Sin prospectos aún. Agrega el primero.' : `Sin prospectos en "${pipelineFilter}".`}
-          </p>
+          <div style={{ textAlign: 'center', padding: '40px 0' }}>
+            <p style={{ fontSize: 28, marginBottom: 8 }}>💼</p>
+            <p style={{ fontSize: 13, color: T.carbon, fontWeight: 600 }}>
+              {pipelineFilter === 'Todos' ? 'Sin prospectos aún' : `Sin prospectos en "${pipelineFilter}"`}
+            </p>
+            <p style={{ fontSize: 11, color: T.textMuted, marginTop: 4 }}>
+              {pipelineFilter === 'Todos' ? 'Agrega el primero con el botón “+ Nuevo prospecto”' : 'Cambia el filtro para ver otros prospectos'}
+            </p>
+          </div>
         ) : visible.map(p => (
           <ProspectRow
             key={p.id}
