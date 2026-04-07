@@ -14,7 +14,7 @@ if (fs.existsSync(envFile)) {
 module.exports = {
   apps: [{
     name: 'devmark-dashboard',
-    script: '.next/standalone/server-wrapper.js',
+    script: '.next/standalone/server.js',
     cwd: __dirname,
   }]
 };

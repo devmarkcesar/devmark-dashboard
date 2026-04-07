@@ -19,7 +19,10 @@ rm -rf "$APP_DIR/.next/standalone/public"
 cp -r "$APP_DIR/public" "$APP_DIR/.next/standalone/public"
 cp -r "$APP_DIR/.next/static" "$APP_DIR/.next/standalone/.next/static"
 cp "$APP_DIR/.env.production" "$APP_DIR/.next/standalone/.env.production"
-cp "$APP_DIR/server-wrapper.js" "$APP_DIR/.next/standalone/server-wrapper.js"
+
+echo "→ Actualizando nginx..."
+sudo cp "$APP_DIR/public/nginx-devmark-app.conf" /etc/nginx/sites-available/devmark-app
+sudo nginx -t && sudo systemctl reload nginx
 
 echo "→ Reiniciando PM2..."
 pm2 delete devmark-dashboard 2>/dev/null || true
