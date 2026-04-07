@@ -123,9 +123,13 @@ export default function Dashboard() {
               <span style={{ position: 'absolute', top: -18, right: 0, fontSize: 10, color: T.textMuted, opacity: 0.6 }}>actualizando...</span>
             )}
             <StatCard label="Agentes activos"    value={activeCount + busyCount} sub={"De " + agents.length + " totales"}                  accent={T.blue} />
-            <StatCard label="Proyectos Jira"     value={projects.length}         sub={inProgTasks + " en progreso"}                        accent={T.teal} />
-            <StatCard label="Tareas completadas" value={totalTasksDone}          sub={topAgent ? "Top: " + topAgent.name : 'Sin tareas'}    accent={T.blue} />
-            <StatCard label="Tickets totales"    value={tasks.length}            sub={doneTasks + " completados"}                          accent={T.teal} />
+            {tab !== 'telegram' && (
+              <>
+                <StatCard label="Proyectos Jira"     value={projects.length}         sub={inProgTasks + " en progreso"}                        accent={T.teal} />
+                <StatCard label="Tareas completadas" value={totalTasksDone}          sub={topAgent ? "Top: " + topAgent.name : 'Sin tareas'}    accent={T.blue} />
+                <StatCard label="Tickets totales"    value={tasks.length}            sub={doneTasks + " completados"}                          accent={T.teal} />
+              </>
+            )}
           </div>
         )}
 

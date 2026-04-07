@@ -1,10 +1,17 @@
 'use client'
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { T, CAT_COLOR } from './tokens'
 import { AgentCard, Panel, PanelTitle, CatTab } from './ui'
 import { jiraBadge } from './tokens'
 import { ActivityChart } from './ActivityChart'
 import type { Agent, Task } from './types'
+
+interface ChatMsg {
+  id?: string | number
+  role: 'user' | 'assistant'
+  content: string
+  created_at?: string
+}
 
 interface AgentsTabProps {
   agents: Agent[]
@@ -13,34 +20,130 @@ interface AgentsTabProps {
 }
 
 export function AgentsTab({ agents, tasks, onShowProjects }: AgentsTabProps) {
-  const [selected,   setSelected]  = useState<Agent | null>(null)
-  const [catFilter,  setCatFilter] = useState<string | null>(null)
-  const [taskInput,  setTaskInput] = useState('')
-  const [sending,    setSending]   = useState(false)
-  const [taskFeedback, setTaskFeedback] = useState<{ ok: boolean; msg: string } | null>(null)
+  const [selected,     setSelected]    = useState<Agent | null>(null)
+  const [catFilter,    setCatFilter]   = useState<string | null>(null)
+  const [taskInput,    setTaskInput]   = useState('')
+  const [sending,      setSending]     = useState(false)
+  const [thinking,     setThinking]    = useState(false)
+  const [chatHistory,  setChatHistory] = useState<ChatMsg[]>([])
+  const [loadingHist,  setLoadingHist] = useState(false)
+
+  // Broadcast
+  const [bcInput,      setBcInput]     = useState('')
+  const [bcSending,    setBcSending]   = useState(false)
+  const [bcResult,     setBcResult]    = useState<string | null>(null)
+
+  // Crear proyecto
+  const [projDesc,     setProjDesc]    = useState('')
+  const [projSending,  setProjSending] = useState(false)
+  const [projResult,   setProjResult]  = useState<string | null>(null)
+
+  const chatEndRef = useRef<HTMLDivElement>(null)
+
+  // Scroll al fondo cuando llegan mensajes
+  useEffect(() => {
+    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+  }, [chatHistory, thinking])
+
+  // Cargar historial al seleccionar agente
+  async function selectAgent(agent: Agent) {
+    setSelected(agent)
+    setChatHistory([])
+    setTaskInput('')
+    setThinking(false)
+    setLoadingHist(true)
+    try {
+      const res = await fetch(`/api/agent/${agent.id}`)
+      if (res.ok) {
+        const data = await res.json()
+        if (Array.isArray(data.history)) {
+          setChatHistory(data.history.map((m: ChatMsg) => ({
+            id: m.id,
+            role: m.role,
+            content: m.content,
+            created_at: m.created_at,
+          })))
+        }
+      }
+    } catch { /* historial vacío si falla */ }
+    finally { setLoadingHist(false) }
+  }
 
   async function handleSend() {
     if (!selected || !taskInput.trim() || sending) return
+    const userMsg = taskInput.trim()
+    setTaskInput('')
     setSending(true)
-    setTaskFeedback(null)
+    setThinking(true)
+    setChatHistory(prev => [...prev, { role: 'user', content: userMsg }])
     try {
       const res = await fetch(`/api/agent/${selected.id}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: taskInput.trim() }),
+        body: JSON.stringify({ message: userMsg }),
       })
-      if (res.ok) {
-        setTaskInput('')
-        setTaskFeedback({ ok: true, msg: 'Tarea asignada — el agente la tomará en el próximo ciclo.' })
+      const data = await res.json().catch(() => ({}))
+      if (res.ok && data.response) {
+        setChatHistory(prev => [...prev, { role: 'assistant', content: data.response }])
       } else {
-        const d = await res.json().catch(() => ({}))
-        setTaskFeedback({ ok: false, msg: d.error ?? 'Error al enviar.' })
+        setChatHistory(prev => [...prev, { role: 'assistant', content: `⚠️ ${data.error ?? 'Error al contactar al agente.'}` }])
       }
     } catch {
-      setTaskFeedback({ ok: false, msg: 'Sin conexión con el servidor.' })
+      setChatHistory(prev => [...prev, { role: 'assistant', content: '⚠️ Sin conexión con el servidor.' }])
     } finally {
       setSending(false)
-      setTimeout(() => setTaskFeedback(null), 5000)
+      setThinking(false)
+    }
+  }
+
+  async function handleBroadcast() {
+    if (!bcInput.trim() || bcSending) return
+    setBcSending(true)
+    setBcResult(null)
+    try {
+      const res = await fetch('/api/agent/broadcast', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: bcInput.trim() }),
+      })
+      const data = await res.json().catch(() => ({}))
+      if (res.ok) {
+        const resumen = Object.entries(data.results ?? {})
+          .map(([id, r]: [string, unknown]) => `• Agente ${id}: ${typeof r === 'object' && r !== null && 'response' in r ? String((r as {response: string}).response).slice(0, 120) : 'sin respuesta'}`)
+          .join('\n')
+        setBcResult(resumen || 'Broadcast enviado.')
+        setBcInput('')
+      } else {
+        setBcResult(`⚠️ ${data.error ?? 'Error en broadcast.'}`)
+      }
+    } catch {
+      setBcResult('⚠️ Sin conexión con el servidor.')
+    } finally {
+      setBcSending(false)
+    }
+  }
+
+  async function handleCreateProject() {
+    if (!projDesc.trim() || projSending) return
+    setProjSending(true)
+    setProjResult(null)
+    try {
+      const res = await fetch('/api/project', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ description: projDesc.trim() }),
+      })
+      const data = await res.json().catch(() => ({}))
+      if (res.ok && data.response) {
+        setProjResult(data.response)
+        setProjDesc('')
+      } else {
+        setProjResult(`⚠️ ${data.error ?? 'Error al crear el proyecto.'}`)
+      }
+    } catch {
+      setProjResult('⚠️ Sin conexión con el servidor.')
+    } finally {
+      setProjSending(false)
     }
   }
 
@@ -66,7 +169,7 @@ export function AgentsTab({ agents, tasks, onShowProjects }: AgentsTabProps) {
       {/* Grid de agentes */}
       <div className="agents-grid">
         {filtered.map(a => (
-          <AgentCard key={a.id} agent={a} selected={selected?.id === a.id} onClick={() => setSelected(a)} />
+          <AgentCard key={a.id} agent={a} selected={selected?.id === a.id} onClick={() => selectAgent(a)} />
         ))}
       </div>
 
@@ -94,26 +197,74 @@ export function AgentsTab({ agents, tasks, onShowProjects }: AgentsTabProps) {
             </div>
           )}
 
+          {/* Prompt del agente */}
           <div style={{
             background: T.bone, border: `1px solid ${T.cardBorder}`,
             borderRadius: 8, padding: 10, fontSize: 11, color: T.carbon, opacity: 0.7,
-            lineHeight: 1.6, maxHeight: 110, overflowY: 'auto', fontStyle: 'italic', marginBottom: 10,
+            lineHeight: 1.6, maxHeight: 80, overflowY: 'auto', fontStyle: 'italic', marginBottom: 10,
           }}>
-            {selected?.prompt || 'Haz clic en cualquier agente para ver su prompt del sistema y asignarle una tarea vía Telegram.'}
+            {selected?.prompt || 'Haz clic en cualquier agente para ver su prompt del sistema y chatear con él directamente.'}
           </div>
 
+          {/* Área de chat */}
+          <div style={{
+            border: `1px solid ${T.cardBorder}`, borderRadius: 8,
+            background: T.bone, minHeight: 160, maxHeight: 260,
+            overflowY: 'auto', padding: '10px 12px', marginBottom: 8,
+            display: 'flex', flexDirection: 'column', gap: 8,
+          }}>
+            {loadingHist && (
+              <p style={{ fontSize: 11, color: T.textMuted, fontStyle: 'italic', textAlign: 'center' }}>Cargando historial...</p>
+            )}
+            {!loadingHist && chatHistory.length === 0 && !thinking && (
+              <p style={{ fontSize: 11, color: T.textMuted, fontStyle: 'italic', textAlign: 'center', marginTop: 'auto', marginBottom: 'auto' }}>
+                {selected ? 'Sin mensajes aún. Escribe una tarea o pregunta.' : 'Selecciona un agente para comenzar.'}
+              </p>
+            )}
+            {chatHistory.map((msg, i) => (
+              <div key={i} style={{
+                display: 'flex',
+                justifyContent: msg.role === 'user' ? 'flex-end' : 'flex-start',
+              }}>
+                <div style={{
+                  maxWidth: '82%', padding: '7px 11px', borderRadius: msg.role === 'user' ? '12px 12px 3px 12px' : '12px 12px 12px 3px',
+                  fontSize: 11, lineHeight: 1.55,
+                  background: msg.role === 'user' ? T.blue : '#fff',
+                  color: msg.role === 'user' ? '#fff' : T.navy,
+                  border: msg.role === 'assistant' ? `1px solid ${T.cardBorder}` : 'none',
+                  whiteSpace: 'pre-wrap', wordBreak: 'break-word',
+                }}>
+                  {msg.content}
+                </div>
+              </div>
+            ))}
+            {thinking && (
+              <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
+                <div style={{
+                  padding: '7px 14px', borderRadius: '12px 12px 12px 3px',
+                  background: '#fff', border: `1px solid ${T.cardBorder}`,
+                  fontSize: 11, color: T.textMuted, fontStyle: 'italic',
+                }}>
+                  pensando...
+                </div>
+              </div>
+            )}
+            <div ref={chatEndRef} />
+          </div>
+
+          {/* Input y botón de envío */}
           <div className="agent-task-row" style={{ display: 'flex', gap: 6, minWidth: 0 }}>
             <input
               style={{
                 flex: 1, minWidth: 0, fontSize: 11, padding: '7px 10px',
                 border: `1px solid ${T.cardBorder}`, borderRadius: 7,
-                background: T.bone, color: T.navy, outline: 'none',
+                background: '#fff', color: T.navy, outline: 'none',
               }}
-              placeholder={selected ? `Asignar tarea a ${selected.name}...` : 'Selecciona un agente primero...'}
+              placeholder={selected ? `Mensaje a ${selected.name}...` : 'Selecciona un agente primero...'}
               value={taskInput}
               disabled={!selected || sending}
               onChange={e => setTaskInput(e.target.value)}
-              onKeyDown={e => e.key === 'Enter' && handleSend()}
+              onKeyDown={e => e.key === 'Enter' && !e.shiftKey && handleSend()}
             />
             <button
               onClick={handleSend}
@@ -122,18 +273,10 @@ export function AgentsTab({ agents, tasks, onShowProjects }: AgentsTabProps) {
                 fontSize: 11, padding: '7px 13px', borderRadius: 7, border: 'none',
                 cursor: (!selected || !taskInput.trim() || sending) ? 'not-allowed' : 'pointer',
                 background: sending ? '#8A8A87' : T.blue, color: '#fff', fontWeight: 700,
-                opacity: (!selected || !taskInput.trim()) ? 0.6 : 1,
+                opacity: (!selected || !taskInput.trim()) ? 0.6 : 1, whiteSpace: 'nowrap',
               }}
             >{sending ? '...' : 'Enviar ↗'}</button>
           </div>
-          {taskFeedback && (
-            <p style={{
-              fontSize: 11, marginTop: 6, padding: '6px 10px', borderRadius: 7,
-              background: taskFeedback.ok ? 'rgba(29,158,117,0.1)' : 'rgba(192,86,33,0.1)',
-              color: taskFeedback.ok ? T.teal : '#C05621',
-              border: `1px solid ${taskFeedback.ok ? 'rgba(29,158,117,0.25)' : 'rgba(192,86,33,0.25)'}`,
-            }}>{taskFeedback.msg}</p>
-          )}
         </Panel>
 
         <Panel>
@@ -164,6 +307,86 @@ export function AgentsTab({ agents, tasks, onShowProjects }: AgentsTabProps) {
                 </p>
               )}
             </>
+          )}
+        </Panel>
+      </div>
+
+      {/* Broadcast + Crear proyecto */}
+      <div className="detail-grid">
+        <Panel>
+          <PanelTitle>◈ Consultar a todos los agentes</PanelTitle>
+          <p style={{ fontSize: 11, color: T.textMuted, marginBottom: 8, lineHeight: 1.5 }}>
+            Envía una instrucción o pregunta a todos los agentes activos al mismo tiempo.
+          </p>
+          <div style={{ display: 'flex', gap: 6, minWidth: 0 }}>
+            <input
+              style={{
+                flex: 1, minWidth: 0, fontSize: 11, padding: '7px 10px',
+                border: `1px solid ${T.cardBorder}`, borderRadius: 7,
+                background: '#fff', color: T.navy, outline: 'none',
+              }}
+              placeholder="Ej: ¿Cuál es tu estado actual?"
+              value={bcInput}
+              disabled={bcSending}
+              onChange={e => setBcInput(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && handleBroadcast()}
+            />
+            <button
+              onClick={handleBroadcast}
+              disabled={!bcInput.trim() || bcSending}
+              style={{
+                fontSize: 11, padding: '7px 13px', borderRadius: 7, border: 'none',
+                cursor: (!bcInput.trim() || bcSending) ? 'not-allowed' : 'pointer',
+                background: bcSending ? '#8A8A87' : T.teal, color: '#fff', fontWeight: 700,
+                opacity: !bcInput.trim() ? 0.6 : 1, whiteSpace: 'nowrap',
+              }}
+            >{bcSending ? 'Enviando...' : 'Broadcast ↗'}</button>
+          </div>
+          {bcResult && (
+            <pre style={{
+              marginTop: 10, fontSize: 10, color: T.navy, background: T.bone,
+              border: `1px solid ${T.cardBorder}`, borderRadius: 7, padding: '8px 10px',
+              whiteSpace: 'pre-wrap', wordBreak: 'break-word', maxHeight: 160, overflowY: 'auto',
+              lineHeight: 1.55,
+            }}>{bcResult}</pre>
+          )}
+        </Panel>
+
+        <Panel>
+          <PanelTitle>🗂️ Crear proyecto con PM</PanelTitle>
+          <p style={{ fontSize: 11, color: T.textMuted, marginBottom: 8, lineHeight: 1.5 }}>
+            Describe el proyecto y el Project Manager lo estructurará y delegará a los agentes.
+          </p>
+          <textarea
+            rows={3}
+            style={{
+              width: '100%', boxSizing: 'border-box', fontSize: 11, padding: '7px 10px',
+              border: `1px solid ${T.cardBorder}`, borderRadius: 7,
+              background: '#fff', color: T.navy, outline: 'none', resize: 'vertical',
+              fontFamily: 'inherit', lineHeight: 1.5, marginBottom: 6,
+            }}
+            placeholder="Ej: App web para gestionar inventario de restaurante con módulo de reportes..."
+            value={projDesc}
+            disabled={projSending}
+            onChange={e => setProjDesc(e.target.value)}
+          />
+          <button
+            onClick={handleCreateProject}
+            disabled={!projDesc.trim() || projSending}
+            style={{
+              fontSize: 11, padding: '7px 13px', borderRadius: 7, border: 'none',
+              cursor: (!projDesc.trim() || projSending) ? 'not-allowed' : 'pointer',
+              background: projSending ? '#8A8A87' : T.blue, color: '#fff', fontWeight: 700,
+              opacity: !projDesc.trim() ? 0.6 : 1,
+            }}
+          >{projSending ? 'Procesando...' : 'Crear proyecto ↗'}</button>
+          {projResult && (
+            <pre style={{
+              marginTop: 10, fontSize: 10, color: T.navy, background: T.bone,
+              border: `1px solid ${T.cardBorder}`, borderRadius: 7, padding: '8px 10px',
+              whiteSpace: 'pre-wrap', wordBreak: 'break-word', maxHeight: 160, overflowY: 'auto',
+              lineHeight: 1.55,
+            }}>{projResult}</pre>
           )}
         </Panel>
       </div>

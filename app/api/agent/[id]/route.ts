@@ -3,6 +3,9 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '../../auth/[...nextauth]/route'
 import { NextRequest, NextResponse } from 'next/server'
 
+const CORE_API   = process.env.CORE_API_URL    ?? 'http://127.0.0.1:8000'
+const API_SECRET = process.env.DASHBOARD_API_SECRET ?? ''
+
 export async function GET(
   _req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -43,16 +46,27 @@ export async function POST(
   const message = (body?.message ?? '').toString().trim()
   if (!message) return NextResponse.json({ error: 'Mensaje requerido' }, { status: 400 })
 
-  const agentRes = await pool.query('SELECT id FROM agents WHERE id = $1', [agentId])
-  if (!agentRes.rows[0]) return NextResponse.json({ error: 'Agente no encontrado' }, { status: 404 })
+  try {
+    const coreRes = await fetch(`${CORE_API}/agent/${agentId}/chat`, {
+      method:  'POST',
+      headers: {
+        'Content-Type':  'application/json',
+        'x-api-secret':  API_SECRET,
+      },
+      body: JSON.stringify({ message }),
+      signal: AbortSignal.timeout(60_000),
+    })
 
-  await Promise.all([
-    pool.query(
-      'INSERT INTO chat_history (agent_id, role, content) VALUES ($1, $2, $3)',
-      [agentId, 'user', message]
-    ),
-    pool.query("UPDATE agents SET status = 'busy' WHERE id = $1", [agentId]),
-  ])
+    if (!coreRes.ok) {
+      const err = await coreRes.json().catch(() => ({}))
+      return NextResponse.json({ error: err.detail ?? 'Error del agente' }, { status: 502 })
+    }
 
-  return NextResponse.json({ ok: true })
+    const data = await coreRes.json()
+    return NextResponse.json({ ok: true, response: data.response, agent: data.agent })
+
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? e.message : 'Error de conexión con devmark-core'
+    return NextResponse.json({ error: msg }, { status: 503 })
+  }
 }
