@@ -251,11 +251,31 @@ body {
   padding: 0 32px;
   display: flex;
   align-items: center;
+  gap: 12px;
   height: 56px;
+}
+.navbar-hamburger {
+  display: none;
+}
+@media (max-width: 1023px) {
+  .navbar-hamburger {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #fff;
+    font-size: 22px;
+    padding: 4px 6px;
+    flex-shrink: 0;
+    opacity: 0.85;
+  }
 }
 @media (max-width: 639px) {
   .navbar-inner {
-    padding: 0 16px;
+    padding: 0 12px;
+    gap: 8px;
   }
 }
 

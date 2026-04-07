@@ -17,13 +17,22 @@ export function NavbarWrapper() {
       zIndex: 55,
     }}>
       <div className="navbar-inner">
-        {/* Brand */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <img
-            src="/logos/horizontal/dev-hori-v7-1.png"
-            alt="devmark"
-            style={{ height: 44, width: 'auto', objectFit: 'contain' }}
-          />
+        {/* Hamburger — solo móvil, oculto en escritorio vía CSS */}
+        <button
+          className="navbar-hamburger"
+          onClick={() => window.dispatchEvent(new CustomEvent('devmark:toggle-sidebar'))}
+          aria-label="Abrir menú"
+        >&#9776;</button>
+
+        {/* Logo */}
+        <img
+          src="/logos/horizontal/dev-hori-v7-1.png"
+          alt="devmark"
+          style={{ height: 44, width: 'auto', objectFit: 'contain' }}
+        />
+
+        {/* Derecha: LIVE 24/7 + Cerrar sesión */}
+        <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 12 }}>
           <div style={{
             background: 'rgba(29,158,117,0.18)',
             border: '1px solid rgba(29,158,117,0.35)',
@@ -40,8 +49,8 @@ export function NavbarWrapper() {
               color: '#5DCAA5', fontSize: 10, fontWeight: 700, letterSpacing: '0.06em',
             }}>LIVE 24/7</span>
           </div>
+          <LogoutButton />
         </div>
-        <LogoutButton />
       </div>
     </nav>
   )

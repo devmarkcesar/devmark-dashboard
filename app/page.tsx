@@ -32,6 +32,24 @@ export default function Dashboard() {
     return () => { clearInterval(iv) }
   }, [])
 
+  // Restaurar tab guardada
+  useEffect(() => {
+    const saved = localStorage.getItem('devmark-tab') as TabId
+    if (saved && ['agents', 'projects', 'telegram', 'crm'].includes(saved)) setTab(saved)
+  }, [])
+
+  // Escuchar hamburguesa del navbar (móvil)
+  useEffect(() => {
+    const handler = () => setSidebarOpen(prev => !prev)
+    window.addEventListener('devmark:toggle-sidebar', handler)
+    return () => window.removeEventListener('devmark:toggle-sidebar', handler)
+  }, [])
+
+  function handleTabChange(t: TabId) {
+    setTab(t)
+    localStorage.setItem('devmark-tab', t)
+  }
+
   async function fetchAll() {
     setRefreshing(true)
     try {
@@ -73,16 +91,6 @@ export default function Dashboard() {
 
   return (
     <div className="dashboard-layout">
-      <button
-        className="sidebar-toggle"
-        onClick={() => setSidebarOpen(prev => !prev)}
-        style={{
-          position: 'fixed', bottom: 20, left: 20, zIndex: 60,
-          width: 48, height: 48, borderRadius: 12,
-          background: T.teal, border: 'none', cursor: 'pointer',
-          color: '#fff', fontSize: 22, boxShadow: '0 4px 16px rgba(0,0,0,0.3)',
-        }}
-      >&#9776;</button>
 
       {sidebarOpen && <div className="sidebar-overlay" onClick={() => setSidebarOpen(false)} />}
 
@@ -91,7 +99,7 @@ export default function Dashboard() {
         catFilter={catFilter}
         sidebarOpen={sidebarOpen}
         collapsed={sidebarCollapsed}
-        onTabChange={setTab}
+        onTabChange={handleTabChange}
         onCatFilter={setCatFilter}
         onClose={() => setSidebarOpen(false)}
         onToggleCollapse={() => { setSidebarCollapsed(prev => !prev); setSidebarOpen(false) }}
@@ -125,7 +133,7 @@ export default function Dashboard() {
           <AgentsTab
             agents={catFilter ? agents.filter(a => a.category === catFilter) : agents}
             tasks={tasks}
-            onShowProjects={() => setTab('projects')}
+            onShowProjects={() => handleTabChange('projects')}
           />
         )}
         {tab === 'projects' && <ProjectsTab projects={projects} tasks={tasks} />}
