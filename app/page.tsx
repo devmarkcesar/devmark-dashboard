@@ -17,25 +17,35 @@ export default function Dashboard() {
   const [tasks,       setTasks]       = useState<Task[]>([])
   const [logs,        setLogs]        = useState<Log[]>([])
   const [loading,     setLoading]     = useState(true)
+  const [refreshing,  setRefreshing]  = useState(false)
+  const [fetchError,  setFetchError]  = useState<string | null>(null)
   const [tab,         setTab]         = useState<TabId>('agents')
   const [catFilter,   setCatFilter]   = useState<string | null>(null)
   const [sidebarOpen, setSidebarOpen] = useState(false)
 
   useEffect(() => {
     fetchAll()
-    const iv = setInterval(fetchAll, 30000)
+    const iv = setInterval(fetchAll, 5000)
     return () => { clearInterval(iv) }
   }, [])
 
   async function fetchAll() {
-    const res = await fetch('/api/data')
-    if (!res.ok) return
-    const data = await res.json()
-    if (data.agents)   setAgents(data.agents)
-    if (data.projects) setProjects(data.projects)
-    if (data.tasks)    setTasks(data.tasks)
-    if (data.logs)     setLogs(data.logs)
-    setLoading(false)
+    setRefreshing(true)
+    try {
+      const res = await fetch('/api/data')
+      if (!res.ok) { setFetchError(`Error ${res.status} al obtener datos`); return }
+      const data = await res.json()
+      if (data.agents)   setAgents(data.agents)
+      if (data.projects) setProjects(data.projects)
+      if (data.tasks)    setTasks(data.tasks)
+      if (data.logs)     setLogs(data.logs)
+      setFetchError(null)
+    } catch {
+      setFetchError('Sin conexión con el servidor')
+    } finally {
+      setRefreshing(false)
+      setLoading(false)
+    }
   }
 
   const activeCount    = agents.filter(a => a.status === 'active').length
@@ -79,7 +89,21 @@ export default function Dashboard() {
       />
 
       <div className="main-content">
-        <div className="stats-grid">
+        {fetchError && (
+          <div style={{
+            background: 'rgba(192,86,33,0.12)', border: '1px solid rgba(192,86,33,0.3)',
+            borderRadius: 9, padding: '10px 16px', marginBottom: 12,
+            display: 'flex', alignItems: 'center', gap: 10,
+          }}>
+            <span style={{ fontSize: 15 }}>⚠️</span>
+            <span style={{ fontSize: 12, color: '#C05621', fontWeight: 600 }}>{fetchError}</span>
+            <button onClick={fetchAll} style={{ marginLeft: 'auto', fontSize: 11, color: T.teal, background: 'none', border: 'none', cursor: 'pointer', fontWeight: 700 }}>Reintentar</button>
+          </div>
+        )}
+        <div className="stats-grid" style={{ position: 'relative' }}>
+          {refreshing && !loading && (
+            <span style={{ position: 'absolute', top: -18, right: 0, fontSize: 10, color: T.textMuted, opacity: 0.6 }}>actualizando...</span>
+          )}
           <StatCard label="Agentes activos" value={activeCount + busyCount} sub={"De " + agents.length + " totales"} accent={T.blue} />
           <StatCard label="Proyectos Jira" value={projects.length} sub={inProgTasks + " en progreso"} accent={T.teal} />
           <StatCard label="Tareas completadas" value={totalTasksDone} sub={topAgent ? "Top: " + topAgent.name : 'Sin tareas'} accent={T.blue} />

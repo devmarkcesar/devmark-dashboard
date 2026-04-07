@@ -13,9 +13,36 @@ interface AgentsTabProps {
 }
 
 export function AgentsTab({ agents, tasks, onShowProjects }: AgentsTabProps) {
-  const [selected,  setSelected]  = useState<Agent | null>(null)
-  const [catFilter, setCatFilter] = useState<string | null>(null)
-  const [taskInput, setTaskInput] = useState('')
+  const [selected,   setSelected]  = useState<Agent | null>(null)
+  const [catFilter,  setCatFilter] = useState<string | null>(null)
+  const [taskInput,  setTaskInput] = useState('')
+  const [sending,    setSending]   = useState(false)
+  const [taskFeedback, setTaskFeedback] = useState<{ ok: boolean; msg: string } | null>(null)
+
+  async function handleSend() {
+    if (!selected || !taskInput.trim() || sending) return
+    setSending(true)
+    setTaskFeedback(null)
+    try {
+      const res = await fetch(`/api/agent/${selected.id}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: taskInput.trim() }),
+      })
+      if (res.ok) {
+        setTaskInput('')
+        setTaskFeedback({ ok: true, msg: 'Tarea asignada — el agente la tomará en el próximo ciclo.' })
+      } else {
+        const d = await res.json().catch(() => ({}))
+        setTaskFeedback({ ok: false, msg: d.error ?? 'Error al enviar.' })
+      }
+    } catch {
+      setTaskFeedback({ ok: false, msg: 'Sin conexión con el servidor.' })
+    } finally {
+      setSending(false)
+      setTimeout(() => setTaskFeedback(null), 5000)
+    }
+  }
 
   const filtered = catFilter ? agents.filter(a => a.category === catFilter) : agents
 
@@ -84,14 +111,29 @@ export function AgentsTab({ agents, tasks, onShowProjects }: AgentsTabProps) {
               }}
               placeholder={selected ? `Asignar tarea a ${selected.name}...` : 'Selecciona un agente primero...'}
               value={taskInput}
+              disabled={!selected || sending}
               onChange={e => setTaskInput(e.target.value)}
-              onKeyDown={e => e.key === 'Enter' && setTaskInput('')}
+              onKeyDown={e => e.key === 'Enter' && handleSend()}
             />
             <button
-              onClick={() => setTaskInput('')}
-              style={{ fontSize: 11, padding: '7px 13px', borderRadius: 7, border: 'none', cursor: 'pointer', background: T.blue, color: '#fff', fontWeight: 700 }}
-            >Enviar ↗</button>
+              onClick={handleSend}
+              disabled={!selected || !taskInput.trim() || sending}
+              style={{
+                fontSize: 11, padding: '7px 13px', borderRadius: 7, border: 'none',
+                cursor: (!selected || !taskInput.trim() || sending) ? 'not-allowed' : 'pointer',
+                background: sending ? '#8A8A87' : T.blue, color: '#fff', fontWeight: 700,
+                opacity: (!selected || !taskInput.trim()) ? 0.6 : 1,
+              }}
+            >{sending ? '...' : 'Enviar ↗'}</button>
           </div>
+          {taskFeedback && (
+            <p style={{
+              fontSize: 11, marginTop: 6, padding: '6px 10px', borderRadius: 7,
+              background: taskFeedback.ok ? 'rgba(29,158,117,0.1)' : 'rgba(192,86,33,0.1)',
+              color: taskFeedback.ok ? T.teal : '#C05621',
+              border: `1px solid ${taskFeedback.ok ? 'rgba(29,158,117,0.25)' : 'rgba(192,86,33,0.25)'}`,
+            }}>{taskFeedback.msg}</p>
+          )}
         </Panel>
 
         <Panel>
