@@ -8,9 +8,10 @@ import { AgentsTab } from './components/AgentsTab'
 import { ProjectsTab } from './components/ProjectsTab'
 import { LogsTab } from './components/LogsTab'
 import { CRMTab } from './components/CRMTab'
+import { DiagnosticoTab } from './components/DiagnosticoTab'
 import type { Agent, Project, Task, Log, Prospect } from './components/types'
 
-type TabId = 'agents' | 'projects' | 'telegram' | 'crm'
+type TabId = 'agents' | 'projects' | 'telegram' | 'crm' | 'diagnostico'
 
 export default function Dashboard() {
   const [agents,      setAgents]      = useState<Agent[]>([])
@@ -35,7 +36,7 @@ export default function Dashboard() {
   // Restaurar tab guardada
   useEffect(() => {
     const saved = localStorage.getItem('devmark-tab') as TabId
-    if (saved && ['agents', 'projects', 'telegram', 'crm'].includes(saved)) setTab(saved)
+    if (saved && ['agents', 'projects', 'telegram', 'crm', 'diagnostico'].includes(saved)) setTab(saved)
   }, [])
 
   // Escuchar hamburguesa del navbar (móvil)
@@ -135,7 +136,7 @@ export default function Dashboard() {
             <button onClick={fetchAll} style={{ marginLeft: 'auto', fontSize: 11, color: T.teal, background: 'none', border: 'none', cursor: 'pointer', fontWeight: 700 }}>Reintentar</button>
           </div>
         )}
-        {tab !== 'crm' && (
+        {tab !== 'crm' && tab !== 'diagnostico' && (
           <div className="stats-grid" style={{ position: 'relative' }}>
             {refreshing && !loading && (
               <span style={{ position: 'absolute', top: -18, right: 0, fontSize: 10, color: T.textMuted, opacity: 0.6 }}>actualizando...</span>
@@ -162,6 +163,7 @@ export default function Dashboard() {
         {tab === 'projects' && <ProjectsTab projects={projects} tasks={tasks} />}
         {tab === 'telegram' && <LogsTab logs={logs} />}
         {tab === 'crm' && <CRMTab prospects={prospects} onProspectsChange={setProspects} />}
+        {tab === 'diagnostico' && <DiagnosticoTab />}
 
         <footer style={{ borderTop: '1px solid rgba(255,255,255,0.06)', marginTop: 16, padding: '28px 24px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10 }}>
           <img
