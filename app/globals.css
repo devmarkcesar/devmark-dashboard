@@ -16,6 +16,7 @@ body {
   background-color: var(--navy);
   color: var(--bone);
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  overflow-x: hidden;
 }
 
 /* Scrollbar */
@@ -77,6 +78,14 @@ body {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 12px;
+}
+
+/* Prevent grid children from overflowing their cells */
+.detail-grid > *,
+.agents-grid > *,
+.stats-grid > * {
+  min-width: 0;
+  overflow: hidden;
 }
 
 .agents-header {

@@ -78,7 +78,7 @@ export function AgentCard({ agent, selected, onClick }: {
 // ─── Panel / PanelTitle ───────────────────────────────────────────────────────
 export function Panel({ children, style = {} }: { children: React.ReactNode; style?: React.CSSProperties }) {
   return (
-    <div style={{ background: T.white, border: `1px solid ${T.cardBorder}`, borderRadius: 10, padding: 18, ...style }}>
+    <div style={{ background: T.white, border: `1px solid ${T.cardBorder}`, borderRadius: 10, padding: 18, minWidth: 0, overflow: 'hidden', ...style }}>
       {children}
     </div>
   )
