@@ -154,8 +154,8 @@ export function ProspuestaView({ p, businessName }: { p: Propuesta; businessName
       </div>
 
       {/* ── VISTA IMPRESIÓN: páginas explícitas con encabezado en cada hoja ── */}
-      {/* display:none en pantalla — activado solo por @media print en CSS       */}
-      <div className="propuesta-print" style={{ display: 'none' }}>
+      {/* Oculto en pantalla via CSS (.propuesta-print), visible solo en @media print */}
+      <div className="propuesta-print">
 
         {/* ── HOJA 1: Propuesta para + Diagnóstico + Solución propuesta ──── */}
         <div className="print-page">

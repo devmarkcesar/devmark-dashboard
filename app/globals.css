@@ -280,6 +280,10 @@ body {
 }
 
 /* ─── Print / PDF ───────────────────────────────────────────────────────── */
+
+/* Ocultar la versión de impresión en pantalla */
+.propuesta-print { display: none; }
+
 @media print {
   /* Ocultar todo el chrome del dashboard */
   nav,
@@ -304,15 +308,14 @@ body {
   .dashboard-layout { display: block !important; }
   .main-content { padding: 0 !important; background: #fff !important; gap: 0 !important; }
 
-  /* Ocultar vista de pantalla, mostrar vista de impresión */
-  .propuesta-screen   { display: none !important; }
-  .propuesta-print    { display: block !important; }
-
-  /* Clase legacy — ocultar si quedara en el DOM */
+  /* Clases legacy — ocultar si quedan en el DOM */
   .print-header-p1,
   .print-logo-repeat,
-  .print-page-header,
-  .print-propuesta { display: none !important; }
+  .print-page-header { display: none !important; }
+
+  /* Ocultar vista pantalla y mostrar vista impresión */
+  .propuesta-screen { display: none !important; }
+  .propuesta-print  { display: block !important; }
 
   /* Tamaño carta estándar, sin márgenes de @page (los márgenes van en .print-page via padding) */
   @page {
