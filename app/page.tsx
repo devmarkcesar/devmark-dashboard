@@ -52,10 +52,14 @@ export default function Dashboard() {
     return () => window.removeEventListener('devmark:go-home', handler)
   }, [])
 
-  // Scroll al tope cada vez que cambia la tab
+  // Scroll al tope cada vez que cambia la tab O cuando termina el loading
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'instant' })
   }, [tab])
+
+  useEffect(() => {
+    if (!loading) window.scrollTo({ top: 0, behavior: 'instant' })
+  }, [loading])
 
   function handleTabChange(t: TabId) {
     setTab(t)
@@ -147,8 +151,9 @@ export default function Dashboard() {
 
         {tab === 'agents' && (
           <AgentsTab
-            agents={catFilter ? agents.filter(a => a.category === catFilter) : agents}
+            agents={agents}
             tasks={tasks}
+            externalCatFilter={catFilter}
             onShowProjects={() => handleTabChange('projects')}
           />
         )}
