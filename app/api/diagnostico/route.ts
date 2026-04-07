@@ -168,8 +168,8 @@ RESPONDE EXCLUSIVAMENTE CON EL OBJETO JSON. PROHIBIDO incluir texto antes, despu
   }
 
   try {
-    // Llamar al PM (agente id=2) — primer intento
-    const coreRes = await fetch(`${CORE_API}/agent/2/chat`, {
+    // Llamar al PM (agente id=2) — primer intento usando endpoint /raw (sin formato markdown)
+    const coreRes = await fetch(`${CORE_API}/agent/2/raw`, {
       method:  'POST',
       headers: { 'Content-Type': 'application/json', 'x-api-secret': API_SECRET },
       body:    JSON.stringify({ message: pmPrompt }),
@@ -189,7 +189,7 @@ RESPONDE EXCLUSIVAMENTE CON EL OBJETO JSON. PROHIBIDO incluir texto antes, despu
     if (!propuesta) {
       const retryPrompt = `El JSON que devolviste no pudo parsearse. Devuelve SOLAMENTE el objeto JSON sin ningún texto adicional. Aquí estaba la respuesta anterior:\n\n${rawOutput}\n\nExtrae los datos y devuélvelos SOLO como JSON puro empezando con { y terminando con }.`
       try {
-        const retryRes = await fetch(`${CORE_API}/agent/2/chat`, {
+        const retryRes = await fetch(`${CORE_API}/agent/2/raw`, {
           method:  'POST',
           headers: { 'Content-Type': 'application/json', 'x-api-secret': API_SECRET },
           body:    JSON.stringify({ message: retryPrompt }),

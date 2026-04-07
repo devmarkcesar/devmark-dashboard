@@ -59,16 +59,26 @@ const URGENCY_OPTIONS = [
 ]
 
 interface DiagnosticoRecord {
-  id:            number
-  business_name: string
-  business_type: string
-  contact_name:  string
-  contact_phone: string
-  main_problem:  string
-  budget_range:  string
-  status:        string
-  propuesta:     Propuesta | null
-  created_at:    string
+  id:                number
+  business_name:     string
+  business_type:     string
+  contact_name:      string
+  contact_phone:     string
+  contact_email:     string
+  num_employees:     string
+  main_problem:      string
+  current_situation: string
+  current_tools:     string
+  desired_solution:  string
+  main_objective:    string
+  budget_range:      string
+  urgency:           string
+  decision_maker:    boolean
+  extra_notes:       string
+  status:            string
+  propuesta:         Propuesta | null
+  raw_output:        string
+  created_at:        string
 }
 
 interface Propuesta {
@@ -221,6 +231,7 @@ export function DiagnosticoTab() {
   const [histLoading, setHistLoading] = useState(false)
   const [selected, setSelected]       = useState<DiagnosticoRecord | null>(null)
   const [currentName, setCurrentName] = useState('')
+  const [regenLoading, setRegenLoading] = useState(false)
 
   const [form, setForm] = useState({
     business_name:     '',
@@ -257,6 +268,53 @@ export function DiagnosticoTab() {
   }, [])
 
   useEffect(() => { loadHistorial() }, [loadHistorial])
+
+  async function deleteDiagnostico(id: number) {
+    if (!confirm('¿Eliminar este diagnóstico? Esta acción no se puede deshacer.')) return
+    await fetch(`/api/diagnostico/${id}`, { method: 'DELETE' })
+    setHistorial(prev => prev.filter(d => d.id !== id))
+    setStep('historial')
+    setSelected(null)
+  }
+
+  async function regenerarDiagnostico(d: DiagnosticoRecord) {
+    setRegenLoading(true)
+    try {
+      const res  = await fetch(`/api/diagnostico/${d.id}`, { method: 'PATCH' })
+      const data = await res.json()
+      if (data.ok) {
+        const updated = data.diagnostico
+        setSelected(updated)
+        setHistorial(prev => prev.map(x => x.id === d.id ? { ...x, ...updated } : x))
+      }
+    } catch { /* ignorar */ }
+    setRegenLoading(false)
+  }
+
+  function editarDiagnostico(d: DiagnosticoRecord) {
+    setForm({
+      business_name:     d.business_name     || '',
+      business_type:     d.business_type     || '',
+      contact_name:      d.contact_name      || '',
+      contact_phone:     d.contact_phone     || '',
+      contact_email:     d.contact_email     || '',
+      num_employees:     d.num_employees     || '',
+      main_problem:      d.main_problem      || '',
+      current_situation: d.current_situation ? d.current_situation.split(', ').filter(Boolean) : [],
+      current_tools:     d.current_tools     ? d.current_tools.split(', ').filter(Boolean)     : [],
+      desired_solution:  d.desired_solution  ? d.desired_solution.split(', ').filter(Boolean)  : [],
+      main_objective:    d.main_objective    || '',
+      budget_range:      d.budget_range      || 'no_definido',
+      urgency:           d.urgency           || 'sin_prisa',
+      decision_maker:    d.decision_maker    ?? true,
+      extra_notes:       d.extra_notes       || '',
+    })
+    setPropuesta(null)
+    setRawOutput('')
+    setError(null)
+    setSelected(null)
+    setStep('form')
+  }
 
   function toggleMulti(field: 'current_situation' | 'current_tools' | 'desired_solution', value: string) {
     setForm(f => {
@@ -795,26 +853,65 @@ export function DiagnosticoTab() {
           }}>
             ← Volver al historial
           </button>
+
+          {/* Barra de acciones */}
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+            <button onClick={() => regenerarDiagnostico(selected)} disabled={regenLoading} style={{
+              display: 'flex', alignItems: 'center', gap: 6,
+              background: T.teal, color: '#fff', border: 'none',
+              borderRadius: 8, padding: '9px 16px', fontSize: 13, fontWeight: 600,
+              cursor: regenLoading ? 'wait' : 'pointer', opacity: regenLoading ? 0.7 : 1,
+            }}>
+              {regenLoading ? '⏳ Generando...' : '🔄 Regenerar propuesta'}
+            </button>
+            <button onClick={() => editarDiagnostico(selected)} style={{
+              display: 'flex', alignItems: 'center', gap: 6,
+              background: '#fff', color: T.navy, border: `1.5px solid ${T.cardBorder}`,
+              borderRadius: 8, padding: '9px 16px', fontSize: 13, fontWeight: 600, cursor: 'pointer',
+            }}>
+              ✏️ Editar y re-enviar
+            </button>
+            {selected.propuesta && (
+              <button onClick={() => window.print()} style={{
+                display: 'flex', alignItems: 'center', gap: 6,
+                background: '#fff', color: T.navy, border: `1.5px solid ${T.cardBorder}`,
+                borderRadius: 8, padding: '9px 16px', fontSize: 13, fontWeight: 600, cursor: 'pointer',
+              }}>
+                🖨 Imprimir / PDF
+              </button>
+            )}
+            <button onClick={() => deleteDiagnostico(selected.id)} style={{
+              display: 'flex', alignItems: 'center', gap: 6, marginLeft: 'auto',
+              background: '#FEF3F0', color: '#C05621', border: '1.5px solid #F8C4B4',
+              borderRadius: 8, padding: '9px 16px', fontSize: 13, fontWeight: 600, cursor: 'pointer',
+            }}>
+              🗑 Eliminar
+            </button>
+          </div>
+
           <div className="print-propuesta">
             {selected.propuesta
               ? <ProspuestaView p={selected.propuesta} businessName={selected.business_name} />
               : (
-                <div style={{ background: '#FEF3F0', border: '1px solid #F8C4B4', borderRadius: 10, padding: '16px 20px' }}>
-                  <p style={{ fontSize: 13, fontWeight: 700, color: '#C05621', margin: 0 }}>
-                    Este diagnóstico no pudo estructurarse. No hay propuesta disponible.
-                  </p>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                  <div style={{ background: '#FEF3F0', border: '1px solid #F8C4B4', borderRadius: 10, padding: '16px 20px' }}>
+                    <p style={{ fontSize: 13, fontWeight: 700, color: '#C05621', margin: '0 0 4px' }}>
+                      Este diagnóstico no pudo estructurarse automáticamente.
+                    </p>
+                    <p style={{ fontSize: 12, color: '#C05621', margin: 0 }}>
+                      Usa <strong>Regenerar propuesta</strong> para reintentarlo, o <strong>Editar y re-enviar</strong> para ajustar los datos.
+                    </p>
+                  </div>
+                  {selected.raw_output && (
+                    <details style={{ background: T.bone, border: `1px solid ${T.cardBorder}`, borderRadius: 8, padding: '12px 16px' }}>
+                      <summary style={{ fontSize: 12, fontWeight: 600, color: T.textMuted, cursor: 'pointer' }}>Ver respuesta cruda del agente</summary>
+                      <pre style={{ fontSize: 11, color: T.carbon, whiteSpace: 'pre-wrap', marginTop: 10 }}>{selected.raw_output}</pre>
+                    </details>
+                  )}
                 </div>
               )
             }
           </div>
-          {selected.propuesta && (
-            <button onClick={() => window.print()} style={{
-              background: T.teal, color: '#fff', border: 'none', borderRadius: 10,
-              padding: '12px 20px', fontSize: 14, fontWeight: 700, cursor: 'pointer',
-            }}>
-              🖨 Imprimir / PDF
-            </button>
-          )}
         </div>
       )}
     </div>
