@@ -28,7 +28,8 @@ export function NavbarWrapper() {
         <img
           src="/logos/horizontal/dev-hori-v7-1.png"
           alt="devmark"
-          style={{ height: 44, width: 'auto', objectFit: 'contain' }}
+          onClick={() => window.dispatchEvent(new CustomEvent('devmark:go-home'))}
+          style={{ height: 44, width: 'auto', objectFit: 'contain', cursor: 'pointer' }}
         />
 
         {/* Derecha: LIVE 24/7 + Cerrar sesión */}

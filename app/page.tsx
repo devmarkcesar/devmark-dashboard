@@ -45,9 +45,17 @@ export default function Dashboard() {
     return () => window.removeEventListener('devmark:toggle-sidebar', handler)
   }, [])
 
+  // Logo → volver a agents
+  useEffect(() => {
+    const handler = () => handleTabChange('agents')
+    window.addEventListener('devmark:go-home', handler)
+    return () => window.removeEventListener('devmark:go-home', handler)
+  }, [])
+
   function handleTabChange(t: TabId) {
     setTab(t)
     localStorage.setItem('devmark-tab', t)
+    window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
   async function fetchAll() {
