@@ -1,4 +1,6 @@
 'use client'
+import Link from 'next/link'
+import { usePathname } from 'next/navigation'
 import { T, CAT_COLOR } from './tokens'
 
 type TabId = 'agents' | 'projects' | 'telegram' | 'crm'
@@ -15,6 +17,7 @@ interface SidebarProps {
 }
 
 export function Sidebar({ tab, catFilter, sidebarOpen, collapsed, onTabChange, onCatFilter, onClose, onToggleCollapse }: SidebarProps) {
+  const pathname = usePathname()
   return (
     <aside
       className={`sidebar ${sidebarOpen ? 'open' : ''} ${collapsed ? 'desktop-collapsed' : ''}`}
@@ -59,6 +62,21 @@ export function Sidebar({ tab, catFilter, sidebarOpen, collapsed, onTabChange, o
           <span className="nav-label">{label}</span>
         </div>
       ))}
+
+      {/* Diagnóstico — link directo */}
+      <Link href="/diagnostico" onClick={onClose}
+        className="nav-item"
+        style={{
+          display: 'flex', alignItems: 'center', gap: 9, padding: '7px 16px', cursor: 'pointer',
+          color: pathname === '/diagnostico' ? '#fff' : 'rgba(241,239,232,0.4)',
+          background: pathname === '/diagnostico' ? 'rgba(29,158,117,0.22)' : 'transparent',
+          borderLeft: pathname === '/diagnostico' ? `2px solid ${T.teal}` : '2px solid transparent',
+          fontSize: 15, fontWeight: pathname === '/diagnostico' ? 600 : 400,
+          transition: 'all 0.15s', textDecoration: 'none',
+        }}>
+        <span style={{ fontSize: 17, opacity: 0.8, flexShrink: 0 }}>🎯</span>
+        <span className="nav-label">Diagnóstico</span>
+      </Link>
 
       <p className="nav-section" style={{ fontSize: 12, fontWeight: 700, letterSpacing: '0.1em', color: T.sideText, opacity: 0.3, textTransform: 'uppercase', padding: '14px 16px 6px' }}>Categorías</p>
       {([
