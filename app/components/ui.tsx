@@ -4,6 +4,17 @@ import { useRouter } from 'next/navigation'
 import { T, CAT_COLOR, statusDotColor, statusLabel } from './tokens'
 import type { Agent } from './types'
 
+function relativeTime(iso: string): string {
+  if (!iso) return ''
+  const diff = Date.now() - new Date(iso).getTime()
+  const min = Math.floor(diff / 60000)
+  if (min < 1) return 'ahora'
+  if (min < 60) return `hace ${min}m`
+  const h = Math.floor(min / 60)
+  if (h < 24) return `hace ${h}h`
+  return `hace ${Math.floor(h / 24)}d`
+}
+
 // ─── StatCard ─────────────────────────────────────────────────────────────────
 export function StatCard({ label, value, sub, accent }: {
   label: string; value: string | number; sub: string; accent: string
@@ -56,8 +67,12 @@ export function AgentCard({ agent, selected, onClick }: {
           boxShadow: agent.status === 'busy' ? `0 0 6px ${T.blue}` : 'none',
         }} />
         <span style={{ fontSize: 10, color: T.carbon, opacity: 0.7 }}>{statusLabel(agent.status)}</span>
-        {agent.tasks_done > 0 && (
-          <span style={{ marginLeft: 'auto', fontSize: 9, color: T.textMuted }}>{agent.tasks_done} tareas</span>
+        {(agent.tasks_done > 0 || agent.last_active) && (
+          <span style={{ marginLeft: 'auto', fontSize: 9, color: T.textMuted }}>
+            {agent.tasks_done > 0 ? `${agent.tasks_done} tareas` : ''}
+            {agent.tasks_done > 0 && agent.last_active ? ' · ' : ''}
+            {agent.last_active ? relativeTime(agent.last_active) : ''}
+          </span>
         )}
         <button
           onClick={(e) => { e.stopPropagation(); router.push(`/agente/${agent.id}`) }}
