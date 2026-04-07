@@ -312,13 +312,13 @@ body {
     gap: 0 !important;
   }
 
-  /* Solo mostrar el contenedor de propuesta */
+  /* Solo mostrar el contenedor de propuesta — padding-top reserva espacio para el header fijo */
   .print-propuesta {
     display: block !important;
     width: 100%;
     max-width: 100%;
     margin: 0;
-    padding: 0;
+    padding: 28mm 0 0 0;
   }
 
   /* Page breaks */
@@ -327,7 +327,7 @@ body {
 
   /* Tamaño y márgenes — top:0 elimina el header nativo del browser; lados/inferior dan margen de impresión */
   @page {
-    size: A4 portrait;
+    size: letter portrait;
     margin: 0 30mm 25mm 30mm;
   }
 
@@ -346,20 +346,19 @@ body {
     display: none !important;
   }
 
-  /* Header de impresión — aparece en cada hoja */
+  /* Header de impresión — position:fixed lo repite en todas las hojas en Chrome/Edge */
   .print-page-header {
     display: flex !important;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    background: #fff;
+    box-sizing: border-box;
+    padding: 8mm 30mm 5mm 30mm;
     align-items: center;
     justify-content: space-between;
-    padding: 10mm 0 6mm 0;
     border-bottom: 2px solid #1D9E75;
-    margin-bottom: 7mm;
-    position: running(pageHeader);
-  }
-
-  /* Empujar contenido hacia abajo para dejar espacio al header */
-  .print-propuesta > * {
-    padding-top: 0;
   }
 }
 
