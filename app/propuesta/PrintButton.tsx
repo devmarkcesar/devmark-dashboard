@@ -3,7 +3,7 @@
 export function PrintButton({ businessName }: { businessName: string }) {
   const handlePrint = () => {
     const prevTitle = document.title
-    document.title = `Propuesta devmark - ${businessName}`
+    document.title = `Diagnostico cliente - ${businessName}`
     window.print()
     document.title = prevTitle
   }
