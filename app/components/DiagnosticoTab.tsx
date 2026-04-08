@@ -62,6 +62,7 @@ const URGENCY_OPTIONS = [
 
 interface DiagnosticoRecord {
   id:                number
+  public_token:      string
   business_name:     string
   business_type:     string
   contact_name:      string
@@ -133,6 +134,7 @@ export function DiagnosticoTab({ prospects = [] }: { prospects?: Prospect[] }) {
   const [histLoading, setHistLoading] = useState(false)
   const [selected, setSelected]       = useState<DiagnosticoRecord | null>(null)
   const [currentName, setCurrentName] = useState('')
+  const [currentToken, setCurrentToken] = useState('')
   const [regenLoading, setRegenLoading] = useState(false)
   const [regenError, setRegenError]     = useState<string | null>(null)
   const [editingFrom, setEditingFrom]   = useState<DiagnosticoRecord | null>(null)
@@ -279,6 +281,7 @@ export function DiagnosticoTab({ prospects = [] }: { prospects?: Prospect[] }) {
 
       setPropuesta(data.diagnostico.propuesta ?? null)
       setRawOutput(data.diagnostico.raw_output ?? '')
+      setCurrentToken(data.diagnostico.public_token ?? '')
       setStep('result')
       loadHistorial() // refrescar historial en segundo plano
     } catch {
@@ -777,6 +780,17 @@ export function DiagnosticoTab({ prospects = [] }: { prospects?: Prospect[] }) {
             }}>
               ← Nuevo diagnóstico
             </button>
+            {currentToken && (
+              <button onClick={() => {
+                const url = `${window.location.origin}/propuesta/${currentToken}`
+                navigator.clipboard.writeText(url).then(() => alert('Enlace copiado:\n' + url))
+              }} style={{
+                flex: 1, background: '#f0fdf4', color: T.teal, border: `1.5px solid ${T.teal}`,
+                borderRadius: 10, padding: '12px 20px', fontSize: 14, fontWeight: 700, cursor: 'pointer',
+              }}>
+                🔗 Copiar enlace cliente
+              </button>
+            )}
             <button onClick={() => {
               const prev = document.title
               document.title = `Diagnostico cliente - ${currentName || form.business_name}`
@@ -929,7 +943,7 @@ export function DiagnosticoTab({ prospects = [] }: { prospects?: Prospect[] }) {
             )}
             {selected.propuesta && (
               <button onClick={() => {
-                const slug = `${selected.id}-${slugify(selected.business_name)}`
+                const slug = `${selected.public_token}`
                 const url = `${window.location.origin}/propuesta/${slug}`
                 navigator.clipboard.writeText(url).then(() => alert('Enlace copiado:\n' + url))
               }} style={{

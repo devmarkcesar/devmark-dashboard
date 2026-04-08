@@ -9,8 +9,12 @@ interface Props {
 
 const DIAS_EXPIRACION = 30
 
-async function getDiagnostico(id: number) {
-  const res = await pool.query('SELECT * FROM diagnosticos WHERE id = $1', [id])
+async function getDiagnostico(token: string) {
+  // Buscar por public_token (UUID) — no por ID numérico
+  const res = await pool.query(
+    'SELECT * FROM diagnosticos WHERE public_token = $1',
+    [token]
+  )
   if (res.rows.length === 0) return null
   const row = res.rows[0]
   return {
@@ -21,10 +25,14 @@ async function getDiagnostico(id: number) {
 
 export default async function PropuestaPublica({ params }: Props) {
   const { id } = await params
-  const numId = parseInt(id)
-  if (isNaN(numId)) notFound()
+  // El parámetro [id] ahora es el public_token UUID
+  const token = id
 
-  const diag = await getDiagnostico(numId)
+  // Validar formato UUID básico para evitar queries innecesarias
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+  if (!uuidRegex.test(token)) notFound()
+
+  const diag = await getDiagnostico(token)
   if (!diag || !diag.propuesta) notFound()
 
   // Verificar expiración: 30 días desde created_at

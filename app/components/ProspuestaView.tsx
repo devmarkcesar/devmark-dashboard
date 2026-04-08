@@ -146,8 +146,7 @@ export function ProspuestaView({ p, businessName }: { p: Propuesta; businessName
             </div>
           </div>
           <p style={{ fontSize: 12, color: T.textMuted, margin: 0, lineHeight: 1.6 }}>
-            Vigencia de esta propuesta: <strong>15 días naturales</strong>.
-            Los precios pueden variar si el alcance del proyecto es modificado por el cliente.
+            Vigencia de esta propuesta: <strong>15 días naturales</strong>. Los precios pueden variar si el alcance del proyecto es modificado por el cliente.
             devmark · Guadalajara, Jalisco · devmark.mx
           </p>
         </div>
@@ -242,7 +241,8 @@ export function ProspuestaView({ p, businessName }: { p: Propuesta; businessName
                 </div>
               </div>
               <p style={{ fontSize: 12, color: T.textMuted, margin: 0, lineHeight: 1.6 }}>
-              Vigencia de esta propuesta: <strong>15 días naturales</strong>.
+                Vigencia de esta propuesta: <strong>15 días naturales</strong>. Los precios pueden variar si el alcance del proyecto es modificado por el cliente.
+                devmark · Guadalajara, Jalisco · devmark.mx
               </p>
             </div>
           </div>
