@@ -941,8 +941,9 @@ export function DiagnosticoTab({ prospects = [] }: { prospects?: Prospect[] }) {
                 🖨 Imprimir / PDF
               </button>
             )}
-            {selected.propuesta && selected.public_token && (
+            {selected.propuesta && (
               <button onClick={() => {
+                if (!selected.public_token) { alert('Token no disponible. Redespliega el servidor para generar tokens.'); return }
                 const url = `${window.location.origin}/propuesta/${selected.public_token}`
                 navigator.clipboard.writeText(url).then(() => alert('Enlace copiado:\n' + url))
               }} style={{
