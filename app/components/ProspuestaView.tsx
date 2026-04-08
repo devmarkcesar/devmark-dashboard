@@ -44,7 +44,7 @@ function PrintHeader({ fecha, hora }: { fecha: string; hora: string }) {
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img src="/logos/horizontal/dev-hori-1.png" alt="devmark" style={{ height: 46, objectFit: 'contain' }} />
       <div style={{ textAlign: 'right', fontSize: 10, lineHeight: 1.6 }}>
-        <div style={{ fontWeight: 700, color: '#0C2D4E' }}>Guadalajara, Jalisco</div>
+        <div style={{ fontWeight: 700, color: '#0C2D4E' }}>Guadalajara, Jalisco, México</div>
         <div style={{ fontWeight: 700, color: '#0C2D4E' }}>{fecha} · {hora}</div>
       </div>
     </div>
@@ -68,6 +68,20 @@ export function ProspuestaView({ p, businessName }: { p: Propuesta; businessName
   const horaFormateada = now.toLocaleTimeString('es-MX', {
     hour: '2-digit', minute: '2-digit', hour12: true,
   })
+
+  const soporteItem = p.desglose_costos?.find(
+    d => d.tipo === 'opcional' && d.concepto.toLowerCase().includes('soporte')
+  )
+  const soporteTierLabel = p.soporte_recomendado === 'basico' ? 'Básico'
+    : p.soporte_recomendado === 'estandar' ? 'Estándar' : 'Premium'
+  const soportePrecio = soporteItem
+    ? `${soporteTierLabel} (${fmt(soporteItem.monto_min)}/mes)`
+    : p.soporte_recomendado === 'basico' ? 'Básico ($500/mes)'
+    : p.soporte_recomendado === 'estandar' ? 'Estándar ($1,000/mes)' : 'Premium ($2,000/mes)'
+  const extraItem = p.desglose_costos?.find(
+    d => (d.concepto.toLowerCase().includes('cambio') || d.concepto.toLowerCase().includes('extra')) && d.monto_min > 0
+  )
+  const extraRate = extraItem ? `${fmt(extraItem.monto_min)} MXN/hora` : '$300 MXN/hora'
 
   return (
     <>
@@ -136,10 +150,10 @@ export function ProspuestaView({ p, businessName }: { p: Propuesta; businessName
             {p.soporte_recomendado && (
               <div style={{ marginTop: 12, padding: '10px 14px', background: 'rgba(29,158,117,0.06)', border: `1px solid rgba(29,158,117,0.15)`, borderRadius: 8 }}>
                 <p style={{ fontSize: 12, color: T.teal, fontWeight: 700, margin: '0 0 4px' }}>
-                  🛠 Soporte técnico recomendado: {p.soporte_recomendado === 'basico' ? 'Básico ($500/mes)' : p.soporte_recomendado === 'estandar' ? 'Estándar ($1,000/mes)' : 'Premium ($2,000/mes)'}
+                  🛠 Soporte técnico recomendado: {soportePrecio}
                 </p>
                 <p style={{ fontSize: 11, color: T.textMuted, margin: 0 }}>
-                  Cambios fuera de requerimientos: $300 MXN/hora. Sujetos a evaluación previa.
+                  Cambios fuera de requerimientos: {extraRate}. Sujetos a evaluación previa.
                 </p>
               </div>
             )}
@@ -201,7 +215,7 @@ export function ProspuestaView({ p, businessName }: { p: Propuesta; businessName
           </div>
           <p style={{ fontSize: 12, color: T.textMuted, margin: 0, lineHeight: 1.6 }}>
             Vigencia de esta propuesta: <strong>15 días naturales</strong>. Los precios pueden variar si el alcance del proyecto es modificado por el cliente.
-            devmark · Guadalajara, Jalisco · devmark.mx
+            devmark · Guadalajara, Jalisco, México · devmark.mx
           </p>
         </div>
       </div>
@@ -278,9 +292,9 @@ export function ProspuestaView({ p, businessName }: { p: Propuesta; businessName
                 {p.soporte_recomendado && (
                   <div style={{ marginTop: 10, padding: '8px 12px', background: 'rgba(29,158,117,0.06)', border: `1px solid rgba(29,158,117,0.15)`, borderRadius: 8 }}>
                     <p style={{ fontSize: 11, color: T.teal, fontWeight: 700, margin: '0 0 2px' }}>
-                      🛠 Soporte recomendado: {p.soporte_recomendado === 'basico' ? 'Básico ($500/mes)' : p.soporte_recomendado === 'estandar' ? 'Estándar ($1,000/mes)' : 'Premium ($2,000/mes)'}
+                      🛠 Soporte recomendado: {soportePrecio}
                     </p>
-                    <p style={{ fontSize: 10, color: T.textMuted, margin: 0 }}>Cambios extra: $300 MXN/hora</p>
+                    <p style={{ fontSize: 10, color: T.textMuted, margin: 0 }}>Cambios extra: {extraRate}</p>
                   </div>
                 )}
               </Section>
@@ -350,7 +364,7 @@ export function ProspuestaView({ p, businessName }: { p: Propuesta; businessName
               </div>
               <p style={{ fontSize: 12, color: T.textMuted, margin: 0, lineHeight: 1.6 }}>
                 Vigencia de esta propuesta: <strong>15 días naturales</strong>. Los precios pueden variar si el alcance del proyecto es modificado por el cliente.
-                devmark · Guadalajara, Jalisco · devmark.mx
+                devmark · Guadalajara, Jalisco, México · devmark.mx
               </p>
             </div>
           </div>

@@ -456,7 +456,7 @@ export function DiagnosticoTab({ prospects = [] }: { prospects?: Prospect[] }) {
 <div class="footer">
   <div>
     <div class="footer-brand">devmark</div>
-    <div style="font-size:8pt; color:#888;">devmark.mx · Guadalajara, México</div>
+    <div style="font-size:8pt; color:#888;">devmark.mx · Guadalajara, Jalisco, México</div>
   </div>
   <div class="footer-info">Cuestionario generado: ${today}<br>Ingresar en: app.devmark.mx → Diagnóstico de cliente</div>
 </div>

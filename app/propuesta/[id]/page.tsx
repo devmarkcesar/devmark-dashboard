@@ -80,7 +80,7 @@ export default async function PropuestaPublica({ params }: Props) {
           style={{ height: 62, width: 'auto', objectFit: 'contain' }}
         />
         <p style={{ fontSize: 15, color: '#444', margin: 0, fontWeight: 500 }}>© 2026 devmark</p>
-        <p style={{ fontSize: 13, color: '#999', margin: 0 }}>+52 3319907259 · devmarkcesaranaya@gmail.com · Guadalajara, Jalisco · devmark.mx</p>
+        <p style={{ fontSize: 13, color: '#999', margin: 0 }}>+52 3319907259 · devmarkcesaranaya@gmail.com · Guadalajara, Jalisco, México · devmark.mx</p>
       </footer>
     </div>
   )

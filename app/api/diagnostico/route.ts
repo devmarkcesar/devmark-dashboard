@@ -25,8 +25,30 @@ export async function GET(req: NextRequest) {
 
 // POST — crear diagnóstico + generar propuesta con el PM
 
+export const budgetMap: Record<string, string> = {
+  'menos_5k':    'menos de $5,000 MXN',
+  '5k_15k':      'entre $5,000 y $15,000 MXN',
+  '15k_50k':     'entre $15,000 y $50,000 MXN',
+  'mas_50k':     'más de $50,000 MXN',
+  'no_definido': 'presupuesto no definido aún',
+}
+export const urgencyMap: Record<string, string> = {
+  'inmediata': 'urgente, lo antes posible',
+  '1_mes':     'en el próximo mes',
+  '3_meses':   'en los próximos 3 meses',
+  'sin_prisa': 'sin fecha límite definida',
+}
+export const solutionMap: Record<string, string> = {
+  'sitio_web':      'Sitio web profesional',
+  'sistema':        'Sistema a medida (software interno)',
+  'bot':            'Bot de automatización o atención al cliente',
+  'dashboard':      'Dashboard / panel de control',
+  'automatizacion': 'Automatización de procesos con scripts',
+  'otro':           'Solución a definir',
+}
+
 // Construye el prompt del PM leyendo precios de pricing_catalog (BD)
-async function buildPmPrompt(ctx: Record<string, unknown>): Promise<string> {
+export async function buildPmPrompt(ctx: Record<string, unknown>): Promise<string> {
   const solutionMap = ctx.solutionMap as Record<string, string>
   const budgetMap   = ctx.budgetMap as Record<string, string>
   const urgencyMap  = ctx.urgencyMap as Record<string, string>
@@ -199,28 +221,6 @@ export async function POST(req: NextRequest) {
   const diagnostico = insertRes.rows[0]
 
   // Construir prompt estructurado para el PM
-  const budgetMap: Record<string, string> = {
-    'menos_5k':   'menos de $5,000 MXN',
-    '5k_15k':     'entre $5,000 y $15,000 MXN',
-    '15k_50k':    'entre $15,000 y $50,000 MXN',
-    'mas_50k':    'más de $50,000 MXN',
-    'no_definido': 'presupuesto no definido aún',
-  }
-  const urgencyMap: Record<string, string> = {
-    'inmediata': 'urgente, lo antes posible',
-    '1_mes':     'en el próximo mes',
-    '3_meses':   'en los próximos 3 meses',
-    'sin_prisa': 'sin fecha límite definida',
-  }
-  const solutionMap: Record<string, string> = {
-    'sitio_web':     'Sitio web profesional',
-    'sistema':       'Sistema a medida (software interno)',
-    'bot':           'Bot de automatización o atención al cliente',
-    'dashboard':     'Dashboard / panel de control',
-    'automatizacion':'Automatización de procesos con scripts',
-    'otro':          'Solución a definir',
-  }
-
   const pmPrompt = await buildPmPrompt({
     business_name, business_type, contact_name, contact_phone, contact_email,
     num_employees, main_problem, main_objective, current_situation, current_tools,
