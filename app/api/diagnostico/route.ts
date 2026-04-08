@@ -105,7 +105,10 @@ GENERA UNA PROPUESTA COMPLETA CON ESTE FORMATO EXACTO (JSON):
   "desglose_costos": [
     {"concepto": "Desarrollo del proyecto", "tipo": "unico", "monto_min": 0, "monto_max": 0},
     {"concepto": "Dominio .com (anual)", "tipo": "anual", "monto_min": 363, "monto_max": 363},
-    {"concepto": "Hosting web compartido Business (mensual)", "tipo": "mensual", "monto_min": 65, "monto_max": 330}
+    {"concepto": "Hosting web compartido Business (mensual)", "tipo": "mensual", "monto_min": 65, "monto_max": 330},
+    {"concepto": "Soporte técnico mensual", "tipo": "mensual", "monto_min": 500, "monto_max": 500},
+    {"concepto": "Certificado SSL", "tipo": "incluido", "monto_min": 0, "monto_max": 0},
+    {"concepto": "Backups automáticos", "tipo": "incluido", "monto_min": 0, "monto_max": 0}
   ],
   "soporte_recomendado": "basico"
 }
@@ -124,17 +127,21 @@ LICENCIAS Y APIS (si aplican, cobro adicional):
 - Si el proyecto NO requiere APIs de terceros, omitir esta sección
 
 REGLAS PARA EL DESGLOSE:
-1. "desglose_costos" DEBE incluir TODAS las líneas relevantes al proyecto:
-   - Siempre: desarrollo, dominio (si aplica), hosting recomendado
-   - Si aplica: licencias, APIs, migración de datos
-2. Cada línea: {"concepto": "texto", "tipo": "unico|mensual|anual", "monto_min": N, "monto_max": N}
-3. "costo_minimo" y "costo_maximo" = solo el desarrollo (cobro único)
-4. "costo_infraestructura_mensual" = suma de hosting + cualquier costo mensual recurrente
-5. "anticipo" = 50% de costo_minimo
-6. "soporte_recomendado" = "basico", "estandar" o "premium" según complejidad del proyecto
-7. "factor_complejidad" = "basico", "estandar" o "premium" según la evaluación del proyecto
-8. Recomienda hosting según la necesidad real: compartido para sitios simples, VPS para sistemas
-9. Ajusta precios según complejidad real del caso, no inventes — usa el catálogo
+1. "desglose_costos" DEBE incluir TODAS estas líneas (mínimo 5-7 conceptos):
+   - SIEMPRE: desarrollo (único), dominio (anual), hosting recomendado (mensual)
+   - SIEMPRE: soporte técnico recomendado (mensual) — usar el precio del tier de soporte_recomendado
+   - SIEMPRE: certificado SSL (tipo "incluido", monto 0) y backups automáticos (tipo "incluido", monto 0)
+   - SI APLICA: licencias, APIs de terceros, migración de datos, capacitación
+2. Cada línea: {"concepto": "texto", "tipo": "unico|mensual|anual|incluido", "monto_min": N, "monto_max": N}
+3. Para tipo "incluido": monto_min y monto_max = 0 (se muestra como "Incluido" al cliente)
+4. "costo_minimo" y "costo_maximo" = solo el desarrollo (cobro único)
+5. "costo_infraestructura_mensual" = suma de hosting + soporte + cualquier costo mensual recurrente
+6. "anticipo" = 50% de costo_minimo
+7. "soporte_recomendado" = "basico", "estandar" o "premium" según complejidad del proyecto
+8. "factor_complejidad" = "basico", "estandar" o "premium" según la evaluación del proyecto
+9. Recomienda hosting según la necesidad REAL: compartido Single/Premium para sitios simples, Business para múltiples sitios, VPS para sistemas con backend
+10. Ajusta precios según complejidad real del caso, no inventes — usa el catálogo
+11. El desglose debe darle al cliente una visión COMPLETA de todo lo que va a pagar: único + mensual + anual + lo que está incluido sin costo
 
 RESPONDE EXCLUSIVAMENTE CON EL OBJETO JSON. PROHIBIDO incluir texto antes, después, explicaciones, comentarios ni bloques markdown. El primer carácter debe ser { y el último }.`
 }

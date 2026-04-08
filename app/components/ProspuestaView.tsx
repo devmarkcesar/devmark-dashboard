@@ -17,7 +17,7 @@ export interface Propuesta {
   fases:                         { semana: string; descripcion: string }[]
   garantia_dias:                 number
   notas_adicionales:             string
-  desglose_costos?:              { concepto: string; tipo: 'unico' | 'mensual' | 'anual'; monto_min: number; monto_max: number }[]
+  desglose_costos?:              { concepto: string; tipo: 'unico' | 'mensual' | 'anual' | 'incluido'; monto_min: number; monto_max: number }[]
   soporte_recomendado?:          'basico' | 'estandar' | 'premium'
 }
 
@@ -122,12 +122,12 @@ export function ProspuestaView({ p, businessName }: { p: Propuesta; businessName
                     <td style={{ padding: '8px 0', color: T.carbon }}>{d.concepto}</td>
                     <td style={{ padding: '8px 0', textAlign: 'center' }}>
                       <span style={{ fontSize: 10, fontWeight: 600, padding: '2px 8px', borderRadius: 99,
-                        background: d.tipo === 'unico' ? 'rgba(24,95,165,0.1)' : d.tipo === 'mensual' ? 'rgba(29,158,117,0.1)' : 'rgba(186,117,23,0.1)',
-                        color: d.tipo === 'unico' ? T.blue : d.tipo === 'mensual' ? T.teal : '#BA7517',
-                      }}>{d.tipo === 'unico' ? 'Único' : d.tipo === 'mensual' ? 'Mensual' : 'Anual'}</span>
+                        background: d.tipo === 'unico' ? 'rgba(24,95,165,0.1)' : d.tipo === 'mensual' ? 'rgba(29,158,117,0.1)' : d.tipo === 'incluido' ? 'rgba(108,117,125,0.1)' : 'rgba(186,117,23,0.1)',
+                        color: d.tipo === 'unico' ? T.blue : d.tipo === 'mensual' ? T.teal : d.tipo === 'incluido' ? '#6C757D' : '#BA7517',
+                      }}>{d.tipo === 'unico' ? 'Único' : d.tipo === 'mensual' ? 'Mensual' : d.tipo === 'incluido' ? 'Incluido' : 'Anual'}</span>
                     </td>
-                    <td style={{ padding: '8px 0', textAlign: 'right', fontWeight: 600, color: T.navy }}>
-                      {d.monto_min === d.monto_max ? fmt(d.monto_min) : `${fmt(d.monto_min)} – ${fmt(d.monto_max)}`}
+                    <td style={{ padding: '8px 0', textAlign: 'right', fontWeight: 600, color: d.tipo === 'incluido' ? T.teal : T.navy }}>
+                      {d.tipo === 'incluido' ? '✓ Incluido' : d.monto_min === d.monto_max ? fmt(d.monto_min) : `${fmt(d.monto_min)} – ${fmt(d.monto_max)}`}
                     </td>
                   </tr>
                 ))}
@@ -264,12 +264,12 @@ export function ProspuestaView({ p, businessName }: { p: Propuesta; businessName
                         <td style={{ padding: '6px 0', color: T.carbon }}>{d.concepto}</td>
                         <td style={{ padding: '6px 0', textAlign: 'center' }}>
                           <span style={{ fontSize: 9, fontWeight: 600, padding: '2px 6px', borderRadius: 99,
-                            background: d.tipo === 'unico' ? 'rgba(24,95,165,0.1)' : d.tipo === 'mensual' ? 'rgba(29,158,117,0.1)' : 'rgba(186,117,23,0.1)',
-                            color: d.tipo === 'unico' ? T.blue : d.tipo === 'mensual' ? T.teal : '#BA7517',
-                          }}>{d.tipo === 'unico' ? 'Único' : d.tipo === 'mensual' ? 'Mensual' : 'Anual'}</span>
+                            background: d.tipo === 'unico' ? 'rgba(24,95,165,0.1)' : d.tipo === 'mensual' ? 'rgba(29,158,117,0.1)' : d.tipo === 'incluido' ? 'rgba(108,117,125,0.1)' : 'rgba(186,117,23,0.1)',
+                            color: d.tipo === 'unico' ? T.blue : d.tipo === 'mensual' ? T.teal : d.tipo === 'incluido' ? '#6C757D' : '#BA7517',
+                          }}>{d.tipo === 'unico' ? 'Único' : d.tipo === 'mensual' ? 'Mensual' : d.tipo === 'incluido' ? 'Incluido' : 'Anual'}</span>
                         </td>
-                        <td style={{ padding: '6px 0', textAlign: 'right', fontWeight: 600, color: T.navy }}>
-                          {d.monto_min === d.monto_max ? fmt(d.monto_min) : `${fmt(d.monto_min)} – ${fmt(d.monto_max)}`}
+                        <td style={{ padding: '6px 0', textAlign: 'right', fontWeight: 600, color: d.tipo === 'incluido' ? T.teal : T.navy }}>
+                          {d.tipo === 'incluido' ? '✓ Incluido' : d.monto_min === d.monto_max ? fmt(d.monto_min) : `${fmt(d.monto_min)} – ${fmt(d.monto_max)}`}
                         </td>
                       </tr>
                     ))}
