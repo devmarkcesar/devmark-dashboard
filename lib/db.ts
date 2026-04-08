@@ -15,7 +15,13 @@ pool.query(`
     SET public_token = gen_random_uuid()
     WHERE public_token IS NULL
   `)
-}).catch((err: Error) => console.error('[db] migration public_token:', err.message))
+}).catch((err: Error) => {
+  // La columna ya existe o devmark_user no tiene permisos ALTER (normal en VPS)
+  // Si el error no es de permisos o existencia, sí lo mostramos
+  if (!err.message.includes('already exists') && !err.message.includes('must be owner')) {
+    console.error('[db] migration public_token:', err.message)
+  }
+})
 
 // Migración: tabla pricing_catalog para precios dinámicos
 pool.query(`
