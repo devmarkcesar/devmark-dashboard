@@ -41,6 +41,24 @@ const URGENCY_OPTIONS = [
   { value: 'sin_prisa', label: 'Sin fecha límite definida' },
 ]
 
+const EMPLOYEE_OPTIONS = [
+  { value: '1',      label: 'Solo yo' },
+  { value: '2-5',    label: '2–5 empleados' },
+  { value: '6-15',   label: '6–15 empleados' },
+  { value: '16-50',  label: '16–50 empleados' },
+  { value: '50+',    label: 'Más de 50' },
+]
+
+const TOOLS_OPTIONS = [
+  { value: 'cuaderno',   label: '📓 Cuaderno / Libreta' },
+  { value: 'excel',      label: '📊 Excel / Hojas de cálculo' },
+  { value: 'whatsapp',   label: '📱 WhatsApp' },
+  { value: 'facebook',   label: '👍 Facebook / Instagram' },
+  { value: 'pos',        label: '💳 Terminal punto de venta (POS)' },
+  { value: 'software',   label: '💻 Software / sistema existente' },
+  { value: 'nada',       label: '❌ No usa ninguna herramienta digital' },
+]
+
 interface Propuesta {
   diagnostico_resumen:            string
   solucion_propuesta:             string
@@ -171,16 +189,31 @@ export default function DiagnosticoPage() {
     business_name:      '',
     business_type:      '',
     contact_name:       '',
+    contact_phone:      '',
+    contact_email:      '',
+    num_employees:      '',
     main_problem:       '',
+    main_objective:     '',
     current_situation:  '',
+    current_tools:      [] as string[],
     desired_solution:   '',
     budget_range:       'no_definido',
     urgency:            'sin_prisa',
+    decision_maker:     false,
     extra_notes:        '',
   })
 
-  function update(field: string, value: string) {
+  function update(field: string, value: string | boolean) {
     setForm(f => ({ ...f, [field]: value }))
+  }
+
+  function toggleTool(tool: string) {
+    setForm(f => ({
+      ...f,
+      current_tools: f.current_tools.includes(tool)
+        ? f.current_tools.filter(t => t !== tool)
+        : [...f.current_tools, tool],
+    }))
   }
 
   async function handleSubmit() {
@@ -221,8 +254,11 @@ export default function DiagnosticoPage() {
     setError(null)
     setForm({
       business_name: '', business_type: '', contact_name: '',
-      main_problem: '', current_situation: '', desired_solution: '',
-      budget_range: 'no_definido', urgency: 'sin_prisa', extra_notes: '',
+      contact_phone: '', contact_email: '', num_employees: '',
+      main_problem: '', main_objective: '', current_situation: '',
+      current_tools: [], desired_solution: '',
+      budget_range: 'no_definido', urgency: 'sin_prisa',
+      decision_maker: false, extra_notes: '',
     })
   }
 
@@ -260,12 +296,31 @@ export default function DiagnosticoPage() {
               </Field>
             </div>
 
-            <Field label="Industria / Giro del negocio">
-              <select value={form.business_type} onChange={e => update('business_type', e.target.value)} style={inputStyle}>
-                <option value="">Selecciona una opción</option>
-                {INDUSTRIES.map(i => <option key={i} value={i}>{i}</option>)}
-              </select>
-            </Field>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+              <Field label="Teléfono">
+                <input value={form.contact_phone} onChange={e => update('contact_phone', e.target.value)}
+                  placeholder="Ej: 33 1234 5678" type="tel" style={inputStyle} />
+              </Field>
+              <Field label="Email">
+                <input value={form.contact_email} onChange={e => update('contact_email', e.target.value)}
+                  placeholder="Ej: juan@negocio.com" type="email" style={inputStyle} />
+              </Field>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+              <Field label="Industria / Giro del negocio">
+                <select value={form.business_type} onChange={e => update('business_type', e.target.value)} style={inputStyle}>
+                  <option value="">Selecciona una opción</option>
+                  {INDUSTRIES.map(i => <option key={i} value={i}>{i}</option>)}
+                </select>
+              </Field>
+              <Field label="Tamaño del negocio">
+                <select value={form.num_employees} onChange={e => update('num_employees', e.target.value)} style={inputStyle}>
+                  <option value="">¿Cuántos empleados?</option>
+                  {EMPLOYEE_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+                </select>
+              </Field>
+            </div>
           </div>
 
           {/* Problema principal */}
@@ -287,6 +342,32 @@ export default function DiagnosticoPage() {
                   <span style={{ fontSize: 13, color: T.carbon }}>{opt.label}</span>
                 </label>
               ))}
+            </Field>
+
+            <Field label="¿Qué objetivo quiere lograr?">
+              <input value={form.main_objective} onChange={e => update('main_objective', e.target.value)}
+                placeholder="Ej: Vender más, dejar de perder inventario, tener presencia web..."
+                style={inputStyle} />
+            </Field>
+
+            <Field label="Herramientas que usa actualmente">
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+                {TOOLS_OPTIONS.map(opt => (
+                  <label key={opt.value} style={{
+                    display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer',
+                    padding: '8px 12px', borderRadius: 8, border: `1.5px solid`,
+                    borderColor: form.current_tools.includes(opt.value) ? T.teal : T.cardBorder,
+                    background: form.current_tools.includes(opt.value) ? 'rgba(29,158,117,0.06)' : '#fff',
+                    transition: 'all 0.12s',
+                  }}>
+                    <input type="checkbox"
+                      checked={form.current_tools.includes(opt.value)}
+                      onChange={() => toggleTool(opt.value)}
+                      style={{ accentColor: T.teal }} />
+                    <span style={{ fontSize: 12, color: T.carbon, fontWeight: form.current_tools.includes(opt.value) ? 600 : 400 }}>{opt.label}</span>
+                  </label>
+                ))}
+              </div>
             </Field>
           </div>
 
@@ -332,6 +413,14 @@ export default function DiagnosticoPage() {
                 placeholder="Cualquier detalle adicional que sea útil para la propuesta..."
                 rows={2} style={{ ...inputStyle, resize: 'vertical' }} />
             </Field>
+
+            <label style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', padding: '10px 14px', borderRadius: 8, background: form.decision_maker ? 'rgba(29,158,117,0.06)' : T.bone, border: `1.5px solid ${form.decision_maker ? T.teal : T.cardBorder}`, transition: 'all 0.12s' }}>
+              <input type="checkbox" checked={form.decision_maker} onChange={e => update('decision_maker', e.target.checked)} style={{ accentColor: T.teal, width: 18, height: 18 }} />
+              <div>
+                <span style={{ fontSize: 13, fontWeight: 600, color: T.navy }}>¿El tomador de decisión está presente?</span>
+                <p style={{ fontSize: 11, color: T.textMuted, margin: '2px 0 0' }}>{form.decision_maker ? 'Sí — puede cerrar la venta hoy' : 'No — necesita consultarlo con alguien más'}</p>
+              </div>
+            </label>
           </div>
 
           <button onClick={handleSubmit} style={{
