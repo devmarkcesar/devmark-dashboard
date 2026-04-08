@@ -140,7 +140,7 @@ FACTOR DE COMPLEJIDAD — elige uno según el proyecto:
 - "estandar": complejidad media, 3-4 módulos, alguna integración o lógica de negocio (ecommerce, sistema simple, dashboard)
 - "premium": alta complejidad, 4+ módulos, integraciones múltiples, IA, arquitectura a medida (sistema complejo, app móvil, bot con IA)
 
-=== CATÁLOGO DE PRECIOS REALES DEVMARK (MXN, ABRIL 2026) ===${catalogLines.join('\n')}
+=== CATÁLOGO DE PRECIOS REALES DEVMARK (MXN, ${new Date().toLocaleDateString('es-MX', { month: 'long', year: 'numeric' }).toUpperCase()}) ===${catalogLines.join('\n')}
 
 LICENCIAS Y APIS (si aplican, cobro adicional):
 - Google Maps API: desde $200 USD/mes según uso

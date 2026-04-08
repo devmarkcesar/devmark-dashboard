@@ -1,7 +1,6 @@
 import type { Metadata } from 'next'
 import './globals.css'
 import { NavbarWrapper } from './components/NavbarWrapper'
-import { AuthGuard } from './components/AuthGuard'
 
 export const metadata: Metadata = {
   title: 'devmark — Dashboard',
@@ -23,9 +22,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <NavbarWrapper />
 
         <main style={{ width: '100%' }}>
-          <AuthGuard>
             {children}
-          </AuthGuard>
         </main>
       </body>
     </html>

@@ -25,7 +25,7 @@ export default async function PropuestaPublica({ params }: Props) {
   const diag = await getDiagnostico(id)
   if (!diag || !diag.propuesta) notFound()
 
-  // Verificar expiración: 30 días desde created_at
+  // Verificar expiración: 15 días desde created_at
   const createdAt = new Date(diag.created_at)
   const ahora = new Date()
   const diasTranscurridos = (ahora.getTime() - createdAt.getTime()) / (1000 * 60 * 60 * 24)
@@ -79,7 +79,7 @@ export default async function PropuestaPublica({ params }: Props) {
           alt="devmark"
           style={{ height: 62, width: 'auto', objectFit: 'contain' }}
         />
-        <p style={{ fontSize: 15, color: '#444', margin: 0, fontWeight: 500 }}>© 2026 devmark</p>
+        <p style={{ fontSize: 15, color: '#444', margin: 0, fontWeight: 500 }}>© {new Date().getFullYear()} devmark</p>
         <p style={{ fontSize: 13, color: '#999', margin: 0 }}>+52 3319907259 · devmarkcesaranaya@gmail.com · Guadalajara, Jalisco, México · devmark.mx</p>
       </footer>
     </div>

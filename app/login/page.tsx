@@ -143,7 +143,7 @@ export default function LoginPage() {
           alt="devmark"
           style={{ height: 62, width: 'auto', objectFit: 'contain' }}
         />
-        <p style={{ fontSize: 15, color: 'rgba(255,255,255,0.5)', margin: 0, fontWeight: 500 }}>© 2026 devmark</p>
+        <p style={{ fontSize: 15, color: 'rgba(255,255,255,0.5)', margin: 0, fontWeight: 500 }}>© {new Date().getFullYear()} devmark</p>
       </footer>
     </div>
   )
