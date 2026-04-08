@@ -22,7 +22,7 @@ const CMD_GROUPS = [
     cmds: [
       { cmd: '/start · /ayuda',        desc: 'Bienvenida y menú de comandos completo' },
       { cmd: '/status',                desc: 'Estado de agentes y proyectos en tiempo real' },
-      { cmd: '/agentes',               desc: 'Lista los 22 agentes con su número' },
+      { cmd: '/agentes',               desc: 'Lista todos los agentes con su número' },
     ],
   },
   {
@@ -48,8 +48,8 @@ const CMD_GROUPS = [
       { cmd: '/qa [módulo]',            desc: 'Agente QA — plan de pruebas' },
       { cmd: '/git [tarea]',            desc: 'Agente Git — flujo de ramas y merges' },
       { cmd: '/deploy [repo]',          desc: 'Agente Deploy — pasos de despliegue' },
-      { cmd: '/agente [1-22] [tarea]',  desc: 'Cualquier agente por número' },
-      { cmd: '/todos [mensaje]',        desc: 'Broadcast a los 22 agentes via Telegram' },
+      { cmd: '/agente [num] [tarea]',  desc: 'Cualquier agente por número' },
+      { cmd: '/todos [mensaje]',        desc: 'Broadcast a todos los agentes via Telegram' },
     ],
   },
   {
