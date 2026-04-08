@@ -72,9 +72,16 @@ export default async function PropuestaPublica({ params }: Props) {
 
       <ProspuestaView p={p} businessName={diag.business_name} />
 
-      <p className="print-hide" style={{ textAlign: 'center', marginTop: 32, fontSize: 12, color: '#999' }}>
-        Propuesta generada por devmark · devmark.mx · Guadalajara, Jalisco
-      </p>
+      <footer className="print-hide" style={{ borderTop: '1px solid rgba(0,0,0,0.08)', marginTop: 32, padding: '28px 24px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10 }}>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src="/logos/horizontal/dev-hori-1.png?v=2"
+          alt="devmark"
+          style={{ height: 62, width: 'auto', objectFit: 'contain' }}
+        />
+        <p style={{ fontSize: 15, color: '#444', margin: 0, fontWeight: 500 }}>© 2026 devmark</p>
+        <p style={{ fontSize: 13, color: '#999', margin: 0 }}>+52 3319907259 · devmarkcesaranaya@gmail.com · Guadalajara, Jalisco · devmark.mx</p>
+      </footer>
     </div>
   )
 }
