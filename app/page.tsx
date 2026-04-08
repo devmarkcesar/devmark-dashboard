@@ -29,7 +29,7 @@ export default function Dashboard() {
 
   useEffect(() => {
     fetchAll()
-    const iv = setInterval(fetchAll, 5000)
+    const iv = setInterval(fetchAll, 30000)
     return () => { clearInterval(iv) }
   }, [])
 
