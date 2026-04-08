@@ -5,6 +5,7 @@ import { T } from './tokens'
 export interface Propuesta {
   diagnostico_resumen:           string
   solucion_propuesta:            string
+  factor_complejidad?:           'basico' | 'estandar' | 'premium'
   stack_tecnologico:             string[]
   entregables:                   string[]
   no_incluye:                    string[]
@@ -86,6 +87,17 @@ export function ProspuestaView({ p, businessName }: { p: Propuesta; businessName
         <Section title="💡 Solución propuesta">
           <p style={{ fontSize: 14, color: T.carbon, lineHeight: 1.7 }}>{p.solucion_propuesta}</p>
         </Section>
+
+        {p.factor_complejidad && (
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '8px 16px', borderRadius: 99,
+            background: p.factor_complejidad === 'basico' ? 'rgba(29,158,117,0.1)' : p.factor_complejidad === 'estandar' ? 'rgba(24,95,165,0.1)' : 'rgba(186,117,23,0.1)',
+            border: `1px solid ${p.factor_complejidad === 'basico' ? 'rgba(29,158,117,0.25)' : p.factor_complejidad === 'estandar' ? 'rgba(24,95,165,0.25)' : 'rgba(186,117,23,0.25)'}`,
+          }}>
+            <span style={{ fontSize: 12, fontWeight: 700,
+              color: p.factor_complejidad === 'basico' ? T.teal : p.factor_complejidad === 'estandar' ? T.blue : '#BA7517',
+            }}>Complejidad: {p.factor_complejidad === 'basico' ? 'Básico' : p.factor_complejidad === 'estandar' ? 'Estándar' : 'Premium'}</span>
+          </div>
+        )}
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 12 }}>
           <CostCard label="Inversión"       value={`${fmt(p.costo_minimo)} – ${fmt(p.costo_maximo)}`}         accent={T.navy} />
@@ -213,6 +225,16 @@ export function ProspuestaView({ p, businessName }: { p: Propuesta; businessName
             <Section title="💡 Solución propuesta">
               <p style={{ fontSize: 13, color: T.carbon, lineHeight: 1.7 }}>{p.solucion_propuesta}</p>
             </Section>
+            {p.factor_complejidad && (
+              <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '5px 12px', borderRadius: 99,
+                background: p.factor_complejidad === 'basico' ? 'rgba(29,158,117,0.1)' : p.factor_complejidad === 'estandar' ? 'rgba(24,95,165,0.1)' : 'rgba(186,117,23,0.1)',
+                border: `1px solid ${p.factor_complejidad === 'basico' ? 'rgba(29,158,117,0.25)' : p.factor_complejidad === 'estandar' ? 'rgba(24,95,165,0.25)' : 'rgba(186,117,23,0.25)'}`,
+              }}>
+                <span style={{ fontSize: 10, fontWeight: 700,
+                  color: p.factor_complejidad === 'basico' ? T.teal : p.factor_complejidad === 'estandar' ? T.blue : '#BA7517',
+                }}>Complejidad: {p.factor_complejidad === 'basico' ? 'Básico' : p.factor_complejidad === 'estandar' ? 'Estándar' : 'Premium'}</span>
+              </div>
+            )}
           </div>
         </div>
 
