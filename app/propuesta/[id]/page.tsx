@@ -12,24 +12,11 @@ const DIAS_EXPIRACION = 15
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
 async function getDiagnostico(param: string) {
-  // Intentar UUID primero, luego fallback a ID numérico (slug viejo "123-nombre")
-  if (UUID_RE.test(param)) {
-    const res = await pool.query('SELECT * FROM diagnosticos WHERE public_token = $1', [param])
-    if (res.rows.length > 0) {
-      const row = res.rows[0]
-      return { ...row, propuesta: typeof row.propuesta === 'string' ? JSON.parse(row.propuesta) : row.propuesta }
-    }
-  }
-  // Fallback: extraer ID numérico del inicio del slug
-  const numId = parseInt(param, 10)
-  if (!isNaN(numId) && numId > 0) {
-    const res = await pool.query('SELECT * FROM diagnosticos WHERE id = $1', [numId])
-    if (res.rows.length > 0) {
-      const row = res.rows[0]
-      return { ...row, propuesta: typeof row.propuesta === 'string' ? JSON.parse(row.propuesta) : row.propuesta }
-    }
-  }
-  return null
+  if (!UUID_RE.test(param)) return null
+  const res = await pool.query('SELECT * FROM diagnosticos WHERE public_token = $1', [param])
+  if (res.rows.length === 0) return null
+  const row = res.rows[0]
+  return { ...row, propuesta: typeof row.propuesta === 'string' ? JSON.parse(row.propuesta) : row.propuesta }
 }
 
 export default async function PropuestaPublica({ params }: Props) {

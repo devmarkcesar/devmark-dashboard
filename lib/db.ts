@@ -15,6 +15,6 @@ pool.query(`
     SET public_token = gen_random_uuid()
     WHERE public_token IS NULL
   `)
-}).catch(() => { /* tabla puede no existir aún en dev */ })
+}).catch((err: Error) => console.error('[db] migration public_token:', err.message))
 
 export default pool
