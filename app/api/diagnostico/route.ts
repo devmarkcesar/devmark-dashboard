@@ -98,7 +98,7 @@ export async function POST(req: NextRequest) {
     'otro':          'Solución a definir',
   }
 
-  const pmPrompt = `Eres el Agente Project Manager de devmark, una agencia de desarrollo de software en Guadalajara, México. Analiza este diagnóstico de cliente y genera una propuesta profesional completa y convincente.
+  const pmPrompt = `Eres el Agente Project Manager y Cotizador de devmark, una agencia de desarrollo de software en Guadalajara, México. Analiza este diagnóstico y genera una propuesta profesional con cotización detallada y desglosada.
 
 DIAGNÓSTICO DEL CLIENTE:
 - Negocio: ${business_name} (${business_type || 'tipo no especificado'})
@@ -118,33 +118,90 @@ GENERA UNA PROPUESTA COMPLETA CON ESTE FORMATO EXACTO (JSON):
 {
   "diagnostico_resumen": "Resumen del problema detectado en 2-3 oraciones",
   "solucion_propuesta": "Descripción de la solución en 3-5 oraciones",
-  "stack_tecnologico": ["tecnología 1", "tecnología 2", "..."],
-  "entregables": ["entregable 1", "entregable 2", "..."],
+  "stack_tecnologico": ["tecnología 1", "tecnología 2"],
+  "entregables": ["entregable 1", "entregable 2"],
   "no_incluye": ["item 1", "item 2"],
   "costo_minimo": 0,
   "costo_maximo": 0,
-  "costo_infraestructura_mensual": 0,
   "anticipo": 0,
+  "costo_infraestructura_mensual": 0,
   "timeline_semanas": 0,
   "fases": [
-    {"semana": "1-2", "descripcion": "..."},
-    {"semana": "3-4", "descripcion": "..."}
+    {"semana": "1-2", "descripcion": "..."}
   ],
   "garantia_dias": 30,
-  "notas_adicionales": "..."
+  "notas_adicionales": "...",
+  "desglose_costos": [
+    {"concepto": "Desarrollo del proyecto", "tipo": "unico", "monto_min": 0, "monto_max": 0},
+    {"concepto": "Dominio .com (anual)", "tipo": "anual", "monto_min": 363, "monto_max": 363},
+    {"concepto": "Hosting web compartido Business (mensual)", "tipo": "mensual", "monto_min": 65, "monto_max": 330}
+  ],
+  "soporte_recomendado": "basico"
 }
 
-REGLAS DE PRECIOS (MXN, toma en cuenta que el developer vive en Guadalajara, México, va empezando y tiene competencia):
-- Sitio web básico (landing/institucional): $3,000–$8,000 + dominio ~$300/año + hosting ~$100/mes
+=== CATÁLOGO DE PRECIOS REALES DEVMARK (MXN, ABRIL 2026) ===
+
+DESARROLLO (cobro único):
+- Landing page / sitio institucional: $3,000–$8,000
 - Sitio web con CMS/blog: $6,000–$15,000
-- Sistema a medida simple: $15,000–$30,000
-- Sistema a medida complejo: $30,000–$50,000
-- Bot de WhatsApp/automatización simple: $5,000–$12,000
+- Tienda en línea / ecommerce: $10,000–$25,000
+- Sistema a medida simple (1-3 módulos): $15,000–$30,000
+- Sistema a medida complejo (4+ módulos): $30,000–$50,000
+- Bot de WhatsApp / automatización simple: $5,000–$12,000
 - Bot complejo con IA: $12,000–$25,000
-- Dashboard/panel de control: $8,000–$20,000
+- Dashboard / panel de control: $8,000–$20,000
 - Automatización de procesos con scripts: $3,000–$15,000
+- App móvil básica (React Native): $20,000–$40,000
 - Pago: 50% anticipo, 50% al entregar
-- Ajusta el precio según la complejidad real del caso
+
+DOMINIOS (anuales, proveedor: Hostinger — precio con margen devmark +10%):
+- .com: $363/año (renovación $363/año)
+- .mx: $899/año (renovación $899/año)
+- .com.mx: $674/año (renovación $674/año)
+- Si Hostinger incluye dominio gratis el primer año con hosting, indicar al cliente el ahorro
+
+HOSTING (mensual, proveedor: Hostinger — precio con margen devmark +10%):
+- Hosting compartido Single (1 sitio, 10GB): $27–$99/mes según plazo
+- Hosting compartido Premium (3 sitios, 20GB): $41–$165/mes según plazo
+- Hosting compartido Business (50 sitios, 50GB NVMe): $65–$330/mes según plazo
+- VPS KVM 1 (1 vCPU, 4GB RAM, 50GB NVMe): $116–$232/mes según plazo
+- VPS KVM 2 (2 vCPU, 8GB RAM, 100GB NVMe): $171–$302/mes según plazo
+- VPS KVM 4 (4 vCPU, 16GB RAM): $232–$579/mes según plazo
+- Cloud Startup (100 sitios, 100GB NVMe): $155–$502/mes según plazo
+- SSL: GRATIS (incluido en todos los planes de Hostinger)
+
+SOPORTE TÉCNICO MENSUAL (post-entrega, opcional):
+- Básico ($500/mes): monitoreo, actualizaciones menores, soporte por email, respuesta en 48h
+- Estándar ($1,000/mes): todo lo básico + cambios menores, soporte por WhatsApp, respuesta en 24h
+- Premium ($2,000/mes): todo lo estándar + cambios moderados, soporte prioritario, respuesta en 4h
+
+CAMBIOS EXTRA POST-ENTREGA:
+- Tarifa por hora: $300 MXN/hora
+- Cambios fuera de requerimientos originales se evalúan y cotizan aparte
+
+SEGURIDAD (incluido en todos los proyectos):
+- Certificado SSL (gratis con Hostinger)
+- Backups automáticos (incluidos en planes Business y VPS)
+- Firewall y protección DDoS (incluido en VPS de Hostinger)
+- Configuración de seguridad básica: sin costo adicional
+
+LICENCIAS Y APIS (si aplican, cobro adicional):
+- Google Maps API: desde $200 USD/mes según uso
+- Twilio (SMS/WhatsApp): ~$0.05 USD por mensaje
+- APIs de pago (Stripe/Conekta): sin costo fijo, comisión por transacción
+- Si el proyecto NO requiere APIs de terceros, omitir esta sección
+
+REGLAS PARA EL DESGLOSE:
+1. "desglose_costos" DEBE incluir TODAS las líneas relevantes al proyecto:
+   - Siempre: desarrollo, dominio (si aplica), hosting recomendado
+   - Si aplica: licencias, APIs, migración de datos
+2. Cada línea: {"concepto": "texto", "tipo": "unico|mensual|anual", "monto_min": N, "monto_max": N}
+3. "costo_minimo" y "costo_maximo" = solo el desarrollo (cobro único)
+4. "costo_infraestructura_mensual" = suma de hosting + cualquier costo mensual recurrente
+5. "anticipo" = 50% de costo_minimo
+6. "soporte_recomendado" = "basico", "estandar" o "premium" según complejidad del proyecto
+7. Recomienda hosting según la necesidad real: compartido para sitios simples, VPS para sistemas
+8. Ajusta precios según complejidad real del caso, no inventes — usa el catálogo
 
 RESPONDE EXCLUSIVAMENTE CON EL OBJETO JSON. PROHIBIDO incluir texto antes, después, explicaciones, comentarios ni bloques markdown. El primer carácter debe ser { y el último }.`
 

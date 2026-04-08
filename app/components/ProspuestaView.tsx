@@ -16,6 +16,8 @@ export interface Propuesta {
   fases:                         { semana: string; descripcion: string }[]
   garantia_dias:                 number
   notas_adicionales:             string
+  desglose_costos?:              { concepto: string; tipo: 'unico' | 'mensual' | 'anual'; monto_min: number; monto_max: number }[]
+  soporte_recomendado?:          'basico' | 'estandar' | 'premium'
 }
 
 function fmt(n: number) {
@@ -91,6 +93,46 @@ export function ProspuestaView({ p, businessName }: { p: Propuesta; businessName
           <CostCard label="Infraestructura" value={`${fmt(p.costo_infraestructura_mensual)}/mes`}             accent={T.teal} />
           <CostCard label="Tiempo estimado" value={`${p.timeline_semanas} semanas`}                          accent="#BA7517" />
         </div>
+
+        {p.desglose_costos && p.desglose_costos.length > 0 && (
+          <Section title="💰 Desglose de costos">
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+              <thead>
+                <tr style={{ borderBottom: `2px solid ${T.cardBorder}` }}>
+                  <th style={{ textAlign: 'left', padding: '6px 0', color: T.navy, fontWeight: 700, fontSize: 11, textTransform: 'uppercase' }}>Concepto</th>
+                  <th style={{ textAlign: 'center', padding: '6px 0', color: T.navy, fontWeight: 700, fontSize: 11, textTransform: 'uppercase' }}>Tipo</th>
+                  <th style={{ textAlign: 'right', padding: '6px 0', color: T.navy, fontWeight: 700, fontSize: 11, textTransform: 'uppercase' }}>Costo</th>
+                </tr>
+              </thead>
+              <tbody>
+                {p.desglose_costos.map((d, i) => (
+                  <tr key={i} style={{ borderBottom: `1px solid ${T.cardBorder}` }}>
+                    <td style={{ padding: '8px 0', color: T.carbon }}>{d.concepto}</td>
+                    <td style={{ padding: '8px 0', textAlign: 'center' }}>
+                      <span style={{ fontSize: 10, fontWeight: 600, padding: '2px 8px', borderRadius: 99,
+                        background: d.tipo === 'unico' ? 'rgba(24,95,165,0.1)' : d.tipo === 'mensual' ? 'rgba(29,158,117,0.1)' : 'rgba(186,117,23,0.1)',
+                        color: d.tipo === 'unico' ? T.blue : d.tipo === 'mensual' ? T.teal : '#BA7517',
+                      }}>{d.tipo === 'unico' ? 'Único' : d.tipo === 'mensual' ? 'Mensual' : 'Anual'}</span>
+                    </td>
+                    <td style={{ padding: '8px 0', textAlign: 'right', fontWeight: 600, color: T.navy }}>
+                      {d.monto_min === d.monto_max ? fmt(d.monto_min) : `${fmt(d.monto_min)} – ${fmt(d.monto_max)}`}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            {p.soporte_recomendado && (
+              <div style={{ marginTop: 12, padding: '10px 14px', background: 'rgba(29,158,117,0.06)', border: `1px solid rgba(29,158,117,0.15)`, borderRadius: 8 }}>
+                <p style={{ fontSize: 12, color: T.teal, fontWeight: 700, margin: '0 0 4px' }}>
+                  🛠 Soporte técnico recomendado: {p.soporte_recomendado === 'basico' ? 'Básico ($500/mes)' : p.soporte_recomendado === 'estandar' ? 'Estándar ($1,000/mes)' : 'Premium ($2,000/mes)'}
+                </p>
+                <p style={{ fontSize: 11, color: T.textMuted, margin: 0 }}>
+                  Cambios fuera de requerimientos: $300 MXN/hora. Sujetos a evaluación previa.
+                </p>
+              </div>
+            )}
+          </Section>
+        )}
 
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
           <Section title="✅ Qué incluye">
@@ -174,7 +216,7 @@ export function ProspuestaView({ p, businessName }: { p: Propuesta; businessName
           </div>
         </div>
 
-        {/* ── HOJA 2: Costos + Qué incluye/No incluye + Stack tecnológico ── */}
+        {/* ── HOJA 2: Costos + Desglose + Stack tecnológico ── */}
         <div className="print-page">
           <PrintHeader fecha={fechaFormateada} hora={horaFormateada} />
           <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
@@ -184,6 +226,57 @@ export function ProspuestaView({ p, businessName }: { p: Propuesta; businessName
               <CostCard label="Infraestructura" value={`${fmt(p.costo_infraestructura_mensual)}/mes`}             accent={T.teal} />
               <CostCard label="Tiempo estimado" value={`${p.timeline_semanas} semanas`}                          accent="#BA7517" />
             </div>
+            {p.desglose_costos && p.desglose_costos.length > 0 && (
+              <Section title="💰 Desglose de costos">
+                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
+                  <thead>
+                    <tr style={{ borderBottom: `2px solid ${T.cardBorder}` }}>
+                      <th style={{ textAlign: 'left', padding: '5px 0', color: T.navy, fontWeight: 700, fontSize: 10, textTransform: 'uppercase' }}>Concepto</th>
+                      <th style={{ textAlign: 'center', padding: '5px 0', color: T.navy, fontWeight: 700, fontSize: 10, textTransform: 'uppercase' }}>Tipo</th>
+                      <th style={{ textAlign: 'right', padding: '5px 0', color: T.navy, fontWeight: 700, fontSize: 10, textTransform: 'uppercase' }}>Costo</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {p.desglose_costos.map((d, i) => (
+                      <tr key={i} style={{ borderBottom: `1px solid ${T.cardBorder}` }}>
+                        <td style={{ padding: '6px 0', color: T.carbon }}>{d.concepto}</td>
+                        <td style={{ padding: '6px 0', textAlign: 'center' }}>
+                          <span style={{ fontSize: 9, fontWeight: 600, padding: '2px 6px', borderRadius: 99,
+                            background: d.tipo === 'unico' ? 'rgba(24,95,165,0.1)' : d.tipo === 'mensual' ? 'rgba(29,158,117,0.1)' : 'rgba(186,117,23,0.1)',
+                            color: d.tipo === 'unico' ? T.blue : d.tipo === 'mensual' ? T.teal : '#BA7517',
+                          }}>{d.tipo === 'unico' ? 'Único' : d.tipo === 'mensual' ? 'Mensual' : 'Anual'}</span>
+                        </td>
+                        <td style={{ padding: '6px 0', textAlign: 'right', fontWeight: 600, color: T.navy }}>
+                          {d.monto_min === d.monto_max ? fmt(d.monto_min) : `${fmt(d.monto_min)} – ${fmt(d.monto_max)}`}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+                {p.soporte_recomendado && (
+                  <div style={{ marginTop: 10, padding: '8px 12px', background: 'rgba(29,158,117,0.06)', border: `1px solid rgba(29,158,117,0.15)`, borderRadius: 8 }}>
+                    <p style={{ fontSize: 11, color: T.teal, fontWeight: 700, margin: '0 0 2px' }}>
+                      🛠 Soporte recomendado: {p.soporte_recomendado === 'basico' ? 'Básico ($500/mes)' : p.soporte_recomendado === 'estandar' ? 'Estándar ($1,000/mes)' : 'Premium ($2,000/mes)'}
+                    </p>
+                    <p style={{ fontSize: 10, color: T.textMuted, margin: 0 }}>Cambios extra: $300 MXN/hora</p>
+                  </div>
+                )}
+              </Section>
+            )}
+            <Section title="🛠 Stack tecnológico">
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                {p.stack_tecnologico?.map((tech, i) => (
+                  <span key={i} style={{ background: 'rgba(24,95,165,0.1)', color: T.blue, fontSize: 12, fontWeight: 600, padding: '4px 10px', borderRadius: 99, border: `1px solid rgba(24,95,165,0.2)` }}>{tech}</span>
+                ))}
+              </div>
+            </Section>
+          </div>
+        </div>
+
+        {/* ── HOJA 3: Incluye/No incluye + Plan de trabajo + Garantía + Condiciones ── */}
+        <div className="print-page">
+          <PrintHeader fecha={fechaFormateada} hora={horaFormateada} />
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
               <Section title="✅ Qué incluye">
                 <ul style={{ paddingLeft: 18, margin: 0, display: 'flex', flexDirection: 'column', gap: 4 }}>
@@ -196,17 +289,10 @@ export function ProspuestaView({ p, businessName }: { p: Propuesta; businessName
                 </ul>
               </Section>
             </div>
-            <Section title="🛠 Stack tecnológico">
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-                {p.stack_tecnologico?.map((tech, i) => (
-                  <span key={i} style={{ background: 'rgba(24,95,165,0.1)', color: T.blue, fontSize: 12, fontWeight: 600, padding: '4px 10px', borderRadius: 99, border: `1px solid rgba(24,95,165,0.2)` }}>{tech}</span>
-                ))}
-              </div>
-            </Section>
           </div>
         </div>
 
-        {/* ── HOJA 3: Plan de trabajo + Garantía + Condiciones comerciales ── */}
+        {/* ── HOJA 4: Plan de trabajo + Garantía + Condiciones comerciales ── */}
         <div className="print-page print-last-page">
           <PrintHeader fecha={fechaFormateada} hora={horaFormateada} />
           <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
