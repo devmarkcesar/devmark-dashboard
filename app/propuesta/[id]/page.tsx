@@ -9,30 +9,33 @@ interface Props {
 
 const DIAS_EXPIRACION = 30
 
-async function getDiagnostico(token: string) {
-  // Buscar por public_token (UUID) — no por ID numérico
-  const res = await pool.query(
-    'SELECT * FROM diagnosticos WHERE public_token = $1',
-    [token]
-  )
-  if (res.rows.length === 0) return null
-  const row = res.rows[0]
-  return {
-    ...row,
-    propuesta: typeof row.propuesta === 'string' ? JSON.parse(row.propuesta) : row.propuesta,
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+
+async function getDiagnostico(param: string) {
+  // Intentar UUID primero, luego fallback a ID numérico (slug viejo "123-nombre")
+  if (UUID_RE.test(param)) {
+    const res = await pool.query('SELECT * FROM diagnosticos WHERE public_token = $1', [param])
+    if (res.rows.length > 0) {
+      const row = res.rows[0]
+      return { ...row, propuesta: typeof row.propuesta === 'string' ? JSON.parse(row.propuesta) : row.propuesta }
+    }
   }
+  // Fallback: extraer ID numérico del inicio del slug
+  const numId = parseInt(param, 10)
+  if (!isNaN(numId) && numId > 0) {
+    const res = await pool.query('SELECT * FROM diagnosticos WHERE id = $1', [numId])
+    if (res.rows.length > 0) {
+      const row = res.rows[0]
+      return { ...row, propuesta: typeof row.propuesta === 'string' ? JSON.parse(row.propuesta) : row.propuesta }
+    }
+  }
+  return null
 }
 
 export default async function PropuestaPublica({ params }: Props) {
   const { id } = await params
-  // El parámetro [id] ahora es el public_token UUID
-  const token = id
 
-  // Validar formato UUID básico para evitar queries innecesarias
-  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
-  if (!uuidRegex.test(token)) notFound()
-
-  const diag = await getDiagnostico(token)
+  const diag = await getDiagnostico(id)
   if (!diag || !diag.propuesta) notFound()
 
   // Verificar expiración: 30 días desde created_at

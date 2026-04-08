@@ -941,9 +941,10 @@ export function DiagnosticoTab({ prospects = [] }: { prospects?: Prospect[] }) {
                 🖨 Imprimir / PDF
               </button>
             )}
-            {selected.propuesta && selected.public_token && (
+            {selected.propuesta && (
               <button onClick={() => {
-                const url = `${window.location.origin}/propuesta/${selected.public_token}`
+                const slug = selected.public_token || `${selected.id}-${slugify(selected.business_name)}`
+                const url = `${window.location.origin}/propuesta/${slug}`
                 navigator.clipboard.writeText(url).then(() => alert('Enlace copiado:\n' + url))
               }} style={{
                 display: 'flex', alignItems: 'center', gap: 6,
