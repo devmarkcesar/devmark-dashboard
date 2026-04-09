@@ -807,7 +807,7 @@ export function DiagnosticoTab({ prospects = [] }: { prospects?: Prospect[] }) {
             </Field>
           </div>
 
-          {/* ── SECCIÓN 4: Información comercial ── */}}
+          {/* ── SECCIÓN 4: Información comercial ── */}
           <div style={{ background: '#fff', border: `1px solid ${T.cardBorder}`, borderRadius: 10, padding: '18px 20px', display: 'flex', flexDirection: 'column', gap: 14 }}>
             <p style={{ fontSize: 11, fontWeight: 700, color: T.navy, textTransform: 'uppercase', letterSpacing: '0.08em', margin: 0 }}>4 · Información comercial</p>
 
