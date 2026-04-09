@@ -361,3 +361,16 @@ body {
     padding: 16px 12px;
   }
 }
+
+/* ── Vista pública de propuesta — mobile ──────────────────────────── */
+@media (max-width: 480px) {
+  .propuesta-publica-wrapper {
+    padding: 16px 12px 32px;
+  }
+  .propuesta-top-bar {
+    justify-content: center;
+  }
+  .propuesta-top-bar img {
+    height: 50px !important;
+  }
+}

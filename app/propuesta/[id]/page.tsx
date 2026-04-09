@@ -2,6 +2,7 @@ import pool from '@/lib/db'
 import { ProspuestaView, type Propuesta } from '@/app/components/ProspuestaView'
 import { PrintButton } from '@/app/propuesta/PrintButton'
 import { notFound } from 'next/navigation'
+import { headers } from 'next/headers'
 
 interface Props {
   params: Promise<{ id: string }>
@@ -57,17 +58,44 @@ export default async function PropuestaPublica({ params }: Props) {
 
   const p: Propuesta = diag.propuesta
 
+  // WhatsApp link
+  const hdrs = await headers()
+  const host = hdrs.get('host') ?? 'devmark.mx'
+  const protocol = host.startsWith('localhost') ? 'http' : 'https'
+  const propuestaUrl = `${protocol}://${host}/propuesta/${id}`
+  const rawPhone = (diag.contact_phone ?? '').replace(/\D/g, '')
+  const waPhone = rawPhone ? (rawPhone.startsWith('52') ? rawPhone : `52${rawPhone}`) : ''
+  const waText = encodeURIComponent(`Hola, te comparto la propuesta de devmark para tu negocio: ${propuestaUrl}`)
+  const waHref = waPhone ? `https://wa.me/${waPhone}?text=${waText}` : ''
+
   return (
     <div className="propuesta-publica-wrapper" style={{ maxWidth: 760, margin: '0 auto', padding: '24px 16px 48px' }}>
       {/* Barra superior — oculta en impresión */}
-      <div className="print-hide" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24, gap: 12 }}>
+      <div className="print-hide propuesta-top-bar" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', marginBottom: 24, gap: 12 }}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src="/logos/horizontal/dev-hori-1.png"
           alt="devmark"
           style={{ height: 70, objectFit: 'contain' }}
         />
-        <PrintButton businessName={diag.business_name} />
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+          {waHref && (
+            <a
+              href={waHref}
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{
+                display: 'flex', alignItems: 'center', gap: 6,
+                background: '#25D366', color: '#fff', borderRadius: 8,
+                padding: '10px 18px', fontSize: 14, fontWeight: 600,
+                textDecoration: 'none',
+              }}
+            >
+              💬 Enviar por WhatsApp
+            </a>
+          )}
+          <PrintButton businessName={diag.business_name} />
+        </div>
       </div>
 
       <ProspuestaView p={p} businessName={diag.business_name} />
