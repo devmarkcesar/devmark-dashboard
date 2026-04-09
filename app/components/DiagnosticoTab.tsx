@@ -60,6 +60,14 @@ const URGENCY_OPTIONS = [
   { value: 'sin_prisa', label: 'Sin fecha límite definida' },
 ]
 
+const INTEGRACIONES_OPTIONS = [
+  { value: 'whatsapp_api',   label: '📱 WhatsApp Business API' },
+  { value: 'pasarela_pago',  label: '💳 Pasarela de pago (Stripe/Conekta)' },
+  { value: 'sat_facturacion',label: '🧾 SAT / Facturación electrónica' },
+  { value: 'google_maps',    label: '🗺 Google Maps' },
+  { value: 'ninguna',        label: '❌ Ninguna' },
+]
+
 interface DiagnosticoRecord {
   id:                number
   public_token:      string
@@ -78,6 +86,13 @@ interface DiagnosticoRecord {
   urgency:           string
   decision_maker:    boolean
   extra_notes:       string
+  integraciones_externas: string | string[] | null
+  necesita_migracion:     boolean
+  migracion_detalle:      string
+  num_usuarios_roles:     string
+  tiene_dominio_hosting:  boolean
+  precio_acordado:        number | null
+  requiere_factura:       boolean
   status:            string
   propuesta:         Propuesta | null
   raw_output:        string
@@ -166,6 +181,13 @@ export function DiagnosticoTab({ prospects = [] }: { prospects?: Prospect[] }) {
     urgency:           'sin_prisa',
     decision_maker:    true,
     extra_notes:       '',
+    integraciones_externas: [] as string[],
+    necesita_migracion:     false,
+    migracion_detalle:      '',
+    num_usuarios_roles:     '',
+    tiene_dominio_hosting:  false,
+    precio_acordado:        '',
+    requiere_factura:       false,
   })
 
   function update(field: string, value: string | boolean) {
@@ -269,6 +291,15 @@ export function DiagnosticoTab({ prospects = [] }: { prospects?: Prospect[] }) {
       urgency:           d.urgency           || 'sin_prisa',
       decision_maker:    d.decision_maker    ?? true,
       extra_notes:       d.extra_notes       || '',
+      integraciones_externas: d.integraciones_externas
+        ? (Array.isArray(d.integraciones_externas) ? d.integraciones_externas : (d.integraciones_externas as string).split(', ').filter(Boolean))
+        : [],
+      necesita_migracion:    d.necesita_migracion    ?? false,
+      migracion_detalle:     d.migracion_detalle     || '',
+      num_usuarios_roles:    d.num_usuarios_roles    || '',
+      tiene_dominio_hosting: d.tiene_dominio_hosting ?? false,
+      precio_acordado:       d.precio_acordado != null ? String(d.precio_acordado) : '',
+      requiere_factura:      d.requiere_factura       ?? false,
     })
     setPropuesta(null)
     setRawOutput('')
@@ -277,7 +308,7 @@ export function DiagnosticoTab({ prospects = [] }: { prospects?: Prospect[] }) {
     setStep('form')
   }
 
-  function toggleMulti(field: 'current_situation' | 'current_tools' | 'desired_solution', value: string) {
+  function toggleMulti(field: 'current_situation' | 'current_tools' | 'desired_solution' | 'integraciones_externas', value: string) {
     setForm(f => {
       const arr = f[field] as string[]
       return { ...f, [field]: arr.includes(value) ? arr.filter(x => x !== value) : [...arr, value] }
@@ -311,6 +342,13 @@ export function DiagnosticoTab({ prospects = [] }: { prospects?: Prospect[] }) {
           current_situation: form.current_situation.join(', '),
           current_tools:     form.current_tools.join(', '),
           desired_solution:  form.desired_solution.join(', '),
+          integraciones_externas: form.integraciones_externas.length ? form.integraciones_externas : undefined,
+          necesita_migracion:     form.necesita_migracion,
+          migracion_detalle:      form.migracion_detalle || undefined,
+          num_usuarios_roles:     form.num_usuarios_roles || undefined,
+          tiene_dominio_hosting:  form.tiene_dominio_hosting,
+          precio_acordado:        form.precio_acordado ? parseFloat(form.precio_acordado) : undefined,
+          requiere_factura:       form.requiere_factura,
         }),
       })
       const data = await res.json()
@@ -346,6 +384,8 @@ export function DiagnosticoTab({ prospects = [] }: { prospects?: Prospect[] }) {
       desired_solution: [], main_objective: '',
       budget_range: 'no_definido', urgency: 'sin_prisa',
       decision_maker: true, extra_notes: '',
+      integraciones_externas: [], necesita_migracion: false, migracion_detalle: '',
+      num_usuarios_roles: '', tiene_dominio_hosting: false, precio_acordado: '', requiere_factura: false,
     })
   }
 
@@ -720,7 +760,54 @@ export function DiagnosticoTab({ prospects = [] }: { prospects?: Prospect[] }) {
             </Field>
           </div>
 
-          {/* ── SECCIÓN 4: Información comercial ── */}
+          {/* ── SECCIÓN 5: Detalles técnicos ── */}
+          <div style={{ background: '#fff', border: `1px solid ${T.cardBorder}`, borderRadius: 10, padding: '18px 20px', display: 'flex', flexDirection: 'column', gap: 14 }}>
+            <p style={{ fontSize: 11, fontWeight: 700, color: T.navy, textTransform: 'uppercase', letterSpacing: '0.08em', margin: 0 }}>5 · Detalles técnicos</p>
+
+            <Field label="Integraciones externas requeridas">
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
+                {INTEGRACIONES_OPTIONS.map(o => (
+                  <label key={o.value} style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer',
+                    background: form.integraciones_externas.includes(o.value) ? 'rgba(13,110,253,0.08)' : '#F5F5F5',
+                    border: `1.5px solid ${form.integraciones_externas.includes(o.value) ? T.blue : T.cardBorder}`,
+                    borderRadius: 8, padding: '7px 14px', fontSize: 13 }}>
+                    <input type="checkbox" checked={form.integraciones_externas.includes(o.value)}
+                      onChange={() => toggleMulti('integraciones_externas', o.value)} style={{ accentColor: T.blue }} />
+                    {o.label}
+                  </label>
+                ))}
+              </div>
+            </Field>
+
+            <Field label="¿Requiere migración de datos de otro sistema?">
+              <div style={{ display: 'flex', gap: 16 }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}>
+                  <input type="radio" checked={form.necesita_migracion === true} onChange={() => update('necesita_migracion', true)} />
+                  <span style={{ fontSize: 13, color: T.carbon, fontWeight: 600 }}>✅ Sí</span>
+                </label>
+                <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}>
+                  <input type="radio" checked={form.necesita_migracion === false} onChange={() => update('necesita_migracion', false)} />
+                  <span style={{ fontSize: 13, color: T.carbon }}>❌ No</span>
+                </label>
+              </div>
+              {form.necesita_migracion && (
+                <input value={form.migracion_detalle} onChange={e => update('migracion_detalle', e.target.value)}
+                  placeholder="Ej: Exportar 500 clientes de Excel al nuevo CRM"
+                  style={{ ...inputStyle, marginTop: 8 }} />
+              )}
+            </Field>
+
+            <Field label="Número de usuarios / roles del sistema">
+              <select value={form.num_usuarios_roles} onChange={e => update('num_usuarios_roles', e.target.value)} style={inputStyle}>
+                <option value="">Seleccionar...</option>
+                <option value="solo_dueno">Solo el dueño</option>
+                <option value="2_5">2–5 usuarios</option>
+                <option value="6_mas">6+ usuarios con roles distintos</option>
+              </select>
+            </Field>
+          </div>
+
+          {/* ── SECCIÓN 4: Información comercial ── */}}
           <div style={{ background: '#fff', border: `1px solid ${T.cardBorder}`, borderRadius: 10, padding: '18px 20px', display: 'flex', flexDirection: 'column', gap: 14 }}>
             <p style={{ fontSize: 11, fontWeight: 700, color: T.navy, textTransform: 'uppercase', letterSpacing: '0.08em', margin: 0 }}>4 · Información comercial</p>
 
@@ -756,6 +843,37 @@ export function DiagnosticoTab({ prospects = [] }: { prospects?: Prospect[] }) {
               <textarea value={form.extra_notes} onChange={e => update('extra_notes', e.target.value)}
                 placeholder="Detalles que ayuden a afinar la propuesta: integraciones requeridas, sistemas a conectar, restricciones, etc."
                 rows={2} style={{ ...inputStyle, resize: 'vertical' }} />
+            </Field>
+
+            <Field label="¿El cliente ya tiene dominio y hosting?">
+              <div style={{ display: 'flex', gap: 16 }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}>
+                  <input type="radio" checked={form.tiene_dominio_hosting === true} onChange={() => update('tiene_dominio_hosting', true)} />
+                  <span style={{ fontSize: 13, color: T.carbon, fontWeight: 600 }}>✅ Sí, ya tiene</span>
+                </label>
+                <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}>
+                  <input type="radio" checked={form.tiene_dominio_hosting === false} onChange={() => update('tiene_dominio_hosting', false)} />
+                  <span style={{ fontSize: 13, color: T.carbon }}>❌ No tiene</span>
+                </label>
+              </div>
+            </Field>
+
+            <Field label="Precio acordado (opcional, MXN sin IVA)">
+              <input type="number" value={form.precio_acordado} onChange={e => update('precio_acordado', e.target.value)}
+                placeholder="Ej: 45000" style={inputStyle} />
+            </Field>
+
+            <Field label="¿El cliente requiere factura (CFDI)?">
+              <div style={{ display: 'flex', gap: 16 }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}>
+                  <input type="radio" checked={form.requiere_factura === true} onChange={() => update('requiere_factura', true)} />
+                  <span style={{ fontSize: 13, color: T.carbon, fontWeight: 600 }}>🧾 Sí, requiere CFDI</span>
+                </label>
+                <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}>
+                  <input type="radio" checked={form.requiere_factura === false} onChange={() => update('requiere_factura', false)} />
+                  <span style={{ fontSize: 13, color: T.carbon }}>❌ No requiere</span>
+                </label>
+              </div>
             </Field>
           </div>
 

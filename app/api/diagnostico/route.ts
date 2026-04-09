@@ -105,6 +105,11 @@ DIAGNÓSTICO DEL CLIENTE:
 - Urgencia: ${urgencyMap[ctx.urgency as string] ?? 'sin prisa'}
 - Tomador de decisión presente: ${ctx.decision_maker ? 'SÍ — puede cerrar hoy' : 'NO — necesita consultarlo'}
 - Notas adicionales: ${ctx.extra_notes || 'ninguna'}
+- Integraciones externas requeridas: ${Array.isArray(ctx.integraciones_externas) ? (ctx.integraciones_externas.length ? (ctx.integraciones_externas as string[]).join(', ') : 'ninguna') : ctx.integraciones_externas || 'ninguna'}
+- Requiere migración de datos: ${ctx.necesita_migracion ? `SÍ — ${ctx.migracion_detalle || 'sin detalle'}` : 'no'}
+- Usuarios / roles: ${ctx.num_usuarios_roles || 'no especificado'}
+- Cliente ya tiene dominio y hosting: ${ctx.tiene_dominio_hosting ? 'SÍ — NO incluir dominio en el desglose' : 'no'}
+- Requiere factura (IVA): ${ctx.requiere_factura ? 'SÍ — incluir campos iva_incluido: false e iva_porcentaje: 16 en el JSON' : 'no'}
 
 GENERA UNA PROPUESTA COMPLETA CON ESTE FORMATO EXACTO (JSON):
 {
@@ -163,7 +168,9 @@ REGLAS PARA EL DESGLOSE:
 8. "soporte_recomendado" = "basico", "estandar" o "premium" según complejidad del proyecto
 9. "factor_complejidad" = "basico", "estandar" o "premium" según la evaluación del proyecto
 10. Recomienda hosting según la necesidad REAL: compartido Single/Premium para sitios simples, Business para múltiples sitios, VPS para sistemas con backend
-11. Ajusta precios según complejidad real del caso, no inventes — usa el catálogo
+11. REGLA VPS: Si el proyecto es un sistema, bot, dashboard o requiere backend propio (API REST, Node.js, Python, FastAPI), USA VPS obligatoriamente — no hosting compartido
+12. REGLA DOMINIO: Si el cliente YA TIENE dominio y hosting, NO incluir dominio ni hosting en el desglose
+13. Ajusta precios según complejidad real del caso, no inventes — usa el catálogo
 12. El desglose debe darle al cliente una visión COMPLETA: costos fijos + recurrentes + incluidos + opcionales
 
 RESPONDE EXCLUSIVAMENTE CON EL OBJETO JSON. PROHIBIDO incluir texto antes, después, explicaciones, comentarios ni bloques markdown. El primer carácter debe ser { y el último }.`
@@ -193,6 +200,13 @@ export async function POST(req: NextRequest) {
     urgency,
     decision_maker,
     extra_notes,
+    integraciones_externas,
+    necesita_migracion,
+    migracion_detalle,
+    num_usuarios_roles,
+    tiene_dominio_hosting,
+    precio_acordado,
+    requiere_factura,
   } = body
 
   if (!business_name || !main_problem) {
@@ -206,8 +220,11 @@ export async function POST(req: NextRequest) {
         contact_phone, contact_email, num_employees,
         main_problem, current_situation, current_tools,
         desired_solution, main_objective,
-        budget_range, urgency, decision_maker, extra_notes, status)
-     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,'pendiente')
+        budget_range, urgency, decision_maker, extra_notes,
+        integraciones_externas, necesita_migracion, migracion_detalle,
+        num_usuarios_roles, tiene_dominio_hosting, precio_acordado, requiere_factura,
+        status)
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,'pendiente')
      RETURNING *`,
     [
       prospect_id ?? null, business_name, business_type ?? '', contact_name ?? '',
@@ -216,6 +233,8 @@ export async function POST(req: NextRequest) {
       desired_solution ?? '', main_objective ?? '',
       budget_range ?? 'no_definido', urgency ?? 'sin_prisa',
       decision_maker ?? true, extra_notes ?? '',
+      integraciones_externas ?? null, necesita_migracion ?? false, migracion_detalle ?? '',
+      num_usuarios_roles ?? '', tiene_dominio_hosting ?? false, precio_acordado ?? null, requiere_factura ?? false,
     ]
   )
   const diagnostico = insertRes.rows[0]
@@ -225,6 +244,8 @@ export async function POST(req: NextRequest) {
     business_name, business_type, contact_name, contact_phone, contact_email,
     num_employees, main_problem, main_objective, current_situation, current_tools,
     desired_solution, budget_range, urgency, decision_maker, extra_notes,
+    integraciones_externas, necesita_migracion, migracion_detalle,
+    num_usuarios_roles, tiene_dominio_hosting, requiere_factura,
     solutionMap, budgetMap, urgencyMap,
   })
 
