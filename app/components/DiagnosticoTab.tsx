@@ -833,6 +833,22 @@ export function DiagnosticoTab({ prospects = [] }: { prospects?: Prospect[] }) {
                 🔗 Copiar enlace cliente
               </button>
             )}
+            {currentToken && form.contact_phone && (() => {
+              const raw = form.contact_phone.replace(/\D/g, '')
+              const phone = raw.startsWith('52') ? raw : `52${raw}`
+              const url = `${window.location.origin}/propuesta/${currentToken}`
+              const text = encodeURIComponent(`Hola, te comparto la propuesta de devmark para tu negocio: ${url}`)
+              return (
+                <a href={`https://wa.me/${phone}?text=${text}`} target="_blank" rel="noopener noreferrer" style={{
+                  flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+                  background: '#25D366', color: '#fff', border: 'none',
+                  borderRadius: 10, padding: '12px 20px', fontSize: 14, fontWeight: 700,
+                  textDecoration: 'none', cursor: 'pointer',
+                }}>
+                  💬 Enviar por WhatsApp
+                </a>
+              )
+            })()}
             <button onClick={() => {
               const prev = document.title
               document.title = `Diagnostico cliente - ${currentName || form.business_name}`
@@ -1022,7 +1038,7 @@ export function DiagnosticoTab({ prospects = [] }: { prospects?: Prospect[] }) {
             )}
             {selected.propuesta && (
               <button onClick={() => {
-                if (!selected.public_token) { alert('Token no disponible. Redespliega el servidor para generar tokens.'); return }
+                if (!selected.public_token) { alert('Token no disponible.'); return }
                 const url = `${window.location.origin}/propuesta/${selected.public_token}`
                 navigator.clipboard.writeText(url).then(() => alert('Enlace copiado:\n' + url))
               }} style={{
@@ -1033,6 +1049,22 @@ export function DiagnosticoTab({ prospects = [] }: { prospects?: Prospect[] }) {
                 🔗 Copiar enlace cliente
               </button>
             )}
+            {selected.propuesta && selected.contact_phone && (() => {
+              const raw = selected.contact_phone.replace(/\D/g, '')
+              const phone = raw.startsWith('52') ? raw : `52${raw}`
+              const url = `${window.location.origin}/propuesta/${selected.public_token}`
+              const text = encodeURIComponent(`Hola, te comparto la propuesta de devmark para tu negocio: ${url}`)
+              return (
+                <a href={`https://wa.me/${phone}?text=${text}`} target="_blank" rel="noopener noreferrer" style={{
+                  display: 'flex', alignItems: 'center', gap: 6,
+                  background: '#25D366', color: '#fff', border: 'none',
+                  borderRadius: 8, padding: '9px 16px', fontSize: 13, fontWeight: 600,
+                  textDecoration: 'none', cursor: 'pointer',
+                }}>
+                  💬 Enviar por WhatsApp
+                </a>
+              )
+            })()}
             <button onClick={() => deleteDiagnostico(selected.id)} style={{
               display: 'flex', alignItems: 'center', gap: 6, marginLeft: 'auto',
               background: '#FEF3F0', color: '#C05621', border: '1.5px solid #F8C4B4',
