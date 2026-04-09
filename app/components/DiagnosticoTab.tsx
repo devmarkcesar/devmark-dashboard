@@ -106,6 +106,9 @@ const STATUS_COLORS: Record<string, { bg: string; color: string; label: string }
   parcial:    { bg: 'rgba(246,201,14,0.15)', color: '#9A7C00', label: 'Sin estructurar' },
   error:      { bg: 'rgba(192,86,33,0.10)',  color: '#C05621', label: 'Error' },
   pendiente:  { bg: 'rgba(100,100,100,0.10)',color: '#666',    label: 'Pendiente' },
+  borrador:   { bg: 'rgba(234,179,8,0.15)',  color: '#B45309', label: 'Borrador' },
+  aprobada:   { bg: 'rgba(29,158,117,0.12)', color: '#1D9E75', label: 'Aprobada' },
+  enviada:    { bg: 'rgba(24,95,165,0.12)',  color: '#185FA5', label: 'Enviada'  },
 }
 
 function slugify(text: string) {
@@ -137,6 +140,9 @@ export function DiagnosticoTab({ prospects = [] }: { prospects?: Prospect[] }) {
   const [currentToken, setCurrentToken] = useState('')
   const [regenLoading, setRegenLoading] = useState(false)
   const [regenError, setRegenError]     = useState<string | null>(null)
+  const [multiLoading,   setMultiLoading]   = useState(false)
+  const [multiError,     setMultiError]     = useState<string | null>(null)
+  const [aprobarLoading, setAprobarLoading] = useState(false)
   const [editingFrom, setEditingFrom]   = useState<DiagnosticoRecord | null>(null)
   const [histSearch,  setHistSearch]    = useState('')
   const [histPage,    setHistPage]      = useState(1)
@@ -208,6 +214,42 @@ export function DiagnosticoTab({ prospects = [] }: { prospects?: Prospect[] }) {
       }
     } catch { setRegenError('Sin conexión al servidor.') }
     setRegenLoading(false)
+  }
+
+  async function generarMultiAgente(d: DiagnosticoRecord) {
+    setMultiLoading(true)
+    setMultiError(null)
+    try {
+      const res  = await fetch(`/api/diagnostico/${d.id}/propuesta-multi`, { method: 'POST' })
+      const data = await res.json()
+      if (data.ok) {
+        const updated = { ...d, propuesta: data.propuesta, status: 'borrador' }
+        setSelected(updated)
+        setHistorial(prev => prev.map(x => x.id === d.id ? updated : x))
+      } else {
+        setMultiError(data.error ?? 'Error al generar la propuesta multi-agente.')
+      }
+    } catch { setMultiError('Sin conexión al servidor.') }
+    setMultiLoading(false)
+  }
+
+  async function aprobarPropuesta(d: DiagnosticoRecord) {
+    if (!confirm('¿Aprobar esta propuesta? Ya no podrás editarla.')) return
+    setAprobarLoading(true)
+    try {
+      const res  = await fetch(`/api/diagnostico/${d.id}`, {
+        method:  'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ aprobar: true }),
+      })
+      const data = await res.json()
+      if (data.ok) {
+        const updated = { ...d, status: 'aprobada' }
+        setSelected(updated)
+        setHistorial(prev => prev.map(x => x.id === d.id ? updated : x))
+      }
+    } catch { /* silencioso */ }
+    setAprobarLoading(false)
   }
 
   function editarDiagnostico(d: DiagnosticoRecord) {
@@ -911,22 +953,59 @@ export function DiagnosticoTab({ prospects = [] }: { prospects?: Prospect[] }) {
 
           {/* Barra de acciones */}
           <div className="diagnostico-actions" style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+
+            {/* Fila 1: badge de estado + acciones primarias */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+              {(() => {
+                const st = STATUS_COLORS[selected.status] ?? STATUS_COLORS.pendiente
+                return <span style={{ fontSize: 12, fontWeight: 700, padding: '4px 10px', borderRadius: 99, background: st.bg, color: st.color, flexShrink: 0 }}>{st.label}</span>
+              })()}
+              <button
+                onClick={() => generarMultiAgente(selected)}
+                disabled={multiLoading || selected.status === 'aprobada' || selected.status === 'enviada'}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: 6,
+                  background: T.blue, color: '#fff', border: 'none',
+                  borderRadius: 8, padding: '9px 16px', fontSize: 13, fontWeight: 700,
+                  cursor: (multiLoading || selected.status === 'aprobada' || selected.status === 'enviada') ? 'default' : 'pointer',
+                  opacity: (multiLoading || selected.status === 'aprobada' || selected.status === 'enviada') ? 0.5 : 1,
+                }}>
+                {multiLoading ? '⏳ Consultando agentes...' : '✨ Generar propuesta multi-agente'}
+              </button>
+              {selected.propuesta && selected.status === 'borrador' && (
+                <button
+                  onClick={() => aprobarPropuesta(selected)}
+                  disabled={aprobarLoading}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: 6,
+                    background: T.teal, color: '#fff', border: 'none',
+                    borderRadius: 8, padding: '9px 16px', fontSize: 13, fontWeight: 700,
+                    cursor: aprobarLoading ? 'wait' : 'pointer', opacity: aprobarLoading ? 0.7 : 1,
+                  }}>
+                  {aprobarLoading ? '⏳ Aprobando...' : '✅ Aprobar propuesta'}
+                </button>
+              )}
+            </div>
+
+            {/* Fila 2: acciones secundarias */}
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
             <button onClick={() => regenerarDiagnostico(selected)} disabled={regenLoading} style={{
               display: 'flex', alignItems: 'center', gap: 6,
-              background: T.teal, color: '#fff', border: 'none',
+              background: '#fff', color: T.navy, border: `1.5px solid ${T.cardBorder}`,
               borderRadius: 8, padding: '9px 16px', fontSize: 13, fontWeight: 600,
               cursor: regenLoading ? 'wait' : 'pointer', opacity: regenLoading ? 0.7 : 1,
             }}>
-              {regenLoading ? '⏳ Generando...' : '🔄 Regenerar propuesta'}
+              {regenLoading ? '⏳ Generando...' : '🔄 Regenerar (PM solo)'}
             </button>
-            <button onClick={() => editarDiagnostico(selected)} style={{
-              display: 'flex', alignItems: 'center', gap: 6,
-              background: '#fff', color: T.navy, border: `1.5px solid ${T.cardBorder}`,
-              borderRadius: 8, padding: '9px 16px', fontSize: 13, fontWeight: 600, cursor: 'pointer',
-            }}>
-              ✏️ Editar y re-enviar
-            </button>
+            {selected.status !== 'aprobada' && selected.status !== 'enviada' && (
+              <button onClick={() => editarDiagnostico(selected)} style={{
+                display: 'flex', alignItems: 'center', gap: 6,
+                background: '#fff', color: T.navy, border: `1.5px solid ${T.cardBorder}`,
+                borderRadius: 8, padding: '9px 16px', fontSize: 13, fontWeight: 600, cursor: 'pointer',
+              }}>
+                ✏️ Editar y re-enviar
+              </button>
+            )}
             {selected.propuesta && (
               <button onClick={() => {
                 const prev = document.title
@@ -962,6 +1041,11 @@ export function DiagnosticoTab({ prospects = [] }: { prospects?: Prospect[] }) {
               🗑 Eliminar
             </button>
             </div>
+            {multiError && (
+              <div style={{ background: '#FEF3F0', border: '1px solid #F8C4B4', borderRadius: 8, padding: '10px 14px', fontSize: 13, color: '#C05621' }}>
+                {multiError}
+              </div>
+            )}
             {regenError && (
               <div style={{ background: isRateLimit(regenError).limited ? '#FFF7E0' : '#FEF3F0', border: `1px solid ${isRateLimit(regenError).limited ? '#F6D25A' : '#F8C4B4'}`, borderRadius: 8, padding: '10px 14px', fontSize: 13, color: isRateLimit(regenError).limited ? '#7A5C00' : '#C05621' }}>
                 {isRateLimit(regenError).limited

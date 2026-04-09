@@ -52,8 +52,11 @@ export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ 
   return NextResponse.json({ ok: true })
 }
 
-// PATCH — regenerar propuesta con IA usando datos existentes
-export async function PATCH(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+// PATCH — tres modos según el body:
+// 1. { aprobar: true }     → status='aprobada' (irreversible)
+// 2. { propuesta: {...} }  → actualiza propuesta (solo si status='borrador')
+// 3. Sin body especial     → regenera con agent/2/raw (flujo original, compatibilidad)
+export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const session = await getServerSession(authOptions)
   if (!session) return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
 
@@ -61,6 +64,33 @@ export async function PATCH(_req: NextRequest, { params }: { params: Promise<{ i
   const numId = parseInt(id)
   if (isNaN(numId)) return NextResponse.json({ error: 'ID inválido' }, { status: 400 })
 
+  const body: Record<string, unknown> = await req.json().catch(() => ({}))
+
+  // ── Modo 1: Aprobar ──────────────────────────────────────────────────────
+  if (body.aprobar === true) {
+    const result = await pool.query(
+      "UPDATE diagnosticos SET status = 'aprobada', updated_at = NOW() WHERE id = $1 RETURNING id",
+      [numId]
+    )
+    if ((result.rowCount ?? 0) === 0) return NextResponse.json({ error: 'No encontrado' }, { status: 404 })
+    return NextResponse.json({ ok: true, status: 'aprobada' })
+  }
+
+  // ── Modo 2: Guardar propuesta editada ────────────────────────────────────
+  if (body.propuesta && typeof body.propuesta === 'object') {
+    const check = await pool.query('SELECT status FROM diagnosticos WHERE id = $1', [numId])
+    if (check.rows.length === 0) return NextResponse.json({ error: 'No encontrado' }, { status: 404 })
+    if (check.rows[0].status !== 'borrador') {
+      return NextResponse.json({ error: 'Solo se puede editar una propuesta en estado borrador' }, { status: 409 })
+    }
+    await pool.query(
+      'UPDATE diagnosticos SET propuesta = $1, updated_at = NOW() WHERE id = $2',
+      [JSON.stringify(body.propuesta), numId]
+    )
+    return NextResponse.json({ ok: true })
+  }
+
+  // ── Modo 3: Regenerar con agent/2/raw ────────────────────────────────────
   const dbRes = await pool.query('SELECT * FROM diagnosticos WHERE id = $1', [numId])
   if (dbRes.rows.length === 0) return NextResponse.json({ error: 'Diagnóstico no encontrado' }, { status: 404 })
 
