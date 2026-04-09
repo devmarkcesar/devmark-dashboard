@@ -978,13 +978,13 @@ export function DiagnosticoTab({ prospects = [] }: { prospects?: Prospect[] }) {
               })()}
               <button
                 onClick={() => generarMultiAgente(selected)}
-                disabled={multiLoading || selected.status === 'aprobada' || selected.status === 'enviada'}
+                disabled={multiLoading}
                 style={{
                   display: 'flex', alignItems: 'center', gap: 6,
                   background: T.blue, color: '#fff', border: 'none',
                   borderRadius: 8, padding: '9px 16px', fontSize: 13, fontWeight: 700,
-                  cursor: (multiLoading || selected.status === 'aprobada' || selected.status === 'enviada') ? 'default' : 'pointer',
-                  opacity: (multiLoading || selected.status === 'aprobada' || selected.status === 'enviada') ? 0.5 : 1,
+                  cursor: multiLoading ? 'default' : 'pointer',
+                  opacity: multiLoading ? 0.5 : 1,
                 }}>
                 {multiLoading ? '⏳ Consultando agentes...' : '✨ Generar propuesta multi-agente'}
               </button>
