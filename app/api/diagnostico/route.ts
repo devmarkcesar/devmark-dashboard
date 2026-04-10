@@ -128,22 +128,20 @@ GENERA UNA PROPUESTA COMPLETA CON ESTE FORMATO EXACTO (JSON):
     {"semana": "1-2", "descripcion": "..."}
   ],
   "garantia_dias": 30,
-  "notas_adicionales": "...",
+  "notas_adicionales": "Garantía de 30 días contra errores de funcionamiento. Soporte bajo demanda: $300 MXN/hora. El código es 100% tuyo al liquidar. Renovación desde año 2: hosting + dominio según plan elegido.",
+  "dias_estimados": {"nivel": 1, "dias_base": 7, "dias_ajustado": 7, "justificacion": "Nivel 1 sin integraciones"},
   "desglose_costos": [
     {"concepto": "Desarrollo del proyecto", "tipo": "unico", "monto_min": 0, "monto_max": 0},
     {"concepto": "Dominio .com (anual)", "tipo": "anual", "monto_min": 363, "monto_max": 363},
-    {"concepto": "Hosting web compartido Business (mensual)", "tipo": "mensual", "monto_min": 65, "monto_max": 330},
-    {"concepto": "Soporte técnico mensual (opcional)", "tipo": "opcional", "monto_min": 500, "monto_max": 500},
-    {"concepto": "Certificado SSL", "tipo": "incluido", "monto_min": 0, "monto_max": 0},
-    {"concepto": "Backups automáticos", "tipo": "incluido", "monto_min": 0, "monto_max": 0}
+    {"concepto": "Hosting Single año 1 (incluido)", "tipo": "incluido", "monto_min": 0, "monto_max": 0}
   ],
   "soporte_recomendado": "basico"
 }
 
-FACTOR DE COMPLEJIDAD — elige uno según el proyecto:
-- "basico": solución simple, 1-2 módulos, stack estándar, sin integraciones complejas (landing page, sitio institucional, bot simple)
-- "estandar": complejidad media, 3-4 módulos, alguna integración o lógica de negocio (ecommerce, sistema simple, dashboard)
-- "premium": alta complejidad, 4+ módulos, integraciones múltiples, IA, arquitectura a medida (sistema complejo, app móvil, bot con IA)
+FACTOR DE COMPLEJIDAD — elige uno según el nivel del proyecto:
+- "basico": Nivel 1 Presencia — landing/web estática, máx. 5 secciones
+- "estandar": Nivel 2 Interactivo — web dinámica, CMS Directus, citas, catálogo
+- "premium": Nivel 3 Operativo — e-commerce, sistema a medida, bot IA, integraciones SAT/pasarela
 
 === CATÁLOGO DE PRECIOS REALES DEVMARK (MXN, ${new Date().toLocaleDateString('es-MX', { month: 'long', year: 'numeric' }).toUpperCase()}) ===${catalogLines.join('\n')}
 
@@ -153,25 +151,30 @@ LICENCIAS Y APIS (si aplican, cobro adicional):
 - APIs de pago (Stripe/Conekta): sin costo fijo, comisión por transacción
 - Si el proyecto NO requiere APIs de terceros, omitir esta sección
 
+MODELO DE PRECIOS devmark — 3 NIVELES (usa el correcto según la complejidad real):
+- Nivel 1 Presencia ($4,800–$7,500): landing/web estática, máx. 5 secciones, sin backend propio. Infra año 1: Hosting Single ($684). Tiempo: 5–10 días hábiles.
+- Nivel 2 Interactivo ($8,500–$16,000): web dinámica, CMS Directus, formularios, citas, catálogo. Infra año 1: Hosting Premium ($984). Tiempo: 10–20 días hábiles.
+- Nivel 3 Operativo ($18,000–$32,000): e-commerce, sistema a medida, bot IA, pasarela de pago, integraciones SAT. Infra año 1: VPS KVM1 ($1,392). Tiempo: 20–35 días hábiles.
+Extras (solo si el diagnóstico los requiere explícitamente): migración datos $1,500–$3,000; SAT/CFDI $4,500; Stripe/Conekta $4,500; multilenguaje ES+EN +30%.
+
+REGLA TECNOLÓGICA: NUNCA proponer WordPress, Wix, Shopify, Squarespace, Webflow ni page-builders. Si el cliente necesita gestión de contenido (blog, productos, noticias), la solución es Directus como CMS headless.
+
 REGLAS PARA EL DESGLOSE:
-1. "desglose_costos" DEBE incluir TODAS estas líneas (mínimo 5-7 conceptos):
-   - SIEMPRE: desarrollo (único), dominio (anual), hosting recomendado (mensual)
-   - SIEMPRE: soporte técnico recomendado con tipo "opcional" — el cliente decide si lo contrata
-   - SIEMPRE: certificado SSL (tipo "incluido", monto 0) y backups automáticos (tipo "incluido", monto 0)
-   - SI APLICA: licencias, APIs de terceros, migración de datos, capacitación
-2. Cada línea: {"concepto": "texto", "tipo": "unico|mensual|anual|incluido|opcional", "monto_min": N, "monto_max": N}
-3. Para tipo "incluido": monto_min y monto_max = 0 (se muestra como "Incluido" al cliente)
-4. Para tipo "opcional": se muestra como "Opcional" — es una recomendación, NO un cargo obligatorio
-5. "costo_minimo" y "costo_maximo" = solo el desarrollo (cobro único)
-6. "costo_infraestructura_mensual" = solo hosting + costos mensual obligatorios (NO incluye soporte porque es opcional)
-7. "anticipo" = 50% de costo_minimo
-8. "soporte_recomendado" = "basico", "estandar" o "premium" según complejidad del proyecto
-9. "factor_complejidad" = "basico", "estandar" o "premium" según la evaluación del proyecto
-10. Recomienda hosting según la necesidad REAL: compartido Single/Premium para sitios simples, Business para múltiples sitios, VPS para sistemas con backend
-11. REGLA VPS: Si el proyecto es un sistema, bot, dashboard o requiere backend propio (API REST, Node.js, Python, FastAPI), USA VPS obligatoriamente — no hosting compartido
-12. REGLA DOMINIO: Si el cliente YA TIENE dominio y hosting, NO incluir dominio ni hosting en el desglose
-13. Ajusta precios según complejidad real del caso, no inventes — usa el catálogo
-12. El desglose debe darle al cliente una visión COMPLETA: costos fijos + recurrentes + incluidos + opcionales
+1. "desglose_costos" MÁXIMO 3 líneas (4 si hay integración extra que requiera cobro adicional):
+   - SIEMPRE: desarrollo (tipo "unico")
+   - SIEMPRE si cliente NO tiene dominio propio: dominio .com o .mx (tipo "anual")
+   - SIEMPRE: hosting año 1 según nivel (tipo "incluido", monto_min 0, monto_max 0)
+   - SI APLICA: extra de integración (migración, SAT/CFDI, Stripe/Conekta) como tipo "unico"
+   - PROHIBIDO: SSL, Backups, Seguridad, Soporte mensual, QA, Pruebas, Capacitación como líneas separadas
+2. Cada línea: {"concepto": "texto", "tipo": "unico|anual|incluido", "monto_min": N, "monto_max": N}
+3. Para tipo "incluido": monto_min y monto_max = 0
+4. "costo_minimo" y "costo_maximo" = solo el desarrollo (cobro único), sin infra
+5. "costo_infraestructura_mensual" = SIEMPRE 0 (el hosting del año 1 va como línea "incluido")
+6. "anticipo" = 50% de costo_minimo
+7. "soporte_recomendado" = "basico", "estandar" o "premium" según complejidad
+8. "factor_complejidad" = "basico" (Nivel 1), "estandar" (Nivel 2) o "premium" (Nivel 3)
+9. "notas_adicionales" SIEMPRE: "Garantía de 30 días contra errores de funcionamiento. Soporte bajo demanda: $300 MXN/hora. El código es 100% tuyo al liquidar. Renovación desde año 2: hosting + dominio según plan elegido."
+10. REGLA DOMINIO: Si el cliente YA TIENE dominio y hosting, NO incluir dominio ni hosting en el desglose
 
 RESPONDE EXCLUSIVAMENTE CON EL OBJETO JSON. PROHIBIDO incluir texto antes, después, explicaciones, comentarios ni bloques markdown. El primer carácter debe ser { y el último }.`
 }

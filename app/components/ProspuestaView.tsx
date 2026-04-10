@@ -22,6 +22,7 @@ export interface Propuesta {
   revisiones_incluidas?:         number
   iva_incluido?:                 boolean
   iva_porcentaje?:               number
+  dias_estimados?:               { nivel: number; dias_base: number; dias_ajustado: number; justificacion: string }
 }
 
 function fmt(n: number) {
@@ -144,7 +145,7 @@ export function ProspuestaView({ p, businessName }: { p: Propuesta; businessName
                       }}>{d.tipo === 'unico' ? 'Único' : d.tipo === 'mensual' ? 'Mensual' : d.tipo === 'incluido' ? 'Incluido' : d.tipo === 'opcional' ? 'Opcional' : 'Anual'}</span>
                     </td>
                     <td style={{ padding: '8px 0', textAlign: 'right', fontWeight: 600, color: d.tipo === 'incluido' ? T.teal : d.tipo === 'opcional' ? '#BA7517' : T.navy }}>
-                      {d.tipo === 'incluido' ? '✓ Incluido' : d.monto_min === d.monto_max ? fmt(d.monto_min) : `${fmt(d.monto_min)} – ${fmt(d.monto_max)}`}
+                      {d.tipo === 'incluido' ? 'Incluido primer año ✓' : d.monto_min === d.monto_max ? fmt(d.monto_min) : `${fmt(d.monto_min)} – ${fmt(d.monto_max)}`}
                     </td>
                   </tr>
                 ))}
@@ -313,7 +314,7 @@ export function ProspuestaView({ p, businessName }: { p: Propuesta; businessName
                           }}>{d.tipo === 'unico' ? 'Único' : d.tipo === 'mensual' ? 'Mensual' : d.tipo === 'incluido' ? 'Incluido' : d.tipo === 'opcional' ? 'Opcional' : 'Anual'}</span>
                         </td>
                         <td style={{ padding: '6px 0', textAlign: 'right', fontWeight: 600, color: d.tipo === 'incluido' ? T.teal : d.tipo === 'opcional' ? '#BA7517' : T.navy }}>
-                          {d.tipo === 'incluido' ? '✓ Incluido' : d.monto_min === d.monto_max ? fmt(d.monto_min) : `${fmt(d.monto_min)} – ${fmt(d.monto_max)}`}
+                          {d.tipo === 'incluido' ? 'Incluido primer año ✓' : d.monto_min === d.monto_max ? fmt(d.monto_min) : `${fmt(d.monto_min)} – ${fmt(d.monto_max)}`}
                         </td>
                       </tr>
                     ))}

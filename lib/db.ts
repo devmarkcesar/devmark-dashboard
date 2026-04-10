@@ -73,6 +73,10 @@ pool.query(`
     ('soporte', 'Soporte Premium', 'mensual', 2000, 2000, 'Todo lo estándar + cambios moderados, soporte prioritario, respuesta en 4h'),
     -- EXTRAS
     ('extra', 'Cambios extra post-entrega', 'hora', 300, 300, 'Tarifa por hora para cambios fuera de requerimientos originales'),
+    ('extra', 'Curación y migración de datos', 'unico', 1500, 3000, 'Si cliente entrega datos desordenados o de otro sistema'),
+    ('extra', 'Integración SAT/facturación electrónica', 'unico', 4500, 4500, 'Configuración y pruebas CFDI'),
+    ('extra', 'Integración pasarela de pago (Stripe/Conekta)', 'unico', 4500, 4500, 'Setup y pruebas de seguridad'),
+    ('extra', 'Versión multilenguaje ES+EN', 'porcentaje', 30, 30, '30% adicional sobre costo de desarrollo'),
     -- SEGURIDAD (incluido)
     ('seguridad', 'Certificado SSL', 'incluido', 0, 0, 'Gratis con todos los planes de Hostinger'),
     ('seguridad', 'Backups automáticos', 'incluido', 0, 0, 'Incluido en planes Business y VPS'),

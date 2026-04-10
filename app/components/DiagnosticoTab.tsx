@@ -159,6 +159,9 @@ export function DiagnosticoTab({ prospects = [] }: { prospects?: Prospect[] }) {
   const [multiError,     setMultiError]     = useState<string | null>(null)
   const [aprobarLoading, setAprobarLoading] = useState(false)
   const [editingFrom, setEditingFrom]   = useState<DiagnosticoRecord | null>(null)
+  const [editPrecio, setEditPrecio]     = useState<{ minimo: string; maximo: string; notas: string } | null>(null)
+  const [savingPrecio, setSavingPrecio] = useState(false)
+  const [savePrecioError, setSavePrecioError] = useState<string | null>(null)
   const [histSearch,  setHistSearch]    = useState('')
   const [histPage,    setHistPage]      = useState(1)
   const HIST_PER_PAGE = 20
@@ -272,6 +275,42 @@ export function DiagnosticoTab({ prospects = [] }: { prospects?: Prospect[] }) {
       }
     } catch { /* silencioso */ }
     setAprobarLoading(false)
+  }
+
+  async function savePrecioInline(d: DiagnosticoRecord) {
+    if (!editPrecio || !d.propuesta) return
+    const min = parseFloat(editPrecio.minimo)
+    const max = parseFloat(editPrecio.maximo)
+    if (isNaN(min) || isNaN(max) || min <= 0 || max < min) {
+      setSavePrecioError('El precio mínimo y máximo deben ser números válidos (min ≤ max).')
+      return
+    }
+    setSavingPrecio(true)
+    setSavePrecioError(null)
+    try {
+      const updatedPropuesta = {
+        ...d.propuesta,
+        costo_minimo:      Math.round(min),
+        costo_maximo:      Math.round(max),
+        anticipo:          Math.round(min * 0.5),
+        notas_adicionales: editPrecio.notas,
+      }
+      const res  = await fetch(`/api/diagnostico/${d.id}`, {
+        method:  'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ propuesta: updatedPropuesta }),
+      })
+      const data = await res.json()
+      if (data.ok) {
+        const updated = { ...d, propuesta: updatedPropuesta }
+        setSelected(updated)
+        setHistorial(prev => prev.map(x => x.id === d.id ? updated : x))
+        setEditPrecio(null)
+      } else {
+        setSavePrecioError(data.error ?? 'Error al guardar cambios.')
+      }
+    } catch { setSavePrecioError('Sin conexión al servidor.') }
+    setSavingPrecio(false)
   }
 
   function editarDiagnostico(d: DiagnosticoRecord) {
@@ -760,53 +799,6 @@ export function DiagnosticoTab({ prospects = [] }: { prospects?: Prospect[] }) {
             </Field>
           </div>
 
-          {/* ── SECCIÓN 5: Detalles técnicos ── */}
-          <div style={{ background: '#fff', border: `1px solid ${T.cardBorder}`, borderRadius: 10, padding: '18px 20px', display: 'flex', flexDirection: 'column', gap: 14 }}>
-            <p style={{ fontSize: 11, fontWeight: 700, color: T.navy, textTransform: 'uppercase', letterSpacing: '0.08em', margin: 0 }}>5 · Detalles técnicos</p>
-
-            <Field label="Integraciones externas requeridas">
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
-                {INTEGRACIONES_OPTIONS.map(o => (
-                  <label key={o.value} style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer',
-                    background: form.integraciones_externas.includes(o.value) ? 'rgba(13,110,253,0.08)' : '#F5F5F5',
-                    border: `1.5px solid ${form.integraciones_externas.includes(o.value) ? T.blue : T.cardBorder}`,
-                    borderRadius: 8, padding: '7px 14px', fontSize: 13 }}>
-                    <input type="checkbox" checked={form.integraciones_externas.includes(o.value)}
-                      onChange={() => toggleMulti('integraciones_externas', o.value)} style={{ accentColor: T.blue }} />
-                    {o.label}
-                  </label>
-                ))}
-              </div>
-            </Field>
-
-            <Field label="¿Requiere migración de datos de otro sistema?">
-              <div style={{ display: 'flex', gap: 16 }}>
-                <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}>
-                  <input type="radio" checked={form.necesita_migracion === true} onChange={() => update('necesita_migracion', true)} />
-                  <span style={{ fontSize: 13, color: T.carbon, fontWeight: 600 }}>✅ Sí</span>
-                </label>
-                <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}>
-                  <input type="radio" checked={form.necesita_migracion === false} onChange={() => update('necesita_migracion', false)} />
-                  <span style={{ fontSize: 13, color: T.carbon }}>❌ No</span>
-                </label>
-              </div>
-              {form.necesita_migracion && (
-                <input value={form.migracion_detalle} onChange={e => update('migracion_detalle', e.target.value)}
-                  placeholder="Ej: Exportar 500 clientes de Excel al nuevo CRM"
-                  style={{ ...inputStyle, marginTop: 8 }} />
-              )}
-            </Field>
-
-            <Field label="Número de usuarios / roles del sistema">
-              <select value={form.num_usuarios_roles} onChange={e => update('num_usuarios_roles', e.target.value)} style={inputStyle}>
-                <option value="">Seleccionar...</option>
-                <option value="solo_dueno">Solo el dueño</option>
-                <option value="2_5">2–5 usuarios</option>
-                <option value="6_mas">6+ usuarios con roles distintos</option>
-              </select>
-            </Field>
-          </div>
-
           {/* ── SECCIÓN 4: Información comercial ── */}
           <div style={{ background: '#fff', border: `1px solid ${T.cardBorder}`, borderRadius: 10, padding: '18px 20px', display: 'flex', flexDirection: 'column', gap: 14 }}>
             <p style={{ fontSize: 11, fontWeight: 700, color: T.navy, textTransform: 'uppercase', letterSpacing: '0.08em', margin: 0 }}>4 · Información comercial</p>
@@ -858,11 +850,6 @@ export function DiagnosticoTab({ prospects = [] }: { prospects?: Prospect[] }) {
               </div>
             </Field>
 
-            <Field label="Precio acordado (opcional, MXN sin IVA)">
-              <input type="number" value={form.precio_acordado} onChange={e => update('precio_acordado', e.target.value)}
-                placeholder="Ej: 45000" style={inputStyle} />
-            </Field>
-
             <Field label="¿El cliente requiere factura (CFDI)?">
               <div style={{ display: 'flex', gap: 16 }}>
                 <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}>
@@ -874,6 +861,53 @@ export function DiagnosticoTab({ prospects = [] }: { prospects?: Prospect[] }) {
                   <span style={{ fontSize: 13, color: T.carbon }}>❌ No requiere</span>
                 </label>
               </div>
+            </Field>
+          </div>
+
+          {/* ── SECCIÓN 5: Detalles técnicos ── */}
+          <div style={{ background: '#fff', border: `1px solid ${T.cardBorder}`, borderRadius: 10, padding: '18px 20px', display: 'flex', flexDirection: 'column', gap: 14 }}>
+            <p style={{ fontSize: 11, fontWeight: 700, color: T.navy, textTransform: 'uppercase', letterSpacing: '0.08em', margin: 0 }}>5 · Detalles técnicos</p>
+
+            <Field label="Integraciones externas requeridas">
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
+                {INTEGRACIONES_OPTIONS.map(o => (
+                  <label key={o.value} style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer',
+                    background: form.integraciones_externas.includes(o.value) ? 'rgba(13,110,253,0.08)' : '#F5F5F5',
+                    border: `1.5px solid ${form.integraciones_externas.includes(o.value) ? T.blue : T.cardBorder}`,
+                    borderRadius: 8, padding: '7px 14px', fontSize: 13 }}>
+                    <input type="checkbox" checked={form.integraciones_externas.includes(o.value)}
+                      onChange={() => toggleMulti('integraciones_externas', o.value)} style={{ accentColor: T.blue }} />
+                    <span style={{ color: T.carbon }}>{o.label}</span>
+                  </label>
+                ))}
+              </div>
+            </Field>
+
+            <Field label="¿Requiere migración de datos de otro sistema?">
+              <div style={{ display: 'flex', gap: 16 }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}>
+                  <input type="radio" checked={form.necesita_migracion === true} onChange={() => update('necesita_migracion', true)} />
+                  <span style={{ fontSize: 13, color: T.carbon, fontWeight: 600 }}>✅ Sí</span>
+                </label>
+                <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}>
+                  <input type="radio" checked={form.necesita_migracion === false} onChange={() => update('necesita_migracion', false)} />
+                  <span style={{ fontSize: 13, color: T.carbon }}>❌ No</span>
+                </label>
+              </div>
+              {form.necesita_migracion && (
+                <input value={form.migracion_detalle} onChange={e => update('migracion_detalle', e.target.value)}
+                  placeholder="Ej: Exportar 500 clientes de Excel al nuevo CRM"
+                  style={{ ...inputStyle, marginTop: 8 }} />
+              )}
+            </Field>
+
+            <Field label="Número de usuarios / roles del sistema">
+              <select value={form.num_usuarios_roles} onChange={e => update('num_usuarios_roles', e.target.value)} style={inputStyle}>
+                <option value="">Seleccionar...</option>
+                <option value="solo_dueno">Solo el dueño</option>
+                <option value="2_5">2–5 usuarios</option>
+                <option value="6_mas">6+ usuarios con roles distintos</option>
+              </select>
             </Field>
           </div>
 
@@ -1207,6 +1241,74 @@ export function DiagnosticoTab({ prospects = [] }: { prospects?: Prospect[] }) {
           </div>
 
           <div className="print-propuesta">
+            {/* ── dias_estimados (solo dashboard, nunca cliente) ─────────────────── */}
+            {selected.propuesta?.dias_estimados && (() => {
+              const de = selected.propuesta!.dias_estimados as { nivel: number; dias_base: number; dias_ajustado: number; justificacion: string }
+              return (
+                <div className="print-hide" style={{ background: 'rgba(24,95,165,0.06)', border: `1px solid rgba(24,95,165,0.18)`, borderRadius: 10, padding: '12px 16px', marginBottom: 20, display: 'flex', gap: 16, flexWrap: 'wrap', alignItems: 'center' }}>
+                  <span style={{ fontSize: 11, fontWeight: 700, color: T.blue, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Días estimados (interno)</span>
+                  <span style={{ fontSize: 13, color: T.navy }}><strong>Nivel {de.nivel}</strong> &mdash; Base: {de.dias_base}d &mdash; Ajustado: <strong>{de.dias_ajustado}d hábiles</strong></span>
+                  {de.justificacion && <span style={{ fontSize: 12, color: T.textMuted, fontStyle: 'italic' }}>{de.justificacion}</span>}
+                </div>
+              )
+            })()}
+
+            {/* ── Edición inline solo en BORRADOR ─────────────────────────── */}
+            {selected.status === 'borrador' && selected.propuesta && (
+              <div className="print-hide" style={{ background: 'rgba(234,179,8,0.06)', border: `1.5px solid rgba(234,179,8,0.4)`, borderRadius: 10, padding: '14px 18px', marginBottom: 20, display: 'flex', flexDirection: 'column', gap: 12 }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, flexWrap: 'wrap' }}>
+                  <span style={{ fontSize: 12, fontWeight: 700, color: '#B45309', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Ajustar propuesta (borrador)</span>
+                  {!editPrecio && (
+                    <button onClick={() => setEditPrecio({
+                      minimo: String(selected.propuesta!.costo_minimo),
+                      maximo: String(selected.propuesta!.costo_maximo),
+                      notas:  selected.propuesta!.notas_adicionales ?? '',
+                    })} style={{ background: 'none', border: `1px solid #B45309`, color: '#B45309', borderRadius: 7, padding: '5px 12px', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>
+                      ✏️ Editar precios
+                    </button>
+                  )}
+                </div>
+                {editPrecio ? (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                        <label style={{ fontSize: 11, fontWeight: 600, color: T.navy }}>Costo mínimo (MXN)</label>
+                        <input type="number" value={editPrecio.minimo}
+                          onChange={e => setEditPrecio(p => p && ({ ...p, minimo: e.target.value }))}
+                          style={{ ...inputStyle }} />
+                      </div>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                        <label style={{ fontSize: 11, fontWeight: 600, color: T.navy }}>Costo máximo (MXN)</label>
+                        <input type="number" value={editPrecio.maximo}
+                          onChange={e => setEditPrecio(p => p && ({ ...p, maximo: e.target.value }))}
+                          style={{ ...inputStyle }} />
+                      </div>
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                      <label style={{ fontSize: 11, fontWeight: 600, color: T.navy }}>Notas adicionales</label>
+                      <textarea value={editPrecio.notas}
+                        onChange={e => setEditPrecio(p => p && ({ ...p, notas: e.target.value }))}
+                        rows={2} style={{ ...inputStyle, resize: 'vertical' }} />
+                    </div>
+                    {savePrecioError && <p style={{ fontSize: 12, color: '#C05621', margin: 0 }}>{savePrecioError}</p>}
+                    <div style={{ display: 'flex', gap: 8 }}>
+                      <button onClick={() => savePrecioInline(selected)} disabled={savingPrecio} style={{ background: T.teal, color: '#fff', border: 'none', borderRadius: 7, padding: '8px 16px', fontSize: 13, fontWeight: 700, cursor: savingPrecio ? 'wait' : 'pointer', opacity: savingPrecio ? 0.7 : 1 }}>
+                        {savingPrecio ? '⏳ Guardando...' : '✅ Guardar'}
+                      </button>
+                      <button onClick={() => { setEditPrecio(null); setSavePrecioError(null) }} style={{ background: 'none', border: `1px solid ${T.cardBorder}`, color: T.navy, borderRadius: 7, padding: '8px 14px', fontSize: 12, cursor: 'pointer' }}>
+                        Cancelar
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap' }}>
+                    <span style={{ fontSize: 13, color: T.navy }}>Inversión: <strong>${selected.propuesta.costo_minimo?.toLocaleString('es-MX')} – ${selected.propuesta.costo_maximo?.toLocaleString('es-MX')} MXN</strong></span>
+                    <span style={{ fontSize: 12, color: T.textMuted, fontStyle: 'italic', flex: 1, minWidth: 200 }}>{selected.propuesta.notas_adicionales}</span>
+                  </div>
+                )}
+              </div>
+            )}
+
             {selected.propuesta
               ? <ProspuestaView p={selected.propuesta} businessName={selected.business_name} />
               : (
