@@ -1,6 +1,7 @@
 ﻿'use client'
 
 import { useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { T } from './components/tokens'
 import { StatCard } from './components/ui'
 import { Sidebar } from './components/Sidebar'
@@ -11,9 +12,10 @@ import { CRMTab } from './components/CRMTab'
 import { DiagnosticoTab } from './components/DiagnosticoTab'
 import type { Agent, Project, Task, Log, Prospect } from './components/types'
 
-type TabId = 'agents' | 'projects' | 'logs' | 'crm' | 'diagnostico'
+type TabId = 'agents' | 'projects' | 'logs' | 'crm' | 'diagnostico' | 'groq'
 
 export default function Dashboard() {
+  const router = useRouter()
   const [agents,      setAgents]      = useState<Agent[]>([])
   const [projects,    setProjects]    = useState<Project[]>([])
   const [tasks,       setTasks]       = useState<Task[]>([])
@@ -63,6 +65,7 @@ export default function Dashboard() {
   }, [loading])
 
   function handleTabChange(t: TabId) {
+    if (t === 'groq') { router.push('/groq'); return }
     setTab(t)
     localStorage.setItem('devmark-tab', t)
   }

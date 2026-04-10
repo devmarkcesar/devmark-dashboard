@@ -6,7 +6,7 @@ import { T, statusLabel, CAT_COLOR } from '../../components/tokens'
 import { Sidebar } from '../../components/Sidebar'
 import type { Agent } from '../../components/types'
 
-type TabId = 'agents' | 'projects' | 'logs' | 'crm' | 'diagnostico'
+type TabId = 'agents' | 'projects' | 'logs' | 'crm' | 'diagnostico' | 'groq'
 
 interface ChatMsg {
   id?: number
@@ -62,6 +62,7 @@ export default function AgentChatPage() {
 
   // Sidebar tab → ir al dashboard con esa tab
   function handleTabChange(t: TabId) {
+    if (t === 'groq') { router.push('/groq'); return }
     localStorage.setItem('devmark-tab', t)
     router.push('/')
   }

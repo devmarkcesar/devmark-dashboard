@@ -1,7 +1,7 @@
 'use client'
 import { T, CAT_COLOR } from './tokens'
 
-type TabId = 'agents' | 'projects' | 'logs' | 'crm' | 'diagnostico'
+type TabId = 'agents' | 'projects' | 'logs' | 'crm' | 'diagnostico' | 'groq'
 
 interface SidebarProps {
   tab:                TabId
@@ -46,6 +46,7 @@ export function Sidebar({ tab, catFilter, sidebarOpen, collapsed, onTabChange, o
         ['crm',          '◈', 'CRM'],
         ['diagnostico',  '🎯', 'Diagnóstico de cliente'],
         ['logs',         '📋', 'Logs del sistema'],
+        ['groq',         '⚡', 'Groq Monitor'],
       ] as const).map(([id, icon, label]) => (
         <div key={id} onClick={() => { onTabChange(id); onClose() }}
           className="nav-item"
