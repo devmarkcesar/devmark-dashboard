@@ -330,9 +330,9 @@ body {
     margin: 0;
   }
 
-  /* Cada hoja del PDF */
+  /* Cada hoja del PDF — márgenes Carta: 2.5 cm arriba/abajo, 3 cm izq/der */
   .print-page {
-    padding: 14mm 22mm 14mm 22mm;
+    padding: 25mm 30mm 25mm 30mm;
     box-sizing: border-box;
     background: #fff;
     break-after: page;
@@ -344,6 +344,12 @@ body {
   .print-page.print-last-page {
     break-after: auto;
     page-break-after: auto;
+  }
+
+  /* Bloques internos: evitar cortes a la mitad de un elemento */
+  .propuesta-print .print-page > div > * {
+    break-inside: avoid;
+    page-break-inside: avoid;
   }
 
   * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
