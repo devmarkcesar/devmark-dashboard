@@ -1,7 +1,7 @@
 'use client'
 import { T, CAT_COLOR } from './tokens'
 
-type TabId = 'agents' | 'projects' | 'telegram' | 'crm' | 'diagnostico'
+type TabId = 'agents' | 'projects' | 'logs' | 'crm' | 'diagnostico'
 
 interface SidebarProps {
   tab:                TabId
@@ -41,11 +41,11 @@ export function Sidebar({ tab, catFilter, sidebarOpen, collapsed, onTabChange, o
 
       <p className="nav-section" style={{ fontSize: 12, fontWeight: 700, letterSpacing: '0.1em', color: T.sideText, opacity: 0.3, textTransform: 'uppercase', padding: '0 16px 6px' }}>Sistema</p>
       {([
-        ['agents',   '⊞', 'Todos los agentes'],
-        ['projects', '▤', 'Proyectos Jira'],
-        ['telegram', '▷', 'Telegram control'],
-        ['crm',         '◈', 'CRM'],
-        ['diagnostico', '🎯', 'Diagnóstico de cliente'],
+        ['agents',      '⊞', 'Todos los agentes'],
+        ['projects',     '▤', 'Proyectos Jira'],
+        ['crm',          '◈', 'CRM'],
+        ['diagnostico',  '🎯', 'Diagnóstico de cliente'],
+        ['logs',         '📋', 'Logs del sistema'],
       ] as const).map(([id, icon, label]) => (
         <div key={id} onClick={() => { onTabChange(id); onClose() }}
           className="nav-item"

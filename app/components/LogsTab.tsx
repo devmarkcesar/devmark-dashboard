@@ -116,7 +116,7 @@ export function LogsTab({ logs }: { logs: Log[] }) {
     {/* Panel de logs */}
     <Panel>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14, flexWrap: 'wrap', paddingBottom: 10, borderBottom: `1px solid ${T.cardBorder}` }}>
-        <p style={{ fontSize: 11, fontWeight: 700, color: T.navy, textTransform: 'uppercase', letterSpacing: '0.06em', margin: 0 }}>Telegram — Logs del sistema</p>
+        <p style={{ fontSize: 11, fontWeight: 700, color: T.navy, textTransform: 'uppercase', letterSpacing: '0.06em', margin: 0 }}>Logs del sistema</p>
         <div style={{ display: 'flex', gap: 4, marginLeft: 'auto' }}>
           {LEVELS.map(lv => {
             const active = levelFilter === lv

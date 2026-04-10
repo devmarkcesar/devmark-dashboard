@@ -1,9 +1,9 @@
 ﻿'use client'
-import { useState, useRef, useEffect } from 'react'
+import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { T, CAT_COLOR } from './tokens'
 import { AgentCard, Panel, PanelTitle, CatTab } from './ui'
 import { jiraBadge } from './tokens'
-import { ActivityChart } from './ActivityChart'
 import type { Agent, Task } from './types'
 
 // Markdown inline renderer
@@ -88,13 +88,6 @@ function MdContent({ content }: { content: string }) {
   return <>{nodes}</>
 }
 
-interface ChatMsg {
-  id?: string | number
-  role: 'user' | 'assistant'
-  content: string
-  created_at?: string
-}
-
 interface AgentsTabProps {
   agents:             Agent[]
   tasks:              Task[]
@@ -103,16 +96,8 @@ interface AgentsTabProps {
 }
 
 export function AgentsTab({ agents, tasks, onShowProjects, externalCatFilter }: AgentsTabProps) {
-  const [selected,    setSelected]   = useState<Agent | null>(null)
+  const router = useRouter()
   const [catFilter,   setCatFilter]  = useState<string | null>(null)
-  const [taskInput,   setTaskInput]  = useState('')
-  const [sending,     setSending]    = useState(false)
-  const [thinking,    setThinking]   = useState(false)
-  const [chatHistory, setChatHistory] = useState<ChatMsg[]>([])
-  const [loadingHist, setLoadingHist] = useState(false)
-  const [histOffset,  setHistOffset]  = useState(0)
-  const [histTotal,   setHistTotal]   = useState(0)
-  const [loadingMore, setLoadingMore] = useState(false)
 
   // F2 — Toast global
   const [toast,       setToast]       = useState<{ msg: string; type: 'error' | 'ok' } | null>(null)
@@ -129,8 +114,6 @@ export function AgentsTab({ agents, tasks, onShowProjects, externalCatFilter }: 
   const [projResult,  setProjResult] = useState<string | null>(null)
   const [projJiraKey, setProjJiraKey] = useState<string | null>(null)
 
-  const chatContainerRef = useRef<HTMLDivElement>(null)
-
   // F2 — auto-dismiss toast
   useEffect(() => {
     if (!toast) return
@@ -146,95 +129,6 @@ export function AgentsTab({ agents, tasks, onShowProjects, externalCatFilter }: 
   useEffect(() => {
     setCatFilter(externalCatFilter ?? null)
   }, [externalCatFilter])
-
-  // Scroll interno del chat box — no mueve la pagina
-  useEffect(() => {
-    if (chatContainerRef.current) {
-      chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight
-    }
-  }, [chatHistory, thinking])
-
-  async function selectAgent(agent: Agent) {
-    setSelected(agent)
-    setChatHistory([])
-    setHistOffset(0)
-    setHistTotal(0)
-    setTaskInput('')
-    setThinking(false)
-    setLoadingHist(true)
-    try {
-      const res = await fetch(`/api/agent/${agent.id}?offset=0`)
-      if (res.ok) {
-        const data = await res.json()
-        if (Array.isArray(data.history)) {
-          setChatHistory(data.history.map((m: ChatMsg) => ({
-            id: m.id, role: m.role, content: m.content, created_at: m.created_at,
-          })))
-          setHistTotal(data.total ?? 0)
-          setHistOffset(data.offset ?? 0)
-        }
-      } else {
-        showToast('Error al cargar el historial del agente')
-      }
-    } catch {
-      showToast('Sin conexión al cargar el historial')
-    } finally {
-      setLoadingHist(false)
-    }
-  }
-
-  async function loadMoreHistory() {
-    if (!selected || loadingMore) return
-    const newOffset = histOffset + 20
-    setLoadingMore(true)
-    try {
-      const res = await fetch(`/api/agent/${selected.id}?offset=${newOffset}`)
-      if (res.ok) {
-        const data = await res.json()
-        if (Array.isArray(data.history) && data.history.length > 0) {
-          setChatHistory(prev => [
-            ...data.history.map((m: ChatMsg) => ({ id: m.id, role: m.role, content: m.content, created_at: m.created_at })),
-            ...prev,
-          ])
-          setHistOffset(newOffset)
-        }
-      } else {
-        showToast('Error al cargar más mensajes')
-      }
-    } catch {
-      showToast('Sin conexión al cargar más mensajes')
-    } finally {
-      setLoadingMore(false)
-    }
-  }
-
-  async function handleSend() {
-    if (!selected || !taskInput.trim() || sending) return
-    const userMsg = taskInput.trim()
-    setTaskInput('')
-    setSending(true)
-    setThinking(true)
-    setChatHistory(prev => [...prev, { role: 'user', content: userMsg }])
-    try {
-      const res = await fetch(`/api/agent/${selected.id}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: userMsg }),
-      })
-      const data = await res.json().catch(() => ({}))
-      if (res.ok && data.response) {
-        setChatHistory(prev => [...prev, { role: 'assistant', content: data.response }])
-      } else {
-        setChatHistory(prev => [...prev, { role: 'assistant', content: `Error: ${data.error ?? 'Error al contactar al agente.'}` }])
-      }
-    } catch {
-      setChatHistory(prev => [...prev, { role: 'assistant', content: 'Sin conexión con el servidor.' }])
-      showToast('Sin conexión con el servidor')
-    } finally {
-      setSending(false)
-      setThinking(false)
-    }
-  }
 
   async function handleBroadcast() {
     if (!bcInput.trim() || bcSending) return
@@ -329,121 +223,11 @@ export function AgentsTab({ agents, tasks, onShowProjects, externalCatFilter }: 
       {/* Grid de agentes */}
       <div className="agents-grid">
         {filtered.map(a => (
-          <AgentCard key={a.id} agent={a} selected={selected?.id === a.id} onClick={() => selectAgent(a)} />
+          <AgentCard key={a.id} agent={a} selected={false} onClick={() => router.push(`/agente/${a.id}`)} />
         ))}
       </div>
 
-      {/* Panel 1: Chat con agente seleccionado */}
-      <Panel>
-        <PanelTitle>{selected ? `${selected.icon} ${selected.name}` : 'Selecciona un agente'}</PanelTitle>
-
-        {selected && (
-          <div style={{ display: 'flex', gap: 8, marginBottom: 10, flexWrap: 'wrap' }}>
-            <span style={{ fontSize: 10, padding: '3px 10px', borderRadius: 99, fontWeight: 700,
-              background: `${CAT_COLOR[selected.category] || T.blue}15`, color: CAT_COLOR[selected.category] || T.blue }}>
-              {selected.category}
-            </span>
-            <span style={{ fontSize: 10, padding: '3px 10px', borderRadius: 99, fontWeight: 700,
-              background: 'rgba(29,158,117,0.1)', color: T.teal }}>
-              {selected.tasks_done} tareas completadas
-            </span>
-          </div>
-        )}
-
-        <div style={{
-          background: T.bone, border: `1px solid ${T.cardBorder}`,
-          borderRadius: 8, padding: 10, fontSize: 11, color: T.carbon, opacity: 0.7,
-          lineHeight: 1.6, maxHeight: 72, overflowY: 'auto', fontStyle: 'italic', marginBottom: 10,
-        }}>
-          {selected?.prompt || 'Haz clic en cualquier agente para ver su prompt del sistema y chatear con el directamente.'}
-        </div>
-
-        <div
-          ref={chatContainerRef}
-          style={{
-            border: `1px solid ${T.cardBorder}`, borderRadius: 8,
-            background: T.bone, minHeight: 160, maxHeight: 340,
-            overflowY: 'auto', padding: '10px 12px', marginBottom: 8,
-            display: 'flex', flexDirection: 'column', gap: 8,
-          }}
-        >
-          {loadingHist && (
-            <p style={{ fontSize: 11, color: T.textMuted, fontStyle: 'italic', textAlign: 'center' }}>Cargando historial...</p>
-          )}
-          {/* F1 — Botón cargar más */}
-          {!loadingHist && histOffset + 20 < histTotal && (
-            <button
-              onClick={loadMoreHistory}
-              disabled={loadingMore}
-              style={{
-                alignSelf: 'center', fontSize: 10, padding: '4px 14px', borderRadius: 6,
-                border: `1px solid ${T.cardBorder}`, background: T.white, color: T.blue,
-                cursor: loadingMore ? 'not-allowed' : 'pointer', fontWeight: 700,
-              }}
-            >{loadingMore ? 'Cargando...' : `Cargar más (${histTotal - histOffset - 20} anteriores)`}</button>
-          )}
-          {!loadingHist && chatHistory.length === 0 && !thinking && (
-            <p style={{ fontSize: 11, color: T.textMuted, fontStyle: 'italic', textAlign: 'center', margin: 'auto' }}>
-              {selected ? 'Sin mensajes aun. Escribe una tarea o pregunta.' : 'Selecciona un agente para comenzar.'}
-            </p>
-          )}
-          {chatHistory.map((msg, idx) => (
-            <div key={idx} style={{ display: 'flex', justifyContent: msg.role === 'user' ? 'flex-end' : 'flex-start' }}>
-              <div style={{
-                maxWidth: '86%', padding: '8px 12px',
-                borderRadius: msg.role === 'user' ? '12px 12px 3px 12px' : '12px 12px 12px 3px',
-                background: msg.role === 'user' ? T.blue : '#fff',
-                color: msg.role === 'user' ? '#fff' : T.navy,
-                border: msg.role === 'assistant' ? `1px solid ${T.cardBorder}` : 'none',
-                wordBreak: 'break-word',
-              }}>
-                {msg.role === 'user'
-                  ? <p style={{ fontSize: 11, lineHeight: 1.55, margin: 0 }}>{msg.content}</p>
-                  : <MdContent content={msg.content} />
-                }
-              </div>
-            </div>
-          ))}
-          {thinking && (
-            <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
-              <div style={{
-                padding: '7px 14px', borderRadius: '12px 12px 12px 3px',
-                background: '#fff', border: `1px solid ${T.cardBorder}`,
-                fontSize: 11, color: T.textMuted, fontStyle: 'italic',
-              }}>
-                pensando...
-              </div>
-            </div>
-          )}
-        </div>
-
-        <div style={{ display: 'flex', gap: 6 }}>
-          <input
-            style={{
-              flex: 1, minWidth: 0, fontSize: 11, padding: '7px 10px',
-              border: `1px solid ${T.cardBorder}`, borderRadius: 7,
-              background: '#fff', color: T.navy, outline: 'none',
-            }}
-            placeholder={selected ? `Mensaje a ${selected.name}...` : 'Selecciona un agente primero...'}
-            value={taskInput}
-            disabled={!selected || sending}
-            onChange={e => setTaskInput(e.target.value)}
-            onKeyDown={e => e.key === 'Enter' && !e.shiftKey && handleSend()}
-          />
-          <button
-            onClick={handleSend}
-            disabled={!selected || !taskInput.trim() || sending}
-            style={{
-              fontSize: 11, padding: '7px 13px', borderRadius: 7, border: 'none',
-              cursor: (!selected || !taskInput.trim() || sending) ? 'not-allowed' : 'pointer',
-              background: sending ? '#8A8A87' : T.blue, color: '#fff', fontWeight: 700,
-              opacity: (!selected || !taskInput.trim()) ? 0.6 : 1, whiteSpace: 'nowrap',
-            }}
-          >{sending ? '...' : 'Enviar'}</button>
-        </div>
-      </Panel>
-
-      {/* Panel 2: Tickets Jira activos */}
+      {/* Panel 2: Tickets Jira activos */}}
       <Panel>
         <PanelTitle>Tickets Jira activos</PanelTitle>
         {tasks.length === 0 ? (
@@ -578,12 +362,6 @@ export function AgentsTab({ agents, tasks, onShowProjects, externalCatFilter }: 
             <MdContent content={projResult} />
           </div>
         )}
-      </Panel>
-
-      {/* Grafica de actividad */}
-      <Panel>
-        <PanelTitle>Actividad de agentes (tareas completadas)</PanelTitle>
-        <ActivityChart agents={agents} />
       </Panel>
     </>
   )

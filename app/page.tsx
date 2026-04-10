@@ -11,7 +11,7 @@ import { CRMTab } from './components/CRMTab'
 import { DiagnosticoTab } from './components/DiagnosticoTab'
 import type { Agent, Project, Task, Log, Prospect } from './components/types'
 
-type TabId = 'agents' | 'projects' | 'telegram' | 'crm' | 'diagnostico'
+type TabId = 'agents' | 'projects' | 'logs' | 'crm' | 'diagnostico'
 
 export default function Dashboard() {
   const [agents,      setAgents]      = useState<Agent[]>([])
@@ -36,7 +36,7 @@ export default function Dashboard() {
   // Restaurar tab guardada
   useEffect(() => {
     const saved = localStorage.getItem('devmark-tab') as TabId
-    if (saved && ['agents', 'projects', 'telegram', 'crm', 'diagnostico'].includes(saved)) setTab(saved)
+    if (saved && ['agents', 'projects', 'logs', 'crm', 'diagnostico'].includes(saved)) setTab(saved)
   }, [])
 
   // Escuchar hamburguesa del navbar (móvil)
@@ -142,7 +142,7 @@ export default function Dashboard() {
               <span style={{ position: 'absolute', top: -18, right: 0, fontSize: 10, color: T.textMuted, opacity: 0.6 }}>actualizando...</span>
             )}
             <StatCard label="Agentes activos"    value={activeCount + busyCount} sub={activeAgentSub}                                   accent={T.blue} />
-            {tab !== 'telegram' && (
+            {tab !== 'logs' && (
               <>
                 <StatCard label="Proyectos Jira"     value={projects.length}         sub={inProgTasks + " en progreso"}                        accent={T.teal} />
                 <StatCard label="Tareas completadas" value={totalTasksDone}          sub={topAgent ? "Top: " + topAgent.name : 'Sin tareas'}    accent={T.blue} />
@@ -161,7 +161,7 @@ export default function Dashboard() {
           />
         )}
         {tab === 'projects' && <ProjectsTab projects={projects} tasks={tasks} />}
-        {tab === 'telegram' && <LogsTab logs={logs} />}
+        {tab === 'logs' && <LogsTab logs={logs} />}
         {tab === 'crm' && <CRMTab prospects={prospects} onProspectsChange={setProspects} />}
         {tab === 'diagnostico' && <DiagnosticoTab prospects={prospects} />}
 
