@@ -114,12 +114,13 @@ export default function GroqPage() {
 
         {error && (
           <div style={{
-            background: 'rgba(192,86,33,0.10)', border: '1px solid rgba(192,86,33,0.28)',
+            background: '#FEF3C7', border: '1px solid #F59E0B',
             borderRadius: 9, padding: '10px 16px',
             display: 'flex', alignItems: 'center', gap: 10,
           }}>
-            <span style={{ fontSize: 15 }}>warning {error} — reinicia devmark-core en el servidor</span>
-            <button onClick={fetchStats} style={{ marginLeft: 'auto', fontSize: 11, color: T.teal, background: 'none', border: 'none', cursor: 'pointer', fontWeight: 700 }}>Reintentar</button>
+            <span style={{ fontSize: 15 }}>⚠️</span>
+            <span style={{ fontSize: 12, color: '#92400E', fontWeight: 600 }}>{error} — reinicia devmark-core en el servidor</span>
+            <button onClick={fetchStats} style={{ marginLeft: 'auto', fontSize: 11, color: '#92400E', background: 'none', border: '1px solid #F59E0B', borderRadius: 6, padding: '3px 10px', cursor: 'pointer', fontWeight: 700 }}>Reintentar</button>
           </div>
         )}
 
