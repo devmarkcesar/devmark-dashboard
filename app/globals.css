@@ -362,6 +362,21 @@ body {
   }
 }
 
+/* ─── Agent chat page (WhatsApp layout) ─────────────────────────────────── */
+.agent-chat-page {
+  display: flex;
+  flex-direction: column;
+  height: calc(100dvh - 60px);
+  max-width: 680px;
+  margin: 0 auto;
+}
+
+@media (max-width: 639px) {
+  .agent-chat-page {
+    height: calc(100dvh - 54px);
+  }
+}
+
 /* ── Vista pública de propuesta — mobile ──────────────────────────── */
 @media (max-width: 480px) {
   .propuesta-publica-wrapper {

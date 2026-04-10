@@ -47,3 +47,18 @@ export function projectBadgeStyle(s: string) {
        : s === 'done'    ? { background: 'rgba(24,95,165,0.12)',  color: T.blue }
                          : { background: 'rgba(192,86,33,0.12)',  color: '#C05621' }
 }
+
+/** Genera el slug de un agente a partir de su nombre.
+ *  "Agente Personal"  → "personal"
+ *  "Agente UX-UI"     → "ux-ui"
+ *  "Agente Métricas" → "metricas"
+ */
+export function agentSlug(name: string): string {
+  return name
+    .toLowerCase()
+    .replace(/^agente\s+/i, '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+}

@@ -1,7 +1,7 @@
 ﻿'use client'
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { T, CAT_COLOR } from './tokens'
+import { T, CAT_COLOR, agentSlug } from './tokens'
 import { AgentCard, Panel, PanelTitle, CatTab } from './ui'
 import { jiraBadge } from './tokens'
 import type { Agent, Task } from './types'
@@ -223,7 +223,7 @@ export function AgentsTab({ agents, tasks, onShowProjects, externalCatFilter }: 
       {/* Grid de agentes */}
       <div className="agents-grid">
         {filtered.map(a => (
-          <AgentCard key={a.id} agent={a} selected={false} onClick={() => router.push(`/agente/${a.id}`)} />
+          <AgentCard key={a.id} agent={a} selected={false} onClick={() => router.push(`/agente/${agentSlug(a.name)}`)} />
         ))}
       </div>
 

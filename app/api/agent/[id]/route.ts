@@ -20,6 +20,26 @@ function checkRateLimit(sessionEmail: string): boolean {
   return true
 }
 
+/** Resuelve el parámetro de ruta (número o slug) al ID numérico del agente. */
+function slugify(name: string): string {
+  return name
+    .toLowerCase()
+    .replace(/^agente\s+/i, '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+}
+
+async function resolveAgentId(param: string): Promise<number | null> {
+  const numeric = Number(param)
+  if (!isNaN(numeric)) return numeric
+  // Buscar por slug derivado del nombre
+  const res = await pool.query('SELECT id, name FROM agents ORDER BY id')
+  const match = res.rows.find((r: { id: number; name: string }) => slugify(r.name) === param)
+  return match?.id ?? null
+}
+
 export async function GET(
   _req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -28,8 +48,8 @@ export async function GET(
   if (!session) return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
 
   const { id } = await params
-  const agentId = Number(id)
-  if (isNaN(agentId)) return NextResponse.json({ error: 'ID inválido' }, { status: 400 })
+  const agentId = await resolveAgentId(id)
+  if (agentId === null) return NextResponse.json({ error: 'Agente no encontrado' }, { status: 404 })
 
   const url    = new URL(_req.url)
   const offset = Math.max(0, Number(url.searchParams.get('offset') ?? 0))
@@ -67,8 +87,8 @@ export async function POST(
   if (!session) return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
 
   const { id } = await params
-  const agentId = Number(id)
-  if (isNaN(agentId)) return NextResponse.json({ error: 'ID inválido' }, { status: 400 })
+  const agentId = await resolveAgentId(id)
+  if (agentId === null) return NextResponse.json({ error: 'Agente no encontrado' }, { status: 404 })
 
   const body    = await req.json().catch(() => null)
   const message = (body?.message ?? '').toString().trim()
