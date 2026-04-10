@@ -121,10 +121,20 @@ export function ProspuestaView({ p, businessName }: { p: Propuesta; businessName
         )}
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 12 }}>
-          <CostCard label="Inversión"       value={`${fmt(p.costo_minimo)} – ${fmt(p.costo_maximo)}`}         accent={T.navy} />
-          <CostCard label="Anticipo (50%)"  value={fmt(Math.round((Number(p.costo_minimo) || 0) * 0.5))}       accent={T.blue} />
-          <CostCard label="Infraestructura" value={`${fmt(p.costo_infraestructura_mensual ?? 0)}/mes`}         accent={T.teal} />
-          <CostCard label="Tiempo estimado" value={p.timeline_semanas ? `${p.timeline_semanas} semanas` : '—'} accent="#BA7517" />
+          {(() => {
+            const ivaMult   = 1 + (Number(p.iva_porcentaje) || 16) / 100
+            const minTotal  = Math.round((Number(p.costo_minimo)  || 0) * ivaMult)
+            const maxTotal  = Math.round((Number(p.costo_maximo)  || 0) * ivaMult)
+            const anticipo  = Math.round(minTotal * 0.5)
+            return (
+              <>
+                <CostCard label="Inversión (c/IVA)"  value={`${fmt(minTotal)} – ${fmt(maxTotal)}`}              accent={T.navy} />
+                <CostCard label="Anticipo (50%)"       value={fmt(anticipo)}                                    accent={T.blue} />
+                <CostCard label="Infraestructura"      value={`${fmt(p.costo_infraestructura_mensual ?? 0)}/mes`} accent={T.teal} />
+                <CostCard label="Tiempo estimado"      value={p.timeline_semanas ? `${p.timeline_semanas} semanas` : '—'} accent="#BA7517" />
+              </>
+            )
+          })()}
         </div>
 
         {p.desglose_costos && p.desglose_costos.length > 0 && (
@@ -200,12 +210,14 @@ export function ProspuestaView({ p, businessName }: { p: Propuesta; businessName
         </Section>
 
         <Section title="🛡 Garantía y soporte">
-          <p style={{ fontSize: 13, color: T.carbon, lineHeight: 1.6 }}>
-            La garantía cubre únicamente errores de código, funcionalidades pendientes del alcance acordado y fallas de sistema. No incluye cambios de diseño, nuevas funcionalidades ni contenido modificado tras la entrega.
+          <p style={{ fontSize: 13, color: T.carbon, lineHeight: 1.6, marginBottom: 10 }}>
+            <strong>Garantía de 30 días</strong> — La garantía cubre únicamente errores de código, funcionalidades pendientes del alcance acordado y fallas de sistema. No incluye cambios de diseño, nuevas funcionalidades ni contenido modificado tras la entrega.
           </p>
-          {p.notas_adicionales && (
-            <p style={{ fontSize: 13, color: T.textMuted, marginTop: 8, fontStyle: 'italic' }}>{p.notas_adicionales}</p>
-          )}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+            <div style={{ fontSize: 13, color: T.textMuted }}>• Soporte bajo demanda: <strong style={{ color: T.carbon }}>$300 MXN/hora</strong></div>
+            <div style={{ fontSize: 13, color: T.textMuted }}>• El código es <strong style={{ color: T.carbon }}>100% tuyo</strong> al liquidar</div>
+            <div style={{ fontSize: 13, color: T.textMuted }}>• Renovación desde año 2: hosting + dominio según plan elegido</div>
+          </div>
         </Section>
 
         {(() => {
@@ -281,10 +293,20 @@ export function ProspuestaView({ p, businessName }: { p: Propuesta; businessName
           <PrintHeader fecha={fechaFormateada} hora={horaFormateada} />
           <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10 }}>
-              <CostCard label="Inversión"       value={`${fmt(p.costo_minimo)} – ${fmt(p.costo_maximo)}`}         accent={T.navy} />
-              <CostCard label="Anticipo (50%)"  value={fmt(Math.round((Number(p.costo_minimo) || 0) * 0.5))}       accent={T.blue} />
-              <CostCard label="Infraestructura" value={`${fmt(p.costo_infraestructura_mensual ?? 0)}/mes`}         accent={T.teal} />
-              <CostCard label="Tiempo estimado" value={p.timeline_semanas ? `${p.timeline_semanas} semanas` : '—'} accent="#BA7517" />
+              {(() => {
+                const ivaMult  = 1 + (Number(p.iva_porcentaje) || 16) / 100
+                const minTotal = Math.round((Number(p.costo_minimo) || 0) * ivaMult)
+                const maxTotal = Math.round((Number(p.costo_maximo) || 0) * ivaMult)
+                const anticipo = Math.round(minTotal * 0.5)
+                return (
+                  <>
+                    <CostCard label="Inversión (c/IVA)"  value={`${fmt(minTotal)} – ${fmt(maxTotal)}`}               accent={T.navy} />
+                    <CostCard label="Anticipo (50%)"       value={fmt(anticipo)}                                     accent={T.blue} />
+                    <CostCard label="Infraestructura"      value={`${fmt(p.costo_infraestructura_mensual ?? 0)}/mes`} accent={T.teal} />
+                    <CostCard label="Tiempo estimado"      value={p.timeline_semanas ? `${p.timeline_semanas} semanas` : '—'} accent="#BA7517" />
+                  </>
+                )
+              })()}
             </div>
             {p.desglose_costos && p.desglose_costos.length > 0 && (
               <Section title="💰 Desglose de costos">
@@ -367,12 +389,14 @@ export function ProspuestaView({ p, businessName }: { p: Propuesta; businessName
               </div>
             </Section>
             <Section title="🛡 Garantía y soporte">
-              <p style={{ fontSize: 13, color: T.carbon, lineHeight: 1.6 }}>
-                La garantía cubre únicamente errores de código, funcionalidades pendientes del alcance acordado y fallas de sistema. No incluye cambios de diseño, nuevas funcionalidades ni contenido modificado tras la entrega.
+              <p style={{ fontSize: 13, color: T.carbon, lineHeight: 1.6, marginBottom: 8 }}>
+                <strong>Garantía de 30 días</strong> — La garantía cubre únicamente errores de código, funcionalidades pendientes del alcance acordado y fallas de sistema. No incluye cambios de diseño, nuevas funcionalidades ni contenido modificado tras la entrega.
               </p>
-              {p.notas_adicionales && (
-                <p style={{ fontSize: 13, color: T.textMuted, marginTop: 8, fontStyle: 'italic' }}>{p.notas_adicionales}</p>
-              )}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                <div style={{ fontSize: 12, color: T.textMuted }}>• Soporte bajo demanda: <strong style={{ color: T.carbon }}>$300 MXN/hora</strong></div>
+                <div style={{ fontSize: 12, color: T.textMuted }}>• El código es <strong style={{ color: T.carbon }}>100% tuyo</strong> al liquidar</div>
+                <div style={{ fontSize: 12, color: T.textMuted }}>• Renovación desde año 2: hosting + dominio según plan elegido</div>
+              </div>
             </Section>
             {(() => {
               const base     = Number(p.costo_minimo) || 0
