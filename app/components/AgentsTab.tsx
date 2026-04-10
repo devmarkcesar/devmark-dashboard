@@ -227,7 +227,7 @@ export function AgentsTab({ agents, tasks, onShowProjects, externalCatFilter }: 
         ))}
       </div>
 
-      {/* Panel 2: Tickets Jira activos */}}
+      {/* Panel 2: Tickets Jira activos */}
       <Panel>
         <PanelTitle>Tickets Jira activos</PanelTitle>
         {tasks.length === 0 ? (
