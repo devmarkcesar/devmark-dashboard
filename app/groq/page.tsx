@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
@@ -42,7 +42,6 @@ export default function GroqPage() {
 
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
-  // Sidebar hamburger (móvil)
   useEffect(() => {
     const handler = () => setSidebarOpen(prev => !prev)
     window.addEventListener('devmark:toggle-sidebar', handler)
@@ -57,7 +56,7 @@ export default function GroqPage() {
       setStats(data)
       setError(null)
     } catch {
-      setError('Sin conexión')
+      setError('Sin conexion')
     } finally {
       setLoading(false)
     }
@@ -69,7 +68,6 @@ export default function GroqPage() {
     return () => clearInterval(iv)
   }, [])
 
-  // Countdown en tiempo real
   useEffect(() => {
     if (timerRef.current) clearInterval(timerRef.current)
     if (!stats?.reset_at) { setCountdown(0); return }
@@ -91,16 +89,15 @@ export default function GroqPage() {
   const used  = stats?.tokens_used_today ?? 0
   const limit = stats?.tokens_limit_day  ?? 100000
   const pct   = Math.min(100, Math.round((used / limit) * 100))
+  const available = limit - used
   const isRateLimited = countdown > 0
-
-  const barColor = pct < 60 ? T.teal : pct < 85 ? '#E67E22' : '#E74C3C'
+  const barColor = pct < 60 ? T.teal : pct < 85 ? '#BA7517' : '#C05621'
+  const accentStatus = isRateLimited ? '#C05621' : T.teal
 
   return (
-    <div style={{ display: 'flex', width: '100%', minHeight: 'calc(100dvh - 58px)', background: T.navy }}>
+    <div className="dashboard-layout">
 
-      {sidebarOpen && (
-        <div className="sidebar-overlay" onClick={() => setSidebarOpen(false)} />
-      )}
+      {sidebarOpen && <div className="sidebar-overlay" onClick={() => setSidebarOpen(false)} />}
 
       <Sidebar
         tab="groq"
@@ -113,165 +110,94 @@ export default function GroqPage() {
         onToggleCollapse={() => { setSidebarCollapsed(prev => !prev); setSidebarOpen(false) }}
       />
 
-      <div style={{
-        flex: 1, minWidth: 0,
-        padding: '24px 32px',
-        overflowY: 'auto',
-        maxWidth: 680,
-        margin: '0 auto',
-        width: '100%',
-        background: '#F1EFE8',
-        display: 'flex',
-        flexDirection: 'column',
-      }}>
+      <div className="main-content">
 
-        {/* Header */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 28 }}>
-          <div>
-            <h1 style={{ margin: 0, fontSize: 22, fontWeight: 700, color: '#1a2a3a' }}>Groq Monitor</h1>
-            <p style={{ margin: '4px 0 0', fontSize: 12, color: '#6B7280' }}>llama-3.3-70b-versatile</p>
+        {error && (
+          <div style={{
+            background: 'rgba(192,86,33,0.10)', border: '1px solid rgba(192,86,33,0.28)',
+            borderRadius: 9, padding: '10px 16px',
+            display: 'flex', alignItems: 'center', gap: 10,
+          }}>
+            <span style={{ fontSize: 15 }}>warning {error} — reinicia devmark-core en el servidor</span>
+            <button onClick={fetchStats} style={{ marginLeft: 'auto', fontSize: 11, color: T.teal, background: 'none', border: 'none', cursor: 'pointer', fontWeight: 700 }}>Reintentar</button>
           </div>
-          <button
-            onClick={fetchStats}
-            style={{
-              background: 'none', border: `1px solid rgba(0,0,0,0.15)`,
-              borderRadius: 8, padding: '6px 14px',
-              color: T.teal, fontSize: 12, fontWeight: 600, cursor: 'pointer',
-            }}
-          >
-            ↻ Actualizar
-          </button>
-        </div>
-
-        {loading ? (
-          <p style={{ color: '#6B7280', fontSize: 13 }}>Cargando...</p>
-        ) : error ? (
-          <>
-            <div style={{ background: 'rgba(231,76,60,0.08)', border: '1px solid rgba(231,76,60,0.25)', borderRadius: 10, padding: '12px 16px', marginBottom: 20 }}>
-              <p style={{ margin: 0, color: '#C0392B', fontSize: 13, fontWeight: 600 }}>⚠️ {error} — reinicia devmark-core en el servidor</p>
-            </div>
-          </>
-        ) : (
-          <>
-            {/* Status badge */}
-            <div style={{
-              display: 'flex', alignItems: 'center', gap: 10,
-              padding: '14px 18px',
-              borderRadius: 12,
-              background: isRateLimited ? 'rgba(231,76,60,0.08)' : 'rgba(29,158,117,0.08)',
-              border: `1px solid ${isRateLimited ? 'rgba(231,76,60,0.25)' : 'rgba(29,158,117,0.25)'}`,
-              marginBottom: 24,
-            }}>
-              <span style={{ fontSize: 20 }}>{isRateLimited ? '🔴' : '🟢'}</span>
-              <div>
-                <p style={{ margin: 0, fontSize: 14, fontWeight: 700, color: isRateLimited ? '#C0392B' : T.teal }}>
-                  {isRateLimited ? 'Rate limited' : 'Disponible'}
-                </p>
-                <p style={{ margin: 0, fontSize: 11, color: '#6B7280' }}>
-                  {isRateLimited
-                    ? `Resetea en ${fmtCountdown(countdown)}`
-                    : 'La API de Groq está lista para recibir solicitudes'}
-                </p>
-              </div>
-              {isRateLimited && (
-                <div style={{
-                  marginLeft: 'auto',
-                  fontSize: 28, fontWeight: 800, fontVariantNumeric: 'tabular-nums',
-                  color: '#E74C3C', letterSpacing: '0.02em',
-                  fontFamily: 'monospace',
-                }}>
-                  {fmtCountdown(countdown)}
-                </div>
-              )}
-            </div>
-
-            {/* Tokens progress */}
-            <div style={{
-              background: '#fff', borderRadius: 12,
-              padding: '20px 20px 18px',
-              border: '1px solid rgba(0,0,0,0.08)',
-              marginBottom: 20,
-              boxShadow: '0 1px 4px rgba(0,0,0,0.06)',
-            }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 10 }}>
-                <p style={{ margin: 0, fontSize: 13, fontWeight: 600, color: '#1a2a3a' }}>Tokens/día consumidos</p>
-                <p style={{ margin: 0, fontSize: 13, fontWeight: 700, color: barColor }}>
-                  {pct}%
-                </p>
-              </div>
-
-              {/* Barra */}
-              <div style={{
-                width: '100%', height: 10, borderRadius: 6,
-                background: 'rgba(0,0,0,0.08)', overflow: 'hidden',
-              }}>
-                <div style={{
-                  height: '100%', width: `${pct}%`,
-                  background: barColor,
-                  borderRadius: 6,
-                  transition: 'width 0.4s ease',
-                }} />
-              </div>
-
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 8 }}>
-                <p style={{ margin: 0, fontSize: 11, color: '#6B7280' }}>
-                  {used.toLocaleString('es-MX')} usados
-                </p>
-                <p style={{ margin: 0, fontSize: 11, color: '#6B7280' }}>
-                  {limit.toLocaleString('es-MX')} límite
-                </p>
-              </div>
-
-              <p style={{ margin: '10px 0 0', fontSize: 11, color: '#6B7280' }}>
-                Disponibles: <span style={{ color: '#1a2a3a', fontWeight: 600 }}>
-                  {(limit - used).toLocaleString('es-MX')}
-                </span> tokens
-              </p>
-            </div>
-
-            {/* Timestamps */}
-            <div style={{
-              display: 'grid', gridTemplateColumns: '1fr 1fr',
-              gap: 12, marginBottom: 20,
-            }}>
-              {[
-                { label: 'Último uso',          value: fmtTime(stats?.last_updated ?? null) },
-                { label: 'Rate limited a las',  value: fmtTime(stats?.rate_limited_at ?? null) },
-              ].map(({ label, value }) => (
-                <div key={label} style={{
-                  background: '#fff', borderRadius: 10, padding: '14px 16px',
-                  border: '1px solid rgba(0,0,0,0.08)',
-                  boxShadow: '0 1px 4px rgba(0,0,0,0.06)',
-                }}>
-                  <p style={{ margin: '0 0 4px', fontSize: 10, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.08em' }}>{label}</p>
-                  <p style={{ margin: 0, fontSize: 14, fontWeight: 600, color: '#1a2a3a' }}>{value}</p>
-                </div>
-              ))}
-            </div>
-
-            {/* Reset timestamp */}
-            {stats?.reset_at && (
-              <div style={{
-                background: '#fff', borderRadius: 10, padding: '14px 16px',
-                border: '1px solid rgba(0,0,0,0.08)',
-                boxShadow: '0 1px 4px rgba(0,0,0,0.06)',
-              }}>
-                <p style={{ margin: '0 0 4px', fontSize: 10, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Reset a las</p>
-                <p style={{ margin: 0, fontSize: 14, fontWeight: 600, color: '#1a2a3a' }}>{fmtTime(stats.reset_at)}</p>
-              </div>
-            )}
-          </>
         )}
 
-        {/* Footer igual al dashboard */}
-        <footer style={{ borderTop: '1px solid rgba(0,0,0,0.07)', marginTop: 'auto', paddingTop: 28, padding: '28px 0', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10 }}>
-          <img
-            src="/logos/horizontal/dev-hori-1.png?v=2"
-            alt="devmark"
-            style={{ height: 62, width: 'auto', objectFit: 'contain' }}
-          />
-          <p style={{ fontSize: 15, color: '#6B7280', margin: 0, fontWeight: 500 }}>© {new Date().getFullYear()} devmark</p>
+        <div className="stats-grid-4">
+          <div style={{ background: T.white, border: `1px solid ${T.cardBorder}`, borderTop: `3px solid ${accentStatus}`, borderRadius: 10, padding: '16px 18px' }}>
+            <p style={{ fontSize: 10, fontWeight: 700, color: T.carbon, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 6 }}>Estado API</p>
+            <p style={{ fontSize: 22, fontWeight: 700, color: accentStatus, lineHeight: 1 }}>
+              {loading ? '—' : isRateLimited ? 'Rate limited' : 'Disponible'}
+            </p>
+            <p style={{ fontSize: 10, color: T.textMuted, marginTop: 4 }}>llama-3.3-70b-versatile</p>
+          </div>
+
+          <div style={{ background: T.white, border: `1px solid ${T.cardBorder}`, borderTop: `3px solid ${T.blue}`, borderRadius: 10, padding: '16px 18px' }}>
+            <p style={{ fontSize: 10, fontWeight: 700, color: T.carbon, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 6 }}>Tokens usados hoy</p>
+            <p style={{ fontSize: 28, fontWeight: 700, color: T.navy, lineHeight: 1 }}>{loading ? '—' : used.toLocaleString('es-MX')}</p>
+            <p style={{ fontSize: 10, color: T.textMuted, marginTop: 4 }}>de {limit.toLocaleString('es-MX')} limite diario</p>
+          </div>
+
+          <div style={{ background: T.white, border: `1px solid ${T.cardBorder}`, borderTop: `3px solid ${T.teal}`, borderRadius: 10, padding: '16px 18px' }}>
+            <p style={{ fontSize: 10, fontWeight: 700, color: T.carbon, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 6 }}>Tokens disponibles</p>
+            <p style={{ fontSize: 28, fontWeight: 700, color: T.navy, lineHeight: 1 }}>{loading ? '—' : available.toLocaleString('es-MX')}</p>
+            <p style={{ fontSize: 10, color: T.textMuted, marginTop: 4 }}>{loading ? '' : `${pct}% consumido`}</p>
+          </div>
+
+          <div style={{ background: T.white, border: `1px solid ${T.cardBorder}`, borderTop: `3px solid ${isRateLimited ? '#C05621' : T.teal}`, borderRadius: 10, padding: '16px 18px' }}>
+            <p style={{ fontSize: 10, fontWeight: 700, color: T.carbon, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 6 }}>Reset en</p>
+            {loading ? (
+              <p style={{ fontSize: 28, fontWeight: 700, color: T.navy, lineHeight: 1 }}>—</p>
+            ) : isRateLimited ? (
+              <p style={{ fontSize: 22, fontWeight: 700, color: '#C05621', lineHeight: 1, fontFamily: 'monospace' }}>{fmtCountdown(countdown)}</p>
+            ) : (
+              <p style={{ fontSize: 28, fontWeight: 700, color: T.teal, lineHeight: 1 }}>OK</p>
+            )}
+            <p style={{ fontSize: 10, color: T.textMuted, marginTop: 4 }}>{isRateLimited ? 'Tiempo hasta reset' : 'Sin limite activo'}</p>
+          </div>
+        </div>
+
+        <p style={{ fontSize: 11, fontWeight: 700, color: T.carbon, textTransform: 'uppercase', letterSpacing: '0.08em', opacity: 0.5, margin: '4px 0 -4px' }}>
+          GROQ MONITOR — DEVMARK
+        </p>
+
+        <div style={{ background: T.white, border: `1px solid ${T.cardBorder}`, borderRadius: 10, padding: '20px 22px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+            <p style={{ margin: 0, fontSize: 12, fontWeight: 700, color: T.carbon, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Uso de tokens diarios</p>
+            <p style={{ margin: 0, fontSize: 13, fontWeight: 700, color: barColor }}>{pct}%</p>
+          </div>
+          <div style={{ width: '100%', height: 10, borderRadius: 6, background: T.cardBorder, overflow: 'hidden' }}>
+            <div style={{ height: '100%', width: `${pct}%`, background: barColor, borderRadius: 6, transition: 'width 0.4s ease' }} />
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 8 }}>
+            <p style={{ margin: 0, fontSize: 10, color: T.textMuted }}>{used.toLocaleString('es-MX')} usados</p>
+            <p style={{ margin: 0, fontSize: 10, color: T.textMuted }}>{limit.toLocaleString('es-MX')} limite</p>
+          </div>
+        </div>
+
+        <div className="detail-grid">
+          {[
+            { label: 'Ultimo uso',         value: fmtTime(stats?.last_updated    ?? null), accent: T.blue    },
+            { label: 'Rate limited a las', value: fmtTime(stats?.rate_limited_at ?? null), accent: '#C05621' },
+            { label: 'Reset a las',        value: fmtTime(stats?.reset_at        ?? null), accent: T.teal    },
+            { label: 'Requests',           value: isRateLimited ? 'Bloqueado' : 'Activo',  accent: accentStatus },
+          ].map(({ label, value, accent }) => (
+            <div key={label} style={{
+              background: T.white, border: `1px solid ${T.cardBorder}`,
+              borderLeft: `3px solid ${accent}`,
+              borderRadius: 10, padding: '16px 18px',
+            }}>
+              <p style={{ margin: '0 0 6px', fontSize: 10, fontWeight: 700, color: T.carbon, textTransform: 'uppercase', letterSpacing: '0.06em' }}>{label}</p>
+              <p style={{ margin: 0, fontSize: 18, fontWeight: 700, color: T.navy }}>{value}</p>
+            </div>
+          ))}
+        </div>
+
+        <footer style={{ borderTop: '1px solid rgba(255,255,255,0.06)', marginTop: 16, padding: '28px 0', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10 }}>
+          <img src="/logos/horizontal/dev-hori-1.png?v=2" alt="devmark" style={{ height: 62, width: 'auto', objectFit: 'contain' }} />
+          <p style={{ fontSize: 15, color: T.textMuted, margin: 0, fontWeight: 500 }}>© {new Date().getFullYear()} devmark</p>
         </footer>
+
       </div>
     </div>
   )
