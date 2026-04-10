@@ -324,23 +324,16 @@ body {
   .propuesta-screen { display: none !important; }
   .propuesta-print  { display: block !important; }
 
-  /* Tamaño carta, márgenes: 2.5cm top/bottom, 3cm left/right             */
-  /* El área de encabezado se reserva con margin-top en .print-body         */
+  /* Tamaño carta. margin:0 elimina la fecha, título y URL que Chrome añade */
   @page {
     size: letter portrait;
-    margin: 25mm 30mm 25mm 30mm;
+    margin: 0;
   }
 
-  /* ── Encabezado repetido en cada página ─────────────────────────────── */
-  /* Chrome/Edge/Firefox soportan position:running() con nivel limitado;   */
-  /* usamos la técnica de encabezado fijo en el @page area a través de     */
-  /* un elemento con position:fixed que el motor de impresión repite.      */
+  /* ── Encabezado: flujo normal, al inicio del documento ─────────────── */
+  /* Sin position:fixed — eso lo enviaba al fondo y creaba página en blanco */
   .print-running-header {
-    position: fixed;
-    top: -20mm;           /* dentro del margen superior de @page            */
-    left: 0;
-    right: 0;
-    height: 18mm;
+    padding: 18mm 30mm 8mm 30mm;
   }
 
   /* ── Cuerpo del documento: flujo natural ────────────────────────────── */
@@ -348,6 +341,7 @@ body {
     display: flex;
     flex-direction: column;
     gap: 12pt;
+    padding: 0 30mm 25mm 30mm;
   }
 
   /* Cada bloque de contenido no se corta a la mitad de página */
