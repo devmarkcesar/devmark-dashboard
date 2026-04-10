@@ -25,8 +25,11 @@ export interface Propuesta {
   dias_estimados?:               { nivel: number; dias_base: number; dias_ajustado: number; justificacion: string }
 }
 
-function fmt(n: number) {
-  return n?.toLocaleString('es-MX', { style: 'currency', currency: 'MXN', maximumFractionDigits: 0 })
+function fmt(n: number | string | undefined | null) {
+  if (n == null) return '$0'
+  const num = typeof n === 'string' ? parseFloat((n as string).replace(/,/g, '')) : n
+  if (isNaN(num as number)) return '$0'
+  return (num as number).toLocaleString('es-MX', { style: 'currency', currency: 'MXN', maximumFractionDigits: 0 })
 }
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
@@ -119,9 +122,9 @@ export function ProspuestaView({ p, businessName }: { p: Propuesta; businessName
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 12 }}>
           <CostCard label="Inversión"       value={`${fmt(p.costo_minimo)} – ${fmt(p.costo_maximo)}`}         accent={T.navy} />
-          <CostCard label="Anticipo (50%)"  value={fmt(p.anticipo || Math.round(p.costo_minimo * 0.5))}       accent={T.blue} />
-          <CostCard label="Infraestructura" value={`${fmt(p.costo_infraestructura_mensual)}/mes`}             accent={T.teal} />
-          <CostCard label="Tiempo estimado" value={`${p.timeline_semanas} semanas`}                          accent="#BA7517" />
+          <CostCard label="Anticipo (50%)"  value={fmt(Math.round((Number(p.costo_minimo) || 0) * 0.5))}       accent={T.blue} />
+          <CostCard label="Infraestructura" value={`${fmt(p.costo_infraestructura_mensual ?? 0)}/mes`}         accent={T.teal} />
+          <CostCard label="Tiempo estimado" value={p.timeline_semanas ? `${p.timeline_semanas} semanas` : '—'} accent="#BA7517" />
         </div>
 
         {p.desglose_costos && p.desglose_costos.length > 0 && (
@@ -198,33 +201,34 @@ export function ProspuestaView({ p, businessName }: { p: Propuesta; businessName
 
         <Section title="🛡 Garantía y soporte">
           <p style={{ fontSize: 13, color: T.carbon, lineHeight: 1.6 }}>
-            {p.garantia_dias} días de garantía cubre errores de funcionamiento únicamente. Cambios de diseño o alcance: $300 MXN/hora desde el día 1 de entrega.
+            La garantía cubre únicamente errores de código, funcionalidades pendientes del alcance acordado y fallas de sistema. No incluye cambios de diseño, nuevas funcionalidades ni contenido modificado tras la entrega.
           </p>
           {p.notas_adicionales && (
             <p style={{ fontSize: 13, color: T.textMuted, marginTop: 8, fontStyle: 'italic' }}>{p.notas_adicionales}</p>
           )}
         </Section>
 
-        {p.iva_incluido === false && p.iva_porcentaje && (() => {
-          const base    = p.costo_minimo
-          const iva     = Math.round(base * (p.iva_porcentaje / 100))
+        {(() => {
+          const base    = Number(p.costo_minimo) || 0
+          const ivaPct  = Number(p.iva_porcentaje) || 16
+          const iva     = Math.round(base * (ivaPct / 100))
           const total   = base + iva
-          const cfdi1   = Math.round((p.anticipo || base * 0.5) * 1.16)
-          const cfdi2   = Math.round((p.anticipo || base * 0.5) * 1.16)
+          const anticipo = Math.round(total * 0.5)
+          const saldo    = total - anticipo
           return (
-            <Section title="🧾 Desglose con IVA (CFDI)">
+            <Section title="🧾 Desglose">
               <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, color: T.carbon }}><span>Subtotal (sin IVA)</span><strong>{fmt(base)}</strong></div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, color: T.carbon }}><span>IVA {p.iva_porcentaje}%</span><strong>{fmt(iva)}</strong></div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, color: T.carbon }}><span>IVA {ivaPct}%</span><strong>{fmt(iva)}</strong></div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 14, color: T.navy, borderTop: `1px solid ${T.cardBorder}`, paddingTop: 6 }}><span><b>Total con IVA</b></span><strong>{fmt(total)}</strong></div>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginTop: 4 }}>
                   <div style={{ background: 'rgba(24,95,165,0.06)', borderRadius: 8, padding: '8px 12px' }}>
-                    <p style={{ fontSize: 10, color: T.textMuted, margin: '0 0 2px', textTransform: 'uppercase' }}>CFDI Anticipo (50%)</p>
-                    <p style={{ fontSize: 14, fontWeight: 800, color: T.blue, margin: 0 }}>{fmt(cfdi1)}</p>
+                    <p style={{ fontSize: 10, color: T.textMuted, margin: '0 0 2px', textTransform: 'uppercase' }}>Anticipo al iniciar (50%)</p>
+                    <p style={{ fontSize: 14, fontWeight: 800, color: T.blue, margin: 0 }}>{fmt(anticipo)}</p>
                   </div>
                   <div style={{ background: 'rgba(12,45,78,0.06)', borderRadius: 8, padding: '8px 12px' }}>
-                    <p style={{ fontSize: 10, color: T.textMuted, margin: '0 0 2px', textTransform: 'uppercase' }}>CFDI Saldo (50%)</p>
-                    <p style={{ fontSize: 14, fontWeight: 800, color: T.navy, margin: 0 }}>{fmt(cfdi2)}</p>
+                    <p style={{ fontSize: 10, color: T.textMuted, margin: '0 0 2px', textTransform: 'uppercase' }}>Saldo al entregar (50%)</p>
+                    <p style={{ fontSize: 14, fontWeight: 800, color: T.navy, margin: 0 }}>{fmt(saldo)}</p>
                   </div>
                 </div>
               </div>
@@ -232,20 +236,9 @@ export function ProspuestaView({ p, businessName }: { p: Propuesta; businessName
           )
         })()}
 
-        <div style={{ background: T.bone, border: `1px solid ${T.cardBorder}`, borderRadius: 10, padding: '16px 20px' }}>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 10 }}>
-            <div style={{ background: '#fff', border: `1px solid ${T.cardBorder}`, borderRadius: 8, padding: '10px 14px' }}>
-              <p style={{ fontSize: 10, color: T.textMuted, textTransform: 'uppercase', letterSpacing: '0.07em', margin: '0 0 3px' }}>Anticipo al iniciar (50%)</p>
-              <p style={{ fontSize: 15, fontWeight: 800, color: T.blue, margin: 0 }}>{fmt(p.anticipo || Math.round(p.costo_minimo * 0.5))}</p>
-            </div>
-            <div style={{ background: '#fff', border: `1px solid ${T.cardBorder}`, borderRadius: 8, padding: '10px 14px' }}>
-              <p style={{ fontSize: 10, color: T.textMuted, textTransform: 'uppercase', letterSpacing: '0.07em', margin: '0 0 3px' }}>Saldo al entregar (50%)</p>
-              <p style={{ fontSize: 15, fontWeight: 800, color: T.navy, margin: 0 }}>{fmt(p.anticipo || Math.round(p.costo_minimo * 0.5))}</p>
-            </div>
-          </div>
+        <div style={{ background: T.bone, border: `1px solid ${T.cardBorder}`, borderRadius: 10, padding: '14px 20px' }}>
           <p style={{ fontSize: 12, color: T.textMuted, margin: 0, lineHeight: 1.6 }}>
-            Vigencia de esta propuesta: <strong>15 días naturales</strong>. Los precios pueden variar si el alcance del proyecto es modificado por el cliente.
-            {p.iva_incluido === false ? ' Precios en MXN sin IVA. El 16% será desglosado en el CFDI al momento de cada pago.' : ''}{' '}
+            Vigencia de esta propuesta: <strong>15 días naturales</strong>. Los precios pueden variar si el alcance del proyecto es modificado por el cliente. Precios en MXN. IVA 16% desglosado al momento de cada pago.{' '}
             devmark · Guadalajara, Jalisco, México · devmark.mx
           </p>
         </div>
@@ -289,9 +282,9 @@ export function ProspuestaView({ p, businessName }: { p: Propuesta; businessName
           <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10 }}>
               <CostCard label="Inversión"       value={`${fmt(p.costo_minimo)} – ${fmt(p.costo_maximo)}`}         accent={T.navy} />
-              <CostCard label="Anticipo (50%)"  value={fmt(p.anticipo || Math.round(p.costo_minimo * 0.5))}       accent={T.blue} />
-              <CostCard label="Infraestructura" value={`${fmt(p.costo_infraestructura_mensual)}/mes`}             accent={T.teal} />
-              <CostCard label="Tiempo estimado" value={`${p.timeline_semanas} semanas`}                          accent="#BA7517" />
+              <CostCard label="Anticipo (50%)"  value={fmt(Math.round((Number(p.costo_minimo) || 0) * 0.5))}       accent={T.blue} />
+              <CostCard label="Infraestructura" value={`${fmt(p.costo_infraestructura_mensual ?? 0)}/mes`}         accent={T.teal} />
+              <CostCard label="Tiempo estimado" value={p.timeline_semanas ? `${p.timeline_semanas} semanas` : '—'} accent="#BA7517" />
             </div>
             {p.desglose_costos && p.desglose_costos.length > 0 && (
               <Section title="💰 Desglose de costos">
@@ -375,32 +368,33 @@ export function ProspuestaView({ p, businessName }: { p: Propuesta; businessName
             </Section>
             <Section title="🛡 Garantía y soporte">
               <p style={{ fontSize: 13, color: T.carbon, lineHeight: 1.6 }}>
-                {p.garantia_dias} días de garantía cubre errores de funcionamiento únicamente. Cambios de diseño o alcance: $300 MXN/hora desde el día 1 de entrega.
+                La garantía cubre únicamente errores de código, funcionalidades pendientes del alcance acordado y fallas de sistema. No incluye cambios de diseño, nuevas funcionalidades ni contenido modificado tras la entrega.
               </p>
               {p.notas_adicionales && (
                 <p style={{ fontSize: 13, color: T.textMuted, marginTop: 8, fontStyle: 'italic' }}>{p.notas_adicionales}</p>
               )}
             </Section>
-            {p.iva_incluido === false && p.iva_porcentaje && (() => {
-              const base  = p.costo_minimo
-              const iva   = Math.round(base * (p.iva_porcentaje / 100))
-              const total = base + iva
-              const cfdi1 = Math.round((p.anticipo || base * 0.5) * 1.16)
-              const cfdi2 = Math.round((p.anticipo || base * 0.5) * 1.16)
+            {(() => {
+              const base     = Number(p.costo_minimo) || 0
+              const ivaPct   = Number(p.iva_porcentaje) || 16
+              const iva      = Math.round(base * (ivaPct / 100))
+              const total    = base + iva
+              const anticipo = Math.round(total * 0.5)
+              const saldo    = total - anticipo
               return (
-                <Section title="🧾 Desglose con IVA (CFDI)">
+                <Section title="🧾 Desglose">
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: T.carbon }}><span>Subtotal (sin IVA)</span><strong>{fmt(base)}</strong></div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: T.carbon }}><span>IVA {p.iva_porcentaje}%</span><strong>{fmt(iva)}</strong></div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: T.carbon }}><span>IVA {ivaPct}%</span><strong>{fmt(iva)}</strong></div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, color: T.navy, borderTop: `1px solid ${T.cardBorder}`, paddingTop: 5 }}><span><b>Total con IVA</b></span><strong>{fmt(total)}</strong></div>
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginTop: 4 }}>
                       <div style={{ background: 'rgba(24,95,165,0.06)', borderRadius: 8, padding: '7px 10px' }}>
-                        <p style={{ fontSize: 9, color: T.textMuted, margin: '0 0 2px', textTransform: 'uppercase' }}>CFDI Anticipo (50%)</p>
-                        <p style={{ fontSize: 13, fontWeight: 800, color: T.blue, margin: 0 }}>{fmt(cfdi1)}</p>
+                        <p style={{ fontSize: 9, color: T.textMuted, margin: '0 0 2px', textTransform: 'uppercase' }}>Anticipo al iniciar (50%)</p>
+                        <p style={{ fontSize: 13, fontWeight: 800, color: T.blue, margin: 0 }}>{fmt(anticipo)}</p>
                       </div>
                       <div style={{ background: 'rgba(12,45,78,0.06)', borderRadius: 8, padding: '7px 10px' }}>
-                        <p style={{ fontSize: 9, color: T.textMuted, margin: '0 0 2px', textTransform: 'uppercase' }}>CFDI Saldo (50%)</p>
-                        <p style={{ fontSize: 13, fontWeight: 800, color: T.navy, margin: 0 }}>{fmt(cfdi2)}</p>
+                        <p style={{ fontSize: 9, color: T.textMuted, margin: '0 0 2px', textTransform: 'uppercase' }}>Saldo al entregar (50%)</p>
+                        <p style={{ fontSize: 13, fontWeight: 800, color: T.navy, margin: 0 }}>{fmt(saldo)}</p>
                       </div>
                     </div>
                   </div>
@@ -408,20 +402,9 @@ export function ProspuestaView({ p, businessName }: { p: Propuesta; businessName
               )
             })()}
 
-            <div style={{ background: T.bone, border: `1px solid ${T.cardBorder}`, borderRadius: 10, padding: '16px 20px' }}>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 10 }}>
-                <div style={{ background: '#fff', border: `1px solid ${T.cardBorder}`, borderRadius: 8, padding: '10px 14px' }}>
-                  <p style={{ fontSize: 10, color: T.textMuted, textTransform: 'uppercase', letterSpacing: '0.07em', margin: '0 0 3px' }}>Anticipo al iniciar (50%)</p>
-                  <p style={{ fontSize: 15, fontWeight: 800, color: T.blue, margin: 0 }}>{fmt(p.anticipo || Math.round(p.costo_minimo * 0.5))}</p>
-                </div>
-                <div style={{ background: '#fff', border: `1px solid ${T.cardBorder}`, borderRadius: 8, padding: '10px 14px' }}>
-                  <p style={{ fontSize: 10, color: T.textMuted, textTransform: 'uppercase', letterSpacing: '0.07em', margin: '0 0 3px' }}>Saldo al entregar (50%)</p>
-                  <p style={{ fontSize: 15, fontWeight: 800, color: T.navy, margin: 0 }}>{fmt(p.anticipo || Math.round(p.costo_minimo * 0.5))}</p>
-                </div>
-              </div>
-              <p style={{ fontSize: 12, color: T.textMuted, margin: 0, lineHeight: 1.6 }}>
-                Vigencia de esta propuesta: <strong>15 días naturales</strong>. Los precios pueden variar si el alcance del proyecto es modificado por el cliente.
-                {p.iva_incluido === false ? ' Precios en MXN sin IVA. El 16% será desglosado en el CFDI al momento de cada pago.' : ''}{' '}
+            <div style={{ background: T.bone, border: `1px solid ${T.cardBorder}`, borderRadius: 10, padding: '14px 20px' }}>
+              <p style={{ fontSize: 11, color: T.textMuted, margin: 0, lineHeight: 1.6 }}>
+                Vigencia de esta propuesta: <strong>15 días naturales</strong>. Los precios pueden variar si el alcance del proyecto es modificado por el cliente. Precios en MXN. IVA 16% desglosado al momento de cada pago.{' '}
                 devmark · Guadalajara, Jalisco, México · devmark.mx
               </p>
             </div>
