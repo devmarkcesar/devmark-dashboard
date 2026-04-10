@@ -115,23 +115,26 @@ export default function GroqPage() {
 
       <div style={{
         flex: 1, minWidth: 0,
-        padding: '28px 24px',
+        padding: '24px 32px',
         overflowY: 'auto',
         maxWidth: 680,
         margin: '0 auto',
         width: '100%',
+        background: '#F1EFE8',
+        display: 'flex',
+        flexDirection: 'column',
       }}>
 
         {/* Header */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 28 }}>
           <div>
-            <h1 style={{ margin: 0, fontSize: 22, fontWeight: 700, color: T.bone }}>Groq Monitor</h1>
-            <p style={{ margin: '4px 0 0', fontSize: 12, color: T.textMuted }}>llama-3.3-70b-versatile</p>
+            <h1 style={{ margin: 0, fontSize: 22, fontWeight: 700, color: '#1a2a3a' }}>Groq Monitor</h1>
+            <p style={{ margin: '4px 0 0', fontSize: 12, color: '#6B7280' }}>llama-3.3-70b-versatile</p>
           </div>
           <button
             onClick={fetchStats}
             style={{
-              background: 'none', border: `1px solid rgba(255,255,255,0.12)`,
+              background: 'none', border: `1px solid rgba(0,0,0,0.15)`,
               borderRadius: 8, padding: '6px 14px',
               color: T.teal, fontSize: 12, fontWeight: 600, cursor: 'pointer',
             }}
@@ -141,9 +144,13 @@ export default function GroqPage() {
         </div>
 
         {loading ? (
-          <p style={{ color: T.textMuted, fontSize: 13 }}>Cargando...</p>
+          <p style={{ color: '#6B7280', fontSize: 13 }}>Cargando...</p>
         ) : error ? (
-          <p style={{ color: '#E74C3C', fontSize: 13 }}>{error}</p>
+          <>
+            <div style={{ background: 'rgba(231,76,60,0.08)', border: '1px solid rgba(231,76,60,0.25)', borderRadius: 10, padding: '12px 16px', marginBottom: 20 }}>
+              <p style={{ margin: 0, color: '#C0392B', fontSize: 13, fontWeight: 600 }}>⚠️ {error} — reinicia devmark-core en el servidor</p>
+            </div>
+          </>
         ) : (
           <>
             {/* Status badge */}
@@ -151,16 +158,16 @@ export default function GroqPage() {
               display: 'flex', alignItems: 'center', gap: 10,
               padding: '14px 18px',
               borderRadius: 12,
-              background: isRateLimited ? 'rgba(231,76,60,0.1)' : 'rgba(29,158,117,0.1)',
-              border: `1px solid ${isRateLimited ? 'rgba(231,76,60,0.3)' : 'rgba(29,158,117,0.3)'}`,
+              background: isRateLimited ? 'rgba(231,76,60,0.08)' : 'rgba(29,158,117,0.08)',
+              border: `1px solid ${isRateLimited ? 'rgba(231,76,60,0.25)' : 'rgba(29,158,117,0.25)'}`,
               marginBottom: 24,
             }}>
               <span style={{ fontSize: 20 }}>{isRateLimited ? '🔴' : '🟢'}</span>
               <div>
-                <p style={{ margin: 0, fontSize: 14, fontWeight: 700, color: isRateLimited ? '#E74C3C' : T.teal }}>
+                <p style={{ margin: 0, fontSize: 14, fontWeight: 700, color: isRateLimited ? '#C0392B' : T.teal }}>
                   {isRateLimited ? 'Rate limited' : 'Disponible'}
                 </p>
-                <p style={{ margin: 0, fontSize: 11, color: T.textMuted }}>
+                <p style={{ margin: 0, fontSize: 11, color: '#6B7280' }}>
                   {isRateLimited
                     ? `Resetea en ${fmtCountdown(countdown)}`
                     : 'La API de Groq está lista para recibir solicitudes'}
@@ -180,13 +187,14 @@ export default function GroqPage() {
 
             {/* Tokens progress */}
             <div style={{
-              background: T.navyDark, borderRadius: 12,
+              background: '#fff', borderRadius: 12,
               padding: '20px 20px 18px',
-              border: '1px solid rgba(255,255,255,0.07)',
+              border: '1px solid rgba(0,0,0,0.08)',
               marginBottom: 20,
+              boxShadow: '0 1px 4px rgba(0,0,0,0.06)',
             }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 10 }}>
-                <p style={{ margin: 0, fontSize: 13, fontWeight: 600, color: T.bone }}>Tokens/día consumidos</p>
+                <p style={{ margin: 0, fontSize: 13, fontWeight: 600, color: '#1a2a3a' }}>Tokens/día consumidos</p>
                 <p style={{ margin: 0, fontSize: 13, fontWeight: 700, color: barColor }}>
                   {pct}%
                 </p>
@@ -195,7 +203,7 @@ export default function GroqPage() {
               {/* Barra */}
               <div style={{
                 width: '100%', height: 10, borderRadius: 6,
-                background: 'rgba(255,255,255,0.08)', overflow: 'hidden',
+                background: 'rgba(0,0,0,0.08)', overflow: 'hidden',
               }}>
                 <div style={{
                   height: '100%', width: `${pct}%`,
@@ -206,16 +214,16 @@ export default function GroqPage() {
               </div>
 
               <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 8 }}>
-                <p style={{ margin: 0, fontSize: 11, color: T.textMuted }}>
+                <p style={{ margin: 0, fontSize: 11, color: '#6B7280' }}>
                   {used.toLocaleString('es-MX')} usados
                 </p>
-                <p style={{ margin: 0, fontSize: 11, color: T.textMuted }}>
+                <p style={{ margin: 0, fontSize: 11, color: '#6B7280' }}>
                   {limit.toLocaleString('es-MX')} límite
                 </p>
               </div>
 
-              <p style={{ margin: '10px 0 0', fontSize: 11, color: T.textMuted }}>
-                Disponibles: <span style={{ color: T.bone, fontWeight: 600 }}>
+              <p style={{ margin: '10px 0 0', fontSize: 11, color: '#6B7280' }}>
+                Disponibles: <span style={{ color: '#1a2a3a', fontWeight: 600 }}>
                   {(limit - used).toLocaleString('es-MX')}
                 </span> tokens
               </p>
@@ -231,11 +239,12 @@ export default function GroqPage() {
                 { label: 'Rate limited a las',  value: fmtTime(stats?.rate_limited_at ?? null) },
               ].map(({ label, value }) => (
                 <div key={label} style={{
-                  background: T.navyDark, borderRadius: 10, padding: '14px 16px',
-                  border: '1px solid rgba(255,255,255,0.07)',
+                  background: '#fff', borderRadius: 10, padding: '14px 16px',
+                  border: '1px solid rgba(0,0,0,0.08)',
+                  boxShadow: '0 1px 4px rgba(0,0,0,0.06)',
                 }}>
-                  <p style={{ margin: '0 0 4px', fontSize: 10, color: T.textMuted, textTransform: 'uppercase', letterSpacing: '0.08em' }}>{label}</p>
-                  <p style={{ margin: 0, fontSize: 14, fontWeight: 600, color: T.bone }}>{value}</p>
+                  <p style={{ margin: '0 0 4px', fontSize: 10, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.08em' }}>{label}</p>
+                  <p style={{ margin: 0, fontSize: 14, fontWeight: 600, color: '#1a2a3a' }}>{value}</p>
                 </div>
               ))}
             </div>
@@ -243,15 +252,26 @@ export default function GroqPage() {
             {/* Reset timestamp */}
             {stats?.reset_at && (
               <div style={{
-                background: T.navyDark, borderRadius: 10, padding: '14px 16px',
-                border: '1px solid rgba(255,255,255,0.07)',
+                background: '#fff', borderRadius: 10, padding: '14px 16px',
+                border: '1px solid rgba(0,0,0,0.08)',
+                boxShadow: '0 1px 4px rgba(0,0,0,0.06)',
               }}>
-                <p style={{ margin: '0 0 4px', fontSize: 10, color: T.textMuted, textTransform: 'uppercase', letterSpacing: '0.08em' }}>Reset a las</p>
-                <p style={{ margin: 0, fontSize: 14, fontWeight: 600, color: T.bone }}>{fmtTime(stats.reset_at)}</p>
+                <p style={{ margin: '0 0 4px', fontSize: 10, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Reset a las</p>
+                <p style={{ margin: 0, fontSize: 14, fontWeight: 600, color: '#1a2a3a' }}>{fmtTime(stats.reset_at)}</p>
               </div>
             )}
           </>
         )}
+
+        {/* Footer igual al dashboard */}
+        <footer style={{ borderTop: '1px solid rgba(0,0,0,0.07)', marginTop: 'auto', paddingTop: 28, padding: '28px 0', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10 }}>
+          <img
+            src="/logos/horizontal/dev-hori-1.png?v=2"
+            alt="devmark"
+            style={{ height: 62, width: 'auto', objectFit: 'contain' }}
+          />
+          <p style={{ fontSize: 15, color: '#6B7280', margin: 0, fontWeight: 500 }}>© {new Date().getFullYear()} devmark</p>
+        </footer>
       </div>
     </div>
   )
