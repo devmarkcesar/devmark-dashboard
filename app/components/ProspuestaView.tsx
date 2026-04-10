@@ -256,59 +256,66 @@ export function ProspuestaView({ p, businessName }: { p: Propuesta; businessName
         </div>
       </div>
 
-      {/* ── VISTA IMPRESIÓN: páginas explícitas con encabezado en cada hoja ── */}
-      {/* Oculto en pantalla via CSS (.propuesta-print), visible solo en @media print */}
+      {/* ── VISTA IMPRESIÓN: flujo natural — el browser pagina automáticamente ── */}
+      {/* Oculto en pantalla via CSS (.propuesta-print), visible solo en @media print  */}
       <div className="propuesta-print">
 
-        {/* ── HOJA 1: Propuesta para + Diagnóstico + Solución propuesta ──── */}
-        <div className="print-page">
+        {/* Encabezado — se repite en cada página vía CSS (position: running) */}
+        <div className="print-running-header">
           <PrintHeader fecha={fechaFormateada} hora={horaFormateada} />
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-            <div style={{ background: T.navy, borderRadius: 10, padding: '18px 22px', color: '#fff' }}>
-              <div style={{ fontSize: 10, opacity: 0.6, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 4 }}>Propuesta para</div>
-              <div style={{ fontSize: 20, fontWeight: 800 }}>{businessName}</div>
-              <div style={{ fontSize: 11, opacity: 0.55, marginTop: 2 }}>devmark — {fechaFormateada}</div>
-            </div>
+        </div>
+
+        {/* Contenido: fluye libremente, el browser corta donde necesite */}
+        <div className="print-body">
+
+          <div className="print-block" style={{ background: T.navy, borderRadius: 10, padding: '18px 22px', color: '#fff' }}>
+            <div style={{ fontSize: 10, opacity: 0.6, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 4 }}>Propuesta para</div>
+            <div style={{ fontSize: 20, fontWeight: 800 }}>{businessName}</div>
+            <div style={{ fontSize: 11, opacity: 0.55, marginTop: 2 }}>devmark — {fechaFormateada}</div>
+          </div>
+
+          <div className="print-block">
             <Section title="📋 Diagnóstico">
               <p style={{ fontSize: 13, color: T.carbon, lineHeight: 1.7 }}>{p.diagnostico_resumen}</p>
             </Section>
+          </div>
+
+          <div className="print-block">
             <Section title="💡 Solución propuesta">
               <p style={{ fontSize: 13, color: T.carbon, lineHeight: 1.7 }}>{p.solucion_propuesta}</p>
             </Section>
-            {p.factor_complejidad && (
-              <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '5px 12px', borderRadius: 99,
-                background: p.factor_complejidad === 'basico' ? 'rgba(29,158,117,0.1)' : p.factor_complejidad === 'estandar' ? 'rgba(24,95,165,0.1)' : 'rgba(186,117,23,0.1)',
-                border: `1px solid ${p.factor_complejidad === 'basico' ? 'rgba(29,158,117,0.25)' : p.factor_complejidad === 'estandar' ? 'rgba(24,95,165,0.25)' : 'rgba(186,117,23,0.25)'}`,
-              }}>
-                <span style={{ fontSize: 10, fontWeight: 700,
-                  color: p.factor_complejidad === 'basico' ? T.teal : p.factor_complejidad === 'estandar' ? T.blue : '#BA7517',
-                }}>Complejidad: {p.factor_complejidad === 'basico' ? 'Básico' : p.factor_complejidad === 'estandar' ? 'Estándar' : 'Premium'}</span>
-              </div>
-            )}
           </div>
-        </div>
 
-        {/* ── HOJA 2: Costos + Desglose + Stack tecnológico ── */}
-        <div className="print-page">
-          <PrintHeader fecha={fechaFormateada} hora={horaFormateada} />
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10 }}>
-              {(() => {
-                const ivaMult  = 1 + (Number(p.iva_porcentaje) || 16) / 100
-                const minTotal = Math.round((Number(p.costo_minimo) || 0) * ivaMult)
-                const maxTotal = Math.round((Number(p.costo_maximo) || 0) * ivaMult)
-                const anticipo = Math.round(minTotal * 0.5)
-                return (
-                  <>
-                    <CostCard label="Inversión (c/IVA)"  value={`${fmt(minTotal)} – ${fmt(maxTotal)}`}               accent={T.navy} />
-                    <CostCard label="Anticipo (50%)"       value={fmt(anticipo)}                                     accent={T.blue} />
-                    <CostCard label="Infraestructura"      value={`${fmt(p.costo_infraestructura_mensual ?? 0)}/mes`} accent={T.teal} />
-                    <CostCard label="Tiempo estimado"      value={p.timeline_semanas ? `${p.timeline_semanas} semanas` : '—'} accent="#BA7517" />
-                  </>
-                )
-              })()}
+          {p.factor_complejidad && (
+            <div className="print-block" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '5px 12px', borderRadius: 99,
+              background: p.factor_complejidad === 'basico' ? 'rgba(29,158,117,0.1)' : p.factor_complejidad === 'estandar' ? 'rgba(24,95,165,0.1)' : 'rgba(186,117,23,0.1)',
+              border: `1px solid ${p.factor_complejidad === 'basico' ? 'rgba(29,158,117,0.25)' : p.factor_complejidad === 'estandar' ? 'rgba(24,95,165,0.25)' : 'rgba(186,117,23,0.25)'}`,
+            }}>
+              <span style={{ fontSize: 10, fontWeight: 700,
+                color: p.factor_complejidad === 'basico' ? T.teal : p.factor_complejidad === 'estandar' ? T.blue : '#BA7517',
+              }}>Complejidad: {p.factor_complejidad === 'basico' ? 'Básico' : p.factor_complejidad === 'estandar' ? 'Estándar' : 'Premium'}</span>
             </div>
-            {p.desglose_costos && p.desglose_costos.length > 0 && (
+          )}
+
+          <div className="print-block" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10 }}>
+            {(() => {
+              const ivaMult  = 1 + (Number(p.iva_porcentaje) || 16) / 100
+              const minTotal = Math.round((Number(p.costo_minimo) || 0) * ivaMult)
+              const maxTotal = Math.round((Number(p.costo_maximo) || 0) * ivaMult)
+              const anticipo = Math.round(minTotal * 0.5)
+              return (
+                <>
+                  <CostCard label="Inversión (c/IVA)"  value={`${fmt(minTotal)} – ${fmt(maxTotal)}`}               accent={T.navy} />
+                  <CostCard label="Anticipo (50%)"       value={fmt(anticipo)}                                     accent={T.blue} />
+                  <CostCard label="Infraestructura"      value={`${fmt(p.costo_infraestructura_mensual ?? 0)}/mes`} accent={T.teal} />
+                  <CostCard label="Tiempo estimado"      value={p.timeline_semanas ? `${p.timeline_semanas} semanas` : '—'} accent="#BA7517" />
+                </>
+              )
+            })()}
+          </div>
+
+          {p.desglose_costos && p.desglose_costos.length > 0 && (
+            <div className="print-block">
               <Section title="💰 Desglose de costos">
                 <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
                   <thead>
@@ -337,14 +344,15 @@ export function ProspuestaView({ p, businessName }: { p: Propuesta; businessName
                 </table>
                 {p.soporte_recomendado && (
                   <div style={{ marginTop: 10, padding: '8px 12px', background: 'rgba(29,158,117,0.06)', border: `1px solid rgba(29,158,117,0.15)`, borderRadius: 8 }}>
-                    <p style={{ fontSize: 11, color: T.teal, fontWeight: 700, margin: '0 0 2px' }}>
-                      🛠 Soporte recomendado: {soportePrecio}
-                    </p>
+                    <p style={{ fontSize: 11, color: T.teal, fontWeight: 700, margin: '0 0 2px' }}>🛠 Soporte recomendado: {soportePrecio}</p>
                     <p style={{ fontSize: 10, color: T.textMuted, margin: 0 }}>Cambios extra: {extraRate}</p>
                   </div>
                 )}
               </Section>
-            )}
+            </div>
+          )}
+
+          <div className="print-block">
             <Section title="🛠 Stack tecnológico">
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
                 {p.stack_tecnologico?.map((tech, i) => (
@@ -353,31 +361,21 @@ export function ProspuestaView({ p, businessName }: { p: Propuesta; businessName
               </div>
             </Section>
           </div>
-        </div>
 
-        {/* ── HOJA 3: Incluye/No incluye + Plan de trabajo + Garantía + Condiciones ── */}
-        <div className="print-page">
-          <PrintHeader fecha={fechaFormateada} hora={horaFormateada} />
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
-              <Section title="✅ Qué incluye">
-                <ul style={{ paddingLeft: 18, margin: 0, display: 'flex', flexDirection: 'column', gap: 4 }}>
-                  {p.entregables?.map((e, i) => <li key={i} style={{ fontSize: 13, color: T.carbon, lineHeight: 1.5 }}>{e}</li>)}
-                </ul>
-              </Section>
-              <Section title="❌ No incluye">
-                <ul style={{ paddingLeft: 18, margin: 0, display: 'flex', flexDirection: 'column', gap: 4 }}>
-                  {p.no_incluye?.map((e, i) => <li key={i} style={{ fontSize: 13, color: T.carbon, lineHeight: 1.5 }}>{e}</li>)}
-                </ul>
-              </Section>
-            </div>
+          <div className="print-block" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+            <Section title="✅ Qué incluye">
+              <ul style={{ paddingLeft: 18, margin: 0, display: 'flex', flexDirection: 'column', gap: 4 }}>
+                {p.entregables?.map((e, i) => <li key={i} style={{ fontSize: 13, color: T.carbon, lineHeight: 1.5 }}>{e}</li>)}
+              </ul>
+            </Section>
+            <Section title="❌ No incluye">
+              <ul style={{ paddingLeft: 18, margin: 0, display: 'flex', flexDirection: 'column', gap: 4 }}>
+                {p.no_incluye?.map((e, i) => <li key={i} style={{ fontSize: 13, color: T.carbon, lineHeight: 1.5 }}>{e}</li>)}
+              </ul>
+            </Section>
           </div>
-        </div>
 
-        {/* ── HOJA 4: Plan de trabajo + Garantía + Condiciones comerciales ── */}
-        <div className="print-page print-last-page">
-          <PrintHeader fecha={fechaFormateada} hora={horaFormateada} />
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+          <div className="print-block">
             <Section title="📅 Plan de trabajo">
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                 {p.fases?.map((f, i) => (
@@ -388,6 +386,9 @@ export function ProspuestaView({ p, businessName }: { p: Propuesta; businessName
                 ))}
               </div>
             </Section>
+          </div>
+
+          <div className="print-block">
             <Section title="🛡 Garantía y soporte">
               <p style={{ fontSize: 13, color: T.carbon, lineHeight: 1.6, marginBottom: 8 }}>
                 <strong>Garantía de 30 días</strong> — La garantía cubre únicamente errores de código, funcionalidades pendientes del alcance acordado y fallas de sistema. No incluye cambios de diseño, nuevas funcionalidades ni contenido modificado tras la entrega.
@@ -398,14 +399,17 @@ export function ProspuestaView({ p, businessName }: { p: Propuesta; businessName
                 <div style={{ fontSize: 12, color: T.textMuted }}>• Renovación desde año 2: hosting + dominio según plan elegido</div>
               </div>
             </Section>
-            {(() => {
-              const base     = Number(p.costo_minimo) || 0
-              const ivaPct   = Number(p.iva_porcentaje) || 16
-              const iva      = Math.round(base * (ivaPct / 100))
-              const total    = base + iva
-              const anticipo = Math.round(total * 0.5)
-              const saldo    = total - anticipo
-              return (
+          </div>
+
+          {(() => {
+            const base     = Number(p.costo_minimo) || 0
+            const ivaPct   = Number(p.iva_porcentaje) || 16
+            const iva      = Math.round(base * (ivaPct / 100))
+            const total    = base + iva
+            const anticipo = Math.round(total * 0.5)
+            const saldo    = total - anticipo
+            return (
+              <div className="print-block">
                 <Section title="🧾 Desglose">
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: T.carbon }}><span>Subtotal (sin IVA)</span><strong>{fmt(base)}</strong></div>
@@ -423,18 +427,18 @@ export function ProspuestaView({ p, businessName }: { p: Propuesta; businessName
                     </div>
                   </div>
                 </Section>
-              )
-            })()}
+              </div>
+            )
+          })()}
 
-            <div style={{ background: T.bone, border: `1px solid ${T.cardBorder}`, borderRadius: 10, padding: '14px 20px' }}>
-              <p style={{ fontSize: 11, color: T.textMuted, margin: 0, lineHeight: 1.6 }}>
-                Vigencia de esta propuesta: <strong>15 días naturales</strong>. Los precios pueden variar si el alcance del proyecto es modificado por el cliente. Precios en MXN. IVA 16% desglosado al momento de cada pago.{' '}
-                devmark · Guadalajara, Jalisco, México · devmark.mx
-              </p>
-            </div>
+          <div className="print-block print-footer-block" style={{ background: T.bone, border: `1px solid ${T.cardBorder}`, borderRadius: 10, padding: '14px 20px' }}>
+            <p style={{ fontSize: 11, color: T.textMuted, margin: 0, lineHeight: 1.6 }}>
+              Vigencia de esta propuesta: <strong>15 días naturales</strong>. Los precios pueden variar si el alcance del proyecto es modificado por el cliente. Precios en MXN. IVA 16% desglosado al momento de cada pago.{' '}
+              devmark · Guadalajara, Jalisco, México · devmark.mx
+            </p>
           </div>
-        </div>
 
+        </div>
       </div>
     </>
   )

@@ -324,30 +324,46 @@ body {
   .propuesta-screen { display: none !important; }
   .propuesta-print  { display: block !important; }
 
-  /* Tamaño carta estándar, sin márgenes de @page (los márgenes van en .print-page via padding) */
+  /* Tamaño carta, márgenes: 2.5cm top/bottom, 3cm left/right             */
+  /* El área de encabezado se reserva con margin-top en .print-body         */
   @page {
     size: letter portrait;
-    margin: 0;
+    margin: 25mm 30mm 25mm 30mm;
   }
 
-  /* Cada hoja del PDF — márgenes Carta: 2.5 cm arriba/abajo, 3 cm izq/der */
-  .print-page {
-    padding: 25mm 30mm 25mm 30mm;
-    box-sizing: border-box;
-    background: #fff;
-    break-after: page;
-    page-break-after: always;
-    width: 100%;
+  /* ── Encabezado repetido en cada página ─────────────────────────────── */
+  /* Chrome/Edge/Firefox soportan position:running() con nivel limitado;   */
+  /* usamos la técnica de encabezado fijo en el @page area a través de     */
+  /* un elemento con position:fixed que el motor de impresión repite.      */
+  .print-running-header {
+    position: fixed;
+    top: -20mm;           /* dentro del margen superior de @page            */
+    left: 0;
+    right: 0;
+    height: 18mm;
   }
 
-  /* Última hoja: sin salto al final */
-  .print-page.print-last-page {
-    break-after: auto;
-    page-break-after: auto;
+  /* ── Cuerpo del documento: flujo natural ────────────────────────────── */
+  .print-body {
+    display: flex;
+    flex-direction: column;
+    gap: 12pt;
   }
 
-  /* Bloques internos: evitar cortes a la mitad de un elemento */
-  .propuesta-print .print-page > div > * {
+  /* Cada bloque de contenido no se corta a la mitad de página */
+  .print-block {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  /* Grid de 2 columnas (incluye/no incluye) — evitar corte */
+  .print-block[style*="grid-template-columns: 1fr 1fr"] {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  /* Tablas: evitar corte de filas */
+  tr {
     break-inside: avoid;
     page-break-inside: avoid;
   }
