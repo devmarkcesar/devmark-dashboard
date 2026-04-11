@@ -131,7 +131,7 @@ export function ProspuestaView({ p, businessName }: { p: Propuesta; businessName
                 <CostCard label="Inversión (c/IVA)"  value={`${fmt(minTotal)} – ${fmt(maxTotal)}`}              accent={T.navy} />
                 <CostCard label="Anticipo (50%)"       value={fmt(anticipo)}                                    accent={T.blue} />
                 <CostCard label="Infraestructura"      value={(p.costo_infraestructura_mensual ?? 0) === 0 ? 'Incluido año 1' : `${fmt(p.costo_infraestructura_mensual)}/mes`} accent={T.teal} />
-                <CostCard label="Tiempo estimado"      value={p.timeline_semanas ? `${Math.min(p.timeline_semanas, 7)} semanas` : '—'} accent="#BA7517" />
+                <CostCard label="Tiempo estimado"      value={p.dias_estimados?.dias_ajustado ? `${p.dias_estimados.dias_ajustado} días hábiles` : p.timeline_semanas ? `${Math.min(p.timeline_semanas, 7)} semanas` : '—'} accent="#BA7517" />
               </>
             )
           })()}
@@ -308,7 +308,7 @@ export function ProspuestaView({ p, businessName }: { p: Propuesta; businessName
                   <CostCard label="Inversión (c/IVA)"  value={`${fmt(minTotal)} – ${fmt(maxTotal)}`}               accent={T.navy} />
                   <CostCard label="Anticipo (50%)"       value={fmt(anticipo)}                                     accent={T.blue} />
                   <CostCard label="Infraestructura"      value={(p.costo_infraestructura_mensual ?? 0) === 0 ? 'Incluido año 1' : `${fmt(p.costo_infraestructura_mensual)}/mes`} accent={T.teal} />
-                  <CostCard label="Tiempo estimado"      value={p.timeline_semanas ? `${Math.min(p.timeline_semanas, 7)} semanas` : '—'} accent="#BA7517" />
+                  <CostCard label="Tiempo estimado"      value={p.dias_estimados?.dias_ajustado ? `${p.dias_estimados.dias_ajustado} días hábiles` : p.timeline_semanas ? `${Math.min(p.timeline_semanas, 7)} semanas` : '—'} accent="#BA7517" />
                 </>
               )
             })()}
