@@ -7,12 +7,12 @@ const CORE_SECRET  = process.env.CORE_SECRET!;
 
 export async function POST(
   _req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const session = await getServerSession(authOptions);
   if (!session) return NextResponse.json({ error: "No autenticado" }, { status: 401 });
 
-  const id = params.id;
+  const { id } = await params;
 
   const res = await fetch(`${CORE_API_URL}/diagnostico/${id}/ejecutar-mvp`, {
     method: "POST",

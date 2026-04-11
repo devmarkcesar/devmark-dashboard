@@ -8,12 +8,12 @@ const CORE_SECRET  = process.env.CORE_SECRET!;
 /** POST /api/diagnostico/[id]/documentos?tipo=documentacion|imagen */
 export async function POST(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const session = await getServerSession(authOptions);
   if (!session) return NextResponse.json({ error: "No autenticado" }, { status: 401 });
 
-  const id   = params.id;
+  const { id } = await params;
   const tipo = req.nextUrl.searchParams.get("tipo") ?? "documentacion";
 
   if (tipo !== "documentacion" && tipo !== "imagen") {
