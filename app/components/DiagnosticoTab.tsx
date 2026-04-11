@@ -1246,8 +1246,8 @@ export function DiagnosticoTab({ prospects = [] }: { prospects?: Prospect[] }) {
             )}
           </div>
 
-          {/* ── MVP Status Panel (solo propuestas aprobadas) ─────────────────── */}
-          {selected.status === 'aprobada' && (
+          {/* ── MVP Status Panel (solo propuestas aprobadas/completadas) ─────────────────── */}
+          {(selected.status === 'aprobada' || selected.status === 'completado') && (
             <MVPStatusPanel
               diagnosticoId={selected.id}
               status={{
