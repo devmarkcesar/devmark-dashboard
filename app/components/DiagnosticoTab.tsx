@@ -1125,24 +1125,30 @@ export function DiagnosticoTab({ prospects = [] }: { prospects?: Prospect[] }) {
             ← Volver al historial
           </button>
 
-          {/* Barra de acciones */}
-          <div className="diagnostico-actions" style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          {/* Badge de estado — fuera de la card */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            {(() => {
+              const st = STATUS_COLORS[selected.status] ?? STATUS_COLORS.pendiente
+              return <span style={{ fontSize: 12, fontWeight: 700, padding: '4px 12px', borderRadius: 99, background: st.bg, color: st.color }}>{st.label}</span>
+            })()}
+          </div>
 
-            {/* Fila 1: badge de estado + acciones primarias */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-              {(() => {
-                const st = STATUS_COLORS[selected.status] ?? STATUS_COLORS.pendiente
-                return <span style={{ fontSize: 12, fontWeight: 700, padding: '4px 10px', borderRadius: 99, background: st.bg, color: st.color, flexShrink: 0 }}>{st.label}</span>
-              })()}
+          {/* Card de acciones */}
+          <div className="diagnostico-actions" style={{
+            background: T.cardBg, border: `1.5px solid ${T.cardBorder}`,
+            borderRadius: 12, padding: '16px 20px',
+            display: 'flex', flexDirection: 'column', gap: 12,
+          }}>
+            {/* Acción primaria */}
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
               <button
                 onClick={() => generarMultiAgente(selected)}
                 disabled={multiLoading}
                 style={{
                   display: 'flex', alignItems: 'center', gap: 6,
                   background: T.blue, color: '#fff', border: 'none',
-                  borderRadius: 8, padding: '9px 16px', fontSize: 13, fontWeight: 700,
-                  cursor: multiLoading ? 'default' : 'pointer',
-                  opacity: multiLoading ? 0.5 : 1,
+                  borderRadius: 8, padding: '9px 18px', fontSize: 13, fontWeight: 700,
+                  cursor: multiLoading ? 'default' : 'pointer', opacity: multiLoading ? 0.5 : 1,
                 }}>
                 {multiLoading ? '⏳ Consultando agentes...' : '✨ Generar propuesta multi-agente'}
               </button>
@@ -1153,7 +1159,7 @@ export function DiagnosticoTab({ prospects = [] }: { prospects?: Prospect[] }) {
                   style={{
                     display: 'flex', alignItems: 'center', gap: 6,
                     background: T.teal, color: '#fff', border: 'none',
-                    borderRadius: 8, padding: '9px 16px', fontSize: 13, fontWeight: 700,
+                    borderRadius: 8, padding: '9px 18px', fontSize: 13, fontWeight: 700,
                     cursor: aprobarLoading ? 'wait' : 'pointer', opacity: aprobarLoading ? 0.7 : 1,
                   }}>
                   {aprobarLoading ? '⏳ Aprobando...' : '✅ Aprobar propuesta'}
@@ -1161,76 +1167,80 @@ export function DiagnosticoTab({ prospects = [] }: { prospects?: Prospect[] }) {
               )}
             </div>
 
-            {/* Fila 2: acciones secundarias */}
-            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-            <button onClick={() => regenerarDiagnostico(selected)} disabled={regenLoading} style={{
-              display: 'flex', alignItems: 'center', gap: 6,
-              background: '#fff', color: T.navy, border: `1.5px solid ${T.cardBorder}`,
-              borderRadius: 8, padding: '9px 16px', fontSize: 13, fontWeight: 600,
-              cursor: regenLoading ? 'wait' : 'pointer', opacity: regenLoading ? 0.7 : 1,
-            }}>
-              {regenLoading ? '⏳ Generando...' : '🔄 Regenerar (PM solo)'}
-            </button>
-            {selected.status !== 'aprobada' && selected.status !== 'enviada' && (
-              <button onClick={() => editarDiagnostico(selected)} style={{
+            {/* Separador */}
+            <div style={{ borderTop: `1px solid ${T.cardBorder}` }} />
+
+            {/* Acciones secundarias + Eliminar */}
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
+              <button onClick={() => regenerarDiagnostico(selected)} disabled={regenLoading} style={{
                 display: 'flex', alignItems: 'center', gap: 6,
                 background: '#fff', color: T.navy, border: `1.5px solid ${T.cardBorder}`,
-                borderRadius: 8, padding: '9px 16px', fontSize: 13, fontWeight: 600, cursor: 'pointer',
+                borderRadius: 8, padding: '8px 14px', fontSize: 13, fontWeight: 600,
+                cursor: regenLoading ? 'wait' : 'pointer', opacity: regenLoading ? 0.7 : 1,
               }}>
-                ✏️ Editar y re-enviar
+                {regenLoading ? '⏳ Generando...' : '🔄 Regenerar (PM solo)'}
               </button>
-            )}
-            {selected.propuesta && (
-              <button onClick={() => {
-                const prev = document.title
-                document.title = `Diagnostico cliente - ${selected.business_name}`
-                window.print()
-                document.title = prev
-              }} style={{
-                display: 'flex', alignItems: 'center', gap: 6,
-                background: '#fff', color: T.navy, border: `1.5px solid ${T.cardBorder}`,
-                borderRadius: 8, padding: '9px 16px', fontSize: 13, fontWeight: 600, cursor: 'pointer',
-              }}>
-                🖨 Imprimir / PDF
-              </button>
-            )}
-            {selected.propuesta && (
-              <button onClick={() => {
-                if (!selected.public_token) { alert('Token no disponible.'); return }
-                const url = `${window.location.origin}/propuesta/${selected.public_token}`
-                navigator.clipboard.writeText(url).then(() => alert('Enlace copiado:\n' + url))
-              }} style={{
-                display: 'flex', alignItems: 'center', gap: 6,
-                background: '#fff', color: T.teal, border: `1.5px solid ${T.teal}`,
-                borderRadius: 8, padding: '9px 16px', fontSize: 13, fontWeight: 600, cursor: 'pointer',
-              }}>
-                🔗 Copiar enlace cliente
-              </button>
-            )}
-            {selected.propuesta && selected.contact_phone && (() => {
-              const raw = selected.contact_phone.replace(/\D/g, '')
-              const phone = raw.startsWith('52') ? raw : `52${raw}`
-              const url = `${window.location.origin}/propuesta/${selected.public_token}`
-              const text = encodeURIComponent(`Hola, te comparto la propuesta de devmark para tu negocio: ${url}`)
-              return (
-                <a href={`https://wa.me/${phone}?text=${text}`} target="_blank" rel="noopener noreferrer" style={{
+              {selected.status !== 'aprobada' && selected.status !== 'enviada' && (
+                <button onClick={() => editarDiagnostico(selected)} style={{
                   display: 'flex', alignItems: 'center', gap: 6,
-                  background: '#25D366', color: '#fff', border: 'none',
-                  borderRadius: 8, padding: '9px 16px', fontSize: 13, fontWeight: 600,
-                  textDecoration: 'none', cursor: 'pointer',
+                  background: '#fff', color: T.navy, border: `1.5px solid ${T.cardBorder}`,
+                  borderRadius: 8, padding: '8px 14px', fontSize: 13, fontWeight: 600, cursor: 'pointer',
                 }}>
-                  💬 Enviar por WhatsApp
-                </a>
-              )
-            })()}
-            <button onClick={() => deleteDiagnostico(selected.id)} style={{
-              display: 'flex', alignItems: 'center', gap: 6, marginLeft: 'auto',
-              background: '#FEF3F0', color: '#C05621', border: '1.5px solid #F8C4B4',
-              borderRadius: 8, padding: '9px 16px', fontSize: 13, fontWeight: 600, cursor: 'pointer',
-            }}>
-              🗑 Eliminar
-            </button>
+                  ✏️ Editar y re-enviar
+                </button>
+              )}
+              {selected.propuesta && (
+                <button onClick={() => {
+                  const prev = document.title
+                  document.title = `Propuesta - ${selected.business_name}`
+                  window.print()
+                  document.title = prev
+                }} style={{
+                  display: 'flex', alignItems: 'center', gap: 6,
+                  background: '#fff', color: T.navy, border: `1.5px solid ${T.cardBorder}`,
+                  borderRadius: 8, padding: '8px 14px', fontSize: 13, fontWeight: 600, cursor: 'pointer',
+                }}>
+                  🖨 Imprimir / PDF
+                </button>
+              )}
+              {selected.propuesta && (
+                <button onClick={() => {
+                  if (!selected.public_token) { alert('Token no disponible.'); return }
+                  const url = `${window.location.origin}/propuesta/${selected.public_token}`
+                  navigator.clipboard.writeText(url).then(() => alert('Enlace copiado:\n' + url))
+                }} style={{
+                  display: 'flex', alignItems: 'center', gap: 6,
+                  background: '#fff', color: T.teal, border: `1.5px solid ${T.teal}`,
+                  borderRadius: 8, padding: '8px 14px', fontSize: 13, fontWeight: 600, cursor: 'pointer',
+                }}>
+                  🔗 Copiar enlace cliente
+                </button>
+              )}
+              {selected.propuesta && selected.contact_phone && (() => {
+                const raw = selected.contact_phone.replace(/\D/g, '')
+                const phone = raw.startsWith('52') ? raw : `52${raw}`
+                const url = `${window.location.origin}/propuesta/${selected.public_token}`
+                const text = encodeURIComponent(`Hola, te comparto la propuesta de devmark para tu negocio: ${url}`)
+                return (
+                  <a href={`https://wa.me/${phone}?text=${text}`} target="_blank" rel="noopener noreferrer" style={{
+                    display: 'flex', alignItems: 'center', gap: 6,
+                    background: '#25D366', color: '#fff', border: 'none',
+                    borderRadius: 8, padding: '8px 14px', fontSize: 13, fontWeight: 600,
+                    textDecoration: 'none', cursor: 'pointer',
+                  }}>
+                    💬 Enviar por WhatsApp
+                  </a>
+                )
+              })()}
+              <button onClick={() => deleteDiagnostico(selected.id)} style={{
+                display: 'flex', alignItems: 'center', gap: 6, marginLeft: 'auto',
+                background: '#FEF3F0', color: '#C05621', border: '1.5px solid #F8C4B4',
+                borderRadius: 8, padding: '8px 14px', fontSize: 13, fontWeight: 600, cursor: 'pointer',
+              }}>
+                🗑 Eliminar
+              </button>
             </div>
+
             {multiError && (
               <div style={{ background: '#FEF3F0', border: '1px solid #F8C4B4', borderRadius: 8, padding: '10px 14px', fontSize: 13, color: '#C05621' }}>
                 {multiError}
