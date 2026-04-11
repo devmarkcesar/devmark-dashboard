@@ -1,5 +1,7 @@
 'use client'
 import { useState } from 'react'
+import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd'
+import type { DropResult } from '@hello-pangea/dnd'
 import { T } from './tokens'
 import { Panel, PanelTitle, StatCard } from './ui'
 import type { Prospect, PipelineStage, ProspectNote } from './types'
@@ -181,12 +183,13 @@ function ProspectForm({
 
 // ─── ProspectRow ──────────────────────────────────────────────────────────────
 function ProspectRow({
-  p, onEdit, onDelete, onAddNote, onPipelineChange,
+  p, onEdit, onDelete, onAddNote, onDeleteNote, onPipelineChange,
 }: {
   p: Prospect
   onEdit: () => void
   onDelete: () => void
   onAddNote: (content: string) => void
+  onDeleteNote: (noteId: number) => void
   onPipelineChange: (stage: PipelineStage) => void
 }) {
   const [expanded,  setExpanded]  = useState(false)
@@ -284,9 +287,14 @@ function ProspectRow({
             {p.notes.length === 0 ? (
               <p style={{ fontSize: 11, color: T.textMuted, fontStyle: 'italic' }}>Sin notas aún.</p>
             ) : p.notes.map((n: ProspectNote) => (
-              <div key={n.id} style={{ display: 'flex', gap: 8, padding: '6px 0', borderBottom: `1px solid ${T.cardBorder}` }}>
+              <div key={n.id} style={{ display: 'flex', alignItems: 'flex-start', gap: 8, padding: '6px 0', borderBottom: `1px solid ${T.cardBorder}` }}>
                 <span style={{ fontSize: 10, color: T.textMuted, whiteSpace: 'nowrap', marginTop: 1 }}>{fmtDate(n.created_at)}</span>
-                <span style={{ fontSize: 11, color: T.carbon }}>{n.content}</span>
+                <span style={{ fontSize: 11, color: T.carbon, flex: 1 }}>{n.content}</span>
+                <button
+                  onClick={e => { e.stopPropagation(); onDeleteNote(n.id) }}
+                  title="Eliminar nota"
+                  style={{ fontSize: 10, padding: '1px 5px', borderRadius: 4, border: 'none', background: 'transparent', color: T.textMuted, cursor: 'pointer', flexShrink: 0, opacity: 0.5, lineHeight: 1 }}
+                >✕</button>
               </div>
             ))}
           </div>
@@ -334,6 +342,119 @@ function ProspectRow({
 const LABEL_S: React.CSSProperties = { fontSize: 9, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', color: T.textMuted, margin: '0 0 2px' }
 const VAL_S:   React.CSSProperties = { fontSize: 12, color: T.navy, margin: 0, fontWeight: 600 }
 
+// ─── KanbanBoard ──────────────────────────────────────────────────────────────
+function KanbanBoard({
+  prospects, onPipelineChange, onEdit, onDelete,
+}: {
+  prospects: Prospect[]
+  onPipelineChange: (prospectId: number, stage: PipelineStage) => void
+  onEdit: (p: Prospect) => void
+  onDelete: (id: number) => void
+}) {
+  function onDragEnd(result: DropResult) {
+    if (!result.destination) return
+    if (result.destination.droppableId === result.source.droppableId) return
+    onPipelineChange(
+      parseInt(result.draggableId, 10),
+      result.destination.droppableId as PipelineStage,
+    )
+  }
+
+  return (
+    <DragDropContext onDragEnd={onDragEnd}>
+      <div style={{ display: 'flex', gap: 10, overflowX: 'auto', paddingBottom: 12, userSelect: 'none' }}>
+        {PIPELINE_STAGES.map(stage => {
+          const stageProspects = prospects.filter(p => p.pipeline === stage)
+          const color = PIPELINE_COLOR[stage]
+          return (
+            <div key={stage} style={{ flexShrink: 0, width: 196, display: 'flex', flexDirection: 'column' }}>
+              {/* Cabecera columna */}
+              <div style={{
+                padding: '7px 11px', borderRadius: '8px 8px 0 0',
+                background: `${color}18`, borderBottom: `2px solid ${color}44`,
+                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+              }}>
+                <span style={{ fontSize: 10, fontWeight: 700, color, textTransform: 'uppercase', letterSpacing: '0.04em' }}>{stage}</span>
+                <span style={{
+                  fontSize: 9, fontWeight: 700, color: '#fff',
+                  background: color, borderRadius: 99, padding: '1px 6px',
+                  minWidth: 18, textAlign: 'center',
+                }}>{stageProspects.length}</span>
+              </div>
+              {/* Columna droppable */}
+              <Droppable droppableId={stage}>
+                {(provided, snapshot) => (
+                  <div
+                    ref={provided.innerRef}
+                    {...provided.droppableProps}
+                    style={{
+                      flex: 1, minHeight: 80,
+                      background: snapshot.isDraggingOver ? `${color}0C` : '#F7F6F3',
+                      borderRadius: '0 0 8px 8px',
+                      padding: 7,
+                      transition: 'background 0.15s',
+                    }}
+                  >
+                    {stageProspects.map((p, index) => (
+                      <Draggable key={p.id} draggableId={String(p.id)} index={index}>
+                        {(provided, snapshot) => (
+                          <div
+                            ref={provided.innerRef}
+                            {...provided.draggableProps}
+                            {...provided.dragHandleProps}
+                            style={{
+                              ...provided.draggableProps.style,
+                              background: '#fff',
+                              border: `1px solid ${snapshot.isDragging ? color + '55' : T.cardBorder}`,
+                              borderRadius: 8,
+                              padding: '9px 11px',
+                              marginBottom: 7,
+                              boxShadow: snapshot.isDragging
+                                ? `0 6px 20px rgba(0,0,0,0.14)`
+                                : '0 1px 3px rgba(0,0,0,0.04)',
+                              cursor: snapshot.isDragging ? 'grabbing' : 'grab',
+                            }}
+                          >
+                            <p style={{ fontSize: 12, fontWeight: 700, color: T.navy, margin: 0, lineHeight: 1.3, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                              {p.business_name}
+                            </p>
+                            <p style={{ fontSize: 10, color: T.textMuted, margin: '2px 0 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                              {p.contact_name}
+                            </p>
+                            {p.quote_amount ? (
+                              <p style={{ fontSize: 11, color: T.teal, fontWeight: 700, margin: '5px 0 0' }}>{fmt$(p.quote_amount)}</p>
+                            ) : null}
+                            {p.notes.length > 0 && (
+                              <p style={{ fontSize: 9, color: T.textMuted, margin: '4px 0 0' }}>💬 {p.notes.length} nota{p.notes.length !== 1 ? 's' : ''}</p>
+                            )}
+                            <div style={{ display: 'flex', gap: 4, marginTop: 7 }}>
+                              <button
+                                onMouseDown={e => e.stopPropagation()}
+                                onClick={e => { e.stopPropagation(); onEdit(p) }}
+                                style={{ fontSize: 10, padding: '3px 8px', borderRadius: 5, border: `1px solid ${T.cardBorder}`, background: 'transparent', color: T.carbon, cursor: 'pointer', flex: 1 }}
+                              >✏ Editar</button>
+                              <button
+                                onMouseDown={e => e.stopPropagation()}
+                                onClick={e => { e.stopPropagation(); if (window.confirm(`¿Eliminar ${p.business_name}?`)) onDelete(p.id) }}
+                                style={{ fontSize: 10, padding: '3px 8px', borderRadius: 5, border: '1px solid rgba(192,86,33,0.3)', background: 'rgba(192,86,33,0.06)', color: '#C05621', cursor: 'pointer' }}
+                              >🗑</button>
+                            </div>
+                          </div>
+                        )}
+                      </Draggable>
+                    ))}
+                    {provided.placeholder}
+                  </div>
+                )}
+              </Droppable>
+            </div>
+          )
+        })}
+      </div>
+    </DragDropContext>
+  )
+}
+
 // ─── CRMTab principal ─────────────────────────────────────────────────────────
 interface CRMTabProps {
   prospects: Prospect[]
@@ -342,6 +463,7 @@ interface CRMTabProps {
 
 export function CRMTab({ prospects, onProspectsChange }: CRMTabProps) {
   const [pipelineFilter, setPipelineFilter] = useState<PipelineStage | 'Todos'>('Todos')
+  const [viewMode, setViewMode] = useState<'kanban' | 'lista'>('kanban')
   const [showForm,  setShowForm]  = useState(false)
   const [editTarget, setEditTarget] = useState<Prospect | null>(null)
   const [saving,    setSaving]    = useState(false)
@@ -421,6 +543,19 @@ export function CRMTab({ prospects, onProspectsChange }: CRMTabProps) {
     })
     if (res.ok) {
       onProspectsChange(prospects.map(p => p.id === prospectId ? { ...p, pipeline: stage } : p))
+    }
+  }
+
+  async function handleDeleteNote(prospectId: number, noteId: number) {
+    const res = await fetch(`/api/crm/prospects/${prospectId}/notes`, {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ note_id: noteId }),
+    })
+    if (res.ok) {
+      onProspectsChange(prospects.map(p =>
+        p.id === prospectId ? { ...p, notes: p.notes.filter(n => n.id !== noteId) } : p
+      ))
     }
   }
 
@@ -554,18 +689,54 @@ export function CRMTab({ prospects, onProspectsChange }: CRMTabProps) {
             <p style={{ fontSize: 13, fontWeight: 700, color: T.navy, margin: 0 }}>Prospectos CRM</p>
             <p style={{ fontSize: 11, color: T.textMuted, margin: 0 }}>{prospects.length} prospectos en total</p>
           </div>
-          <button
-            onClick={() => { setShowForm(true); setEditTarget(null) }}
-            style={{
-              marginLeft: 'auto', fontSize: 12, padding: '8px 18px', borderRadius: 8,
-              border: 'none', background: T.teal, color: '#fff', cursor: 'pointer', fontWeight: 700,
-              boxShadow: '0 2px 8px rgba(29,158,117,0.3)',
-            }}
-          >+ Nuevo prospecto</button>
+          <div style={{ marginLeft: 'auto', display: 'flex', gap: 6, alignItems: 'center' }}>
+            {(['kanban', 'lista'] as const).map(m => (
+              <button
+                key={m}
+                onClick={() => setViewMode(m)}
+                style={{
+                  fontSize: 11, padding: '6px 12px', borderRadius: 7, cursor: 'pointer', fontWeight: 600,
+                  border: viewMode === m ? `1.5px solid ${T.navy}40` : `1px solid ${T.cardBorder}`,
+                  background: viewMode === m ? `${T.navy}0E` : 'transparent',
+                  color: viewMode === m ? T.navy : T.textMuted,
+                  transition: 'all 0.12s',
+                }}
+              >{m === 'kanban' ? '🗂 Kanban' : '☰ Lista'}</button>
+            ))}
+            <button
+              onClick={() => { setShowForm(true); setEditTarget(null) }}
+              style={{
+                fontSize: 12, padding: '8px 18px', borderRadius: 8,
+                border: 'none', background: T.teal, color: '#fff', cursor: 'pointer', fontWeight: 700,
+                boxShadow: '0 2px 8px rgba(29,158,117,0.3)',
+              }}
+            >+ Nuevo prospecto</button>
+          </div>
         </div>
 
-        {/* Filtro pipeline */}
-        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 16 }}>
+        {/* Vista Kanban */}
+        {viewMode === 'kanban' && (
+          prospects.length === 0 ? (
+            <div style={{ textAlign: 'center', padding: '40px 0' }}>
+              <p style={{ fontSize: 28, marginBottom: 8 }}>💼</p>
+              <p style={{ fontSize: 13, color: T.carbon, fontWeight: 600 }}>Sin prospectos aún</p>
+              <p style={{ fontSize: 11, color: T.textMuted, marginTop: 4 }}>Agrega el primero con el botón &quot;+ Nuevo prospecto&quot;</p>
+            </div>
+          ) : (
+            <KanbanBoard
+              prospects={prospects}
+              onPipelineChange={handlePipelineChange}
+              onEdit={p => { setEditTarget(p); setShowForm(false) }}
+              onDelete={handleDelete}
+            />
+          )
+        )}
+
+        {/* Vista Lista */}
+        {viewMode === 'lista' && (
+          <>
+            {/* Filtro pipeline */}
+            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 16 }}>
           {(['Todos', ...PIPELINE_STAGES] as const).map(stage => {
             const isActive = pipelineFilter === stage
             const color = stage === 'Todos' ? T.navy : PIPELINE_COLOR[stage]
@@ -588,15 +759,15 @@ export function CRMTab({ prospects, onProspectsChange }: CRMTabProps) {
           })}
         </div>
 
-        {/* Formulario */}
-        {(showForm || editTarget) && (
-          <ProspectForm
-            initial={editInitial}
-            onSave={handleSave}
-            onCancel={() => { setShowForm(false); setEditTarget(null) }}
-            saving={saving}
-          />
-        )}
+            {/* Formulario */}
+            {(showForm || editTarget) && (
+              <ProspectForm
+                initial={editInitial}
+                onSave={handleSave}
+                onCancel={() => { setShowForm(false); setEditTarget(null) }}
+                saving={saving}
+              />
+            )}
 
         {/* Lista */}
         {visible.length === 0 ? (
@@ -616,9 +787,12 @@ export function CRMTab({ prospects, onProspectsChange }: CRMTabProps) {
             onEdit={() => { setEditTarget(p); setShowForm(false) }}
             onDelete={() => handleDelete(p.id)}
             onAddNote={(content) => handleAddNote(p.id, content)}
+            onDeleteNote={(noteId) => handleDeleteNote(p.id, noteId)}
             onPipelineChange={(stage) => handlePipelineChange(p.id, stage)}
           />
         ))}
+          </>
+        )}
       </Panel>
     </>
   )

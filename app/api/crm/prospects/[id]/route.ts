@@ -53,6 +53,9 @@ export async function PUT(
   return NextResponse.json(rows[0])
 }
 
+// Alias PATCH → PUT para compatibilidad con clientes que usen el método estándar
+export const PATCH = PUT
+
 export async function DELETE(
   _req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
