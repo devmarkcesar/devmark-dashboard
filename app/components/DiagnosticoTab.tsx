@@ -1258,15 +1258,21 @@ export function DiagnosticoTab({ prospects = [] }: { prospects?: Prospect[] }) {
                 drive_imagen_url: selected.drive_imagen_url ?? null,
               }}
               onRefresh={async () => {
-                // Recarga historial y re-selecciona el mismo diagnóstico con datos frescos
-                const res = await fetch(`/api/diagnostico/${selected.id}`)
-                if (res.ok) {
-                  const data = await res.json()
-                  const refreshed = data.diagnostico ?? data
-                  setSelected(refreshed)
-                  setHistorial(prev => prev.map(x => x.id === selected.id ? { ...x, ...refreshed } : x))
-                } else {
-                  loadHistorial()
+                // Recarga datos frescos del diagnóstico sin cambiar el step ni hacer setSelected(null)
+                try {
+                  const res = await fetch(`/api/diagnostico/${selected.id}`)
+                  if (res.ok) {
+                    const data = await res.json()
+                    const refreshed: DiagnosticoRecord | null = data.diagnostico ?? null
+                    if (refreshed && refreshed.id) {
+                      setSelected(refreshed)
+                      setHistorial(prev => prev.map(x => x.id === selected.id ? { ...x, ...refreshed } : x))
+                    }
+                    // Si refreshed es null, NO llamamos setSelected(null) — dejamos selected como está
+                  }
+                  // Si !res.ok (auth, 404, 500), NO cambiamos nada — la vista permanece
+                } catch {
+                  // Error de red: dejamos selected intacto, la vista permanece
                 }
               }}
             />

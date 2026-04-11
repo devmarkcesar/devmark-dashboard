@@ -20,7 +20,7 @@ const STATUS_INFO: Record<string, { label: string; bg: string; color: string }> 
 interface Props {
   diagnosticoId: number
   status: MVPStatus
-  onRefresh: () => void
+  onRefresh: () => Promise<void> | void
 }
 
 export function MVPStatusPanel({ diagnosticoId, status, onRefresh }: Props) {
@@ -41,7 +41,7 @@ export function MVPStatusPanel({ diagnosticoId, status, onRefresh }: Props) {
       const data = await res.json()
       if (!res.ok) { setLocalError(data.detail ?? data.error ?? 'Error generando MVP'); return }
       if (data.deploy_sh) setDeploySh(data.deploy_sh)
-      onRefresh()
+      await onRefresh()
     } catch (e: unknown) {
       setLocalError(e instanceof Error ? e.message : 'Error de red')
     } finally {
@@ -56,7 +56,7 @@ export function MVPStatusPanel({ diagnosticoId, status, onRefresh }: Props) {
       const res  = await fetch(`/api/diagnostico/${diagnosticoId}/documentos?tipo=documentacion`, { method: 'POST' })
       const data = await res.json()
       if (!res.ok) { setLocalError(data.detail ?? data.error ?? 'Error generando documentación'); return }
-      onRefresh()
+      await onRefresh()
     } catch (e: unknown) {
       setLocalError(e instanceof Error ? e.message : 'Error de red')
     } finally {
@@ -71,7 +71,7 @@ export function MVPStatusPanel({ diagnosticoId, status, onRefresh }: Props) {
       const res  = await fetch(`/api/diagnostico/${diagnosticoId}/documentos?tipo=imagen`, { method: 'POST' })
       const data = await res.json()
       if (!res.ok) { setLocalError(data.detail ?? data.error ?? 'Error generando imagen'); return }
-      onRefresh()
+      await onRefresh()
     } catch (e: unknown) {
       setLocalError(e instanceof Error ? e.message : 'Error de red')
     } finally {
