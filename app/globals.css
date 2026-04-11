@@ -330,18 +330,23 @@ body {
     margin: 0;
   }
 
-  /* ── Encabezado: flujo normal, al inicio del documento ─────────────── */
-  /* Sin position:fixed — eso lo enviaba al fondo y creaba página en blanco */
+  /* ── Encabezado: fixed top=0 → el browser lo repite en CADA página ─── */
   .print-running-header {
-    padding: 18mm 30mm 8mm 30mm;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    background: #fff;
+    padding: 14mm 30mm 6mm 30mm;
+    z-index: 1000;
   }
 
-  /* ── Cuerpo del documento: flujo natural ────────────────────────────── */
+  /* ── Cuerpo: padding-top = altura del header para que no se tape ─────── */
   .print-body {
     display: flex;
     flex-direction: column;
     gap: 12pt;
-    padding: 0 30mm 25mm 30mm;
+    padding: 44mm 30mm 20mm 30mm;
   }
 
   /* Cada bloque de contenido no se corta a la mitad de página */
