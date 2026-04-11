@@ -3,6 +3,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { T } from './tokens'
 import type { Prospect } from './types'
 import { ProspuestaView, type Propuesta } from './ProspuestaView'
+import { MVPStatusPanel } from './MVPStatusPanel'
 
 const INDUSTRIES = [
   'Restaurante / Cafetería', 'Taquería / Fonda', 'Ferretería / Tlapalería',
@@ -97,6 +98,11 @@ interface DiagnosticoRecord {
   propuesta:         Propuesta | null
   raw_output:        string
   created_at:        string
+  mvp_status:        string | null
+  mvp_staging_url:   string | null
+  mvp_drive_url:     string | null
+  drive_doc_url:     string | null
+  drive_imagen_url:  string | null
 }
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
@@ -1239,6 +1245,24 @@ export function DiagnosticoTab({ prospects = [] }: { prospects?: Prospect[] }) {
               </div>
             )}
           </div>
+
+          {/* ── MVP Status Panel (solo propuestas aprobadas) ─────────────────── */}
+          {selected.status === 'aprobada' && (
+            <MVPStatusPanel
+              diagnosticoId={selected.id}
+              status={{
+                mvp_status:       selected.mvp_status       ?? 'pendiente',
+                mvp_staging_url:  selected.mvp_staging_url  ?? null,
+                mvp_drive_url:    selected.mvp_drive_url    ?? null,
+                drive_doc_url:    selected.drive_doc_url    ?? null,
+                drive_imagen_url: selected.drive_imagen_url ?? null,
+              }}
+              onRefresh={() => {
+                setSelected(null)
+                loadHistorial()
+              }}
+            />
+          )}
 
           <div className="print-propuesta">
             {/* ── dias_estimados (solo dashboard, nunca cliente) ─────────────────── */}
