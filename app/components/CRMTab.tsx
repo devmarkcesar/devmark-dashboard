@@ -40,7 +40,7 @@ const EMPTY_FORM = {
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
-function fmt$  (n: number | null) { if (!n) return '—'; return '$' + n.toLocaleString('es-MX') }
+function fmt$  (n: number | string | null) { const v = Number(n); if (!v) return '—'; return '$' + v.toLocaleString('es-MX', { minimumFractionDigits: 0, maximumFractionDigits: 0 }) }
 function fmtDate(s: string | null) { if (!s) return '—'; return new Date(s).toLocaleDateString('es-MX', { day: '2-digit', month: 'short', year: 'numeric' }) }
 
 function startOfWeek() {
@@ -476,7 +476,7 @@ export function CRMTab({ prospects, onProspectsChange }: CRMTabProps) {
   const closeRate = closed + lost > 0 ? Math.round((closed / (closed + lost)) * 100) : 0
   const pipelineValue = prospects
     .filter(p => !['Perdido', 'Entregado'].includes(p.pipeline))
-    .reduce((s, p) => s + (p.quote_amount ?? 0), 0)
+    .reduce((s, p) => s + (Number(p.quote_amount) || 0), 0)
   const active = prospects.filter(p => p.pipeline === 'En desarrollo').length
 
   // ─── Filtro ─────────────────────────────────────────────────────────────────
