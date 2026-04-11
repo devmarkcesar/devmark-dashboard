@@ -202,7 +202,7 @@ export function ProspuestaView({ p, businessName }: { p: Propuesta; businessName
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {p.fases?.map((f, i) => (
               <div key={i} style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
-                <div style={{ background: T.teal, color: '#fff', fontSize: 10, fontWeight: 700, padding: '3px 8px', borderRadius: 6, whiteSpace: 'nowrap', flexShrink: 0 }}>Sem {f.semana}</div>
+                <div style={{ background: T.teal, color: '#fff', fontSize: 10, fontWeight: 700, padding: '3px 8px', borderRadius: 6, whiteSpace: 'nowrap', flexShrink: 0 }}>Sem {f.semana.replace(/^[Ss]em\.?\s*/i, '')}</div>
                 <p style={{ fontSize: 13, color: T.carbon, margin: 0, lineHeight: 1.5 }}>{f.descripcion}</p>
               </div>
             ))}
@@ -380,7 +380,7 @@ export function ProspuestaView({ p, businessName }: { p: Propuesta; businessName
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                 {p.fases?.map((f, i) => (
                   <div key={i} style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
-                    <div style={{ background: T.teal, color: '#fff', fontSize: 10, fontWeight: 700, padding: '3px 8px', borderRadius: 6, whiteSpace: 'nowrap', flexShrink: 0 }}>Sem {f.semana}</div>
+                    <div style={{ background: T.teal, color: '#fff', fontSize: 10, fontWeight: 700, padding: '3px 8px', borderRadius: 6, whiteSpace: 'nowrap', flexShrink: 0 }}>Sem {f.semana.replace(/^[Ss]em\.?\s*/i, '')}</div>
                     <p style={{ fontSize: 13, color: T.carbon, margin: 0, lineHeight: 1.5 }}>{f.descripcion}</p>
                   </div>
                 ))}
