@@ -1257,9 +1257,17 @@ export function DiagnosticoTab({ prospects = [] }: { prospects?: Prospect[] }) {
                 drive_doc_url:    selected.drive_doc_url    ?? null,
                 drive_imagen_url: selected.drive_imagen_url ?? null,
               }}
-              onRefresh={() => {
-                setSelected(null)
-                loadHistorial()
+              onRefresh={async () => {
+                // Recarga historial y re-selecciona el mismo diagnóstico con datos frescos
+                const res = await fetch(`/api/diagnostico/${selected.id}`)
+                if (res.ok) {
+                  const data = await res.json()
+                  const refreshed = data.diagnostico ?? data
+                  setSelected(refreshed)
+                  setHistorial(prev => prev.map(x => x.id === selected.id ? { ...x, ...refreshed } : x))
+                } else {
+                  loadHistorial()
+                }
               }}
             />
           )}
