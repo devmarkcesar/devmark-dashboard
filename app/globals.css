@@ -305,6 +305,11 @@ body {
     padding: 0;
   }
 
+  /* Wrapper del layout público /propuesta/[id] — quitar fondo crema */
+  .propuesta-layout-outer {
+    background: #fff !important;
+  }
+
   .dashboard-layout { display: block !important; }
   .main-content { padding: 0 !important; background: #fff !important; gap: 0 !important; }
 

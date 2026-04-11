@@ -1,6 +1,6 @@
 export default function PropuestaLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div style={{ background: '#F1EFE8' }}>
+    <div className="propuesta-layout-outer" style={{ background: '#F1EFE8' }}>
       {children}
     </div>
   )
