@@ -1189,12 +1189,10 @@ export function DiagnosticoTab({ prospects = [] }: { prospects?: Prospect[] }) {
                   ✏️ Editar y re-enviar
                 </button>
               )}
-              {selected.propuesta && (
+              {selected.propuesta && selected.public_token && (
                 <button onClick={() => {
-                  const prev = document.title
-                  document.title = `Propuesta - ${selected.business_name}`
-                  window.print()
-                  document.title = prev
+                  const url = `${window.location.origin}/propuesta/${selected.public_token}?print=1`
+                  window.open(url, '_blank', 'width=900,height=700')
                 }} style={{
                   display: 'flex', alignItems: 'center', gap: 6,
                   background: '#fff', color: T.navy, border: `1.5px solid ${T.cardBorder}`,

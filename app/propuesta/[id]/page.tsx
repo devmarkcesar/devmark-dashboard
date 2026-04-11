@@ -2,9 +2,11 @@ import pool from '@/lib/db'
 import { ProspuestaView, type Propuesta } from '@/app/components/ProspuestaView'
 import { PrintButton } from '@/app/propuesta/PrintButton'
 import { notFound } from 'next/navigation'
+import { AutoPrint } from '@/app/propuesta/AutoPrint'
 
 interface Props {
   params: Promise<{ id: string }>
+  searchParams: Promise<{ print?: string }>
 }
 
 const DIAS_EXPIRACION = 15
@@ -19,8 +21,9 @@ async function getDiagnostico(param: string) {
   return { ...row, propuesta: typeof row.propuesta === 'string' ? JSON.parse(row.propuesta) : row.propuesta }
 }
 
-export default async function PropuestaPublica({ params }: Props) {
+export default async function PropuestaPublica({ params, searchParams }: Props) {
   const { id } = await params
+  const { print: autoPrint } = await searchParams
 
   const diag = await getDiagnostico(id)
   if (!diag || !diag.propuesta) notFound()
@@ -59,6 +62,7 @@ export default async function PropuestaPublica({ params }: Props) {
 
   return (
     <div className="propuesta-publica-wrapper" style={{ maxWidth: 760, margin: '0 auto', padding: '24px 16px 48px' }}>
+      {autoPrint === '1' && <AutoPrint />}
       {/* Barra superior — oculta en impresión */}
       <div className="print-hide propuesta-top-bar" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', marginBottom: 24, gap: 12 }}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
