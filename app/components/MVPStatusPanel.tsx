@@ -121,7 +121,7 @@ export function MVPStatusPanel({ diagnosticoId, status, onRefresh }: Props) {
   }
 
   return (
-    <div style={panel}>
+    <div className="print-hide" style={panel}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
         <span style={{ fontSize: 13, fontWeight: 700, color: T.carbon }}>Estado MVP</span>
         <span style={badge}>{mvpInfo.label}</span>
