@@ -329,29 +329,30 @@ body {
   .propuesta-screen { display: none !important; }
   .propuesta-print  { display: block !important; }
 
-  /* Tamaño carta. margin:0 elimina la fecha, título y URL que Chrome añade */
+  /* Márgenes reales → Chrome no agrega fecha/URL cuando se imprime via iframe/print API */
   @page {
     size: letter portrait;
-    margin: 0;
+    margin: 12mm 18mm 15mm 18mm;
   }
 
-  /* ── Encabezado: fixed top=0 → el browser lo repite en CADA página ─── */
+  /* ── Encabezado: fixed top=0 → se repite en cada página ─── */
   .print-running-header {
     position: fixed;
     top: 0;
     left: 0;
     right: 0;
     background: #fff;
-    padding: 14mm 30mm 6mm 30mm;
+    padding: 8mm 0 5mm 0;
     z-index: 1000;
   }
 
-  /* ── Cuerpo: padding-top = altura del header para que no se tape ─────── */
+  /* ── Cuerpo: padding-top = altura del header ─────── */
   .print-body {
     display: flex;
     flex-direction: column;
     gap: 12pt;
-    padding: 44mm 30mm 20mm 30mm;
+    padding-top: 32mm;
+    padding-bottom: 8mm;
   }
 
   /* Cada bloque de contenido no se corta a la mitad de página */

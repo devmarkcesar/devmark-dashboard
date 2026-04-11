@@ -1192,7 +1192,16 @@ export function DiagnosticoTab({ prospects = [] }: { prospects?: Prospect[] }) {
               {selected.propuesta && selected.public_token && (
                 <button onClick={() => {
                   const url = `${window.location.origin}/propuesta/${selected.public_token}?print=1`
-                  window.open(url, '_blank', 'width=900,height=700')
+                  const iframe = document.createElement('iframe')
+                  iframe.style.cssText = 'position:fixed;right:0;bottom:0;width:0;height:0;border:none;'
+                  document.body.appendChild(iframe)
+                  iframe.onload = () => {
+                    setTimeout(() => {
+                      iframe.contentWindow?.print()
+                      setTimeout(() => document.body.removeChild(iframe), 2000)
+                    }, 900)
+                  }
+                  iframe.src = url
                 }} style={{
                   display: 'flex', alignItems: 'center', gap: 6,
                   background: '#fff', color: T.navy, border: `1.5px solid ${T.cardBorder}`,

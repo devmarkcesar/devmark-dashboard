@@ -233,12 +233,12 @@ export function ProspuestaView({ p, businessName }: { p: Propuesta; businessName
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, color: T.carbon }}><span>Subtotal (sin IVA)</span><strong>{fmt(base)}</strong></div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, color: T.carbon }}><span>IVA {ivaPct}%</span><strong>{fmt(iva)}</strong></div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 14, color: T.navy, borderTop: `1px solid ${T.cardBorder}`, paddingTop: 6 }}><span><b>Total con IVA</b></span><strong>{fmt(total)}</strong></div>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginTop: 4 }}>
-                  <div style={{ background: 'rgba(24,95,165,0.06)', borderRadius: 8, padding: '8px 12px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginTop: 4, breakInside: 'avoid', pageBreakInside: 'avoid' }}>
+                  <div style={{ background: 'rgba(24,95,165,0.06)', borderRadius: 8, padding: '8px 12px', breakInside: 'avoid', pageBreakInside: 'avoid' }}>
                     <p style={{ fontSize: 10, color: T.textMuted, margin: '0 0 2px', textTransform: 'uppercase' }}>Anticipo al iniciar (50%)</p>
                     <p style={{ fontSize: 14, fontWeight: 800, color: T.blue, margin: 0 }}>{fmt(anticipo)}</p>
                   </div>
-                  <div style={{ background: 'rgba(12,45,78,0.06)', borderRadius: 8, padding: '8px 12px' }}>
+                  <div style={{ background: 'rgba(12,45,78,0.06)', borderRadius: 8, padding: '8px 12px', breakInside: 'avoid', pageBreakInside: 'avoid' }}>
                     <p style={{ fontSize: 10, color: T.textMuted, margin: '0 0 2px', textTransform: 'uppercase' }}>Saldo al entregar (50%)</p>
                     <p style={{ fontSize: 14, fontWeight: 800, color: T.navy, margin: 0 }}>{fmt(saldo)}</p>
                   </div>
@@ -415,12 +415,12 @@ export function ProspuestaView({ p, businessName }: { p: Propuesta; businessName
                     <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: T.carbon }}><span>Subtotal (sin IVA)</span><strong>{fmt(base)}</strong></div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: T.carbon }}><span>IVA {ivaPct}%</span><strong>{fmt(iva)}</strong></div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, color: T.navy, borderTop: `1px solid ${T.cardBorder}`, paddingTop: 5 }}><span><b>Total con IVA</b></span><strong>{fmt(total)}</strong></div>
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginTop: 4 }}>
-                      <div style={{ background: 'rgba(24,95,165,0.06)', borderRadius: 8, padding: '7px 10px' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginTop: 4, breakInside: 'avoid', pageBreakInside: 'avoid' }}>
+                      <div style={{ background: 'rgba(24,95,165,0.06)', borderRadius: 8, padding: '7px 10px', breakInside: 'avoid', pageBreakInside: 'avoid' }}>
                         <p style={{ fontSize: 9, color: T.textMuted, margin: '0 0 2px', textTransform: 'uppercase' }}>Anticipo al iniciar (50%)</p>
                         <p style={{ fontSize: 13, fontWeight: 800, color: T.blue, margin: 0 }}>{fmt(anticipo)}</p>
                       </div>
-                      <div style={{ background: 'rgba(12,45,78,0.06)', borderRadius: 8, padding: '7px 10px' }}>
+                      <div style={{ background: 'rgba(12,45,78,0.06)', borderRadius: 8, padding: '7px 10px', breakInside: 'avoid', pageBreakInside: 'avoid' }}>
                         <p style={{ fontSize: 9, color: T.textMuted, margin: '0 0 2px', textTransform: 'uppercase' }}>Saldo al entregar (50%)</p>
                         <p style={{ fontSize: 13, fontWeight: 800, color: T.navy, margin: 0 }}>{fmt(saldo)}</p>
                       </div>
