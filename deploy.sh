@@ -14,14 +14,8 @@ echo "→ Compilando..."
 rm -rf .next
 npm run build
 
-echo "→ Copiando archivos estáticos al standalone..."
-rm -rf "$APP_DIR/.next/standalone/public"
-cp -r "$APP_DIR/public" "$APP_DIR/.next/standalone/public"
-cp -r "$APP_DIR/.next/static" "$APP_DIR/.next/standalone/.next/static"
-cp "$APP_DIR/.env.production" "$APP_DIR/.next/standalone/.env.production"
-
 echo "→ Actualizando nginx..."
-sudo cp "$APP_DIR/public/nginx-devmark-app.conf" /etc/nginx/sites-available/devmark-app
+sudo cp "$APP_DIR/deploy/nginx-devmark-app.conf" /etc/nginx/sites-available/devmark-app
 sudo nginx -t && sudo systemctl reload nginx
 
 echo "→ Reiniciando PM2..."
